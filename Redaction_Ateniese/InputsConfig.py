@@ -86,4 +86,74 @@ class InputsConfig:
         redactRuns = 1
         adminNode = random.randint(0, len(NODES))
         # adminNode = 50
+        
+        ''' Smart Contract Parameters '''
+        hasSmartContracts = True  # Enable smart contract functionality
+        DEPLOYED_CONTRACTS = []  # List of deployed contract addresses
+        contractDeploymentRate = 0.05  # Rate of contract deployment per block
+        
+        ''' Permission Parameters '''
+        hasPermissions = True  # Enable permissioned blockchain features
+        PERMISSION_LEVELS = {
+            "ADMIN": 100,
+            "REGULATOR": 80, 
+            "MINER": 60,
+            "USER": 40,
+            "OBSERVER": 20
+        }
+        
+        # Assign roles to nodes
+        NODE_ROLES = {}
+        num_admins = max(1, len(NODES) // 100) if len(NODES) > 0 else 1
+        num_regulators = max(1, len(NODES) // 50) if len(NODES) > 0 else 1
+        
+        # Simple role assignment without complex dependencies
+        admin_count = 0
+        regulator_count = 0
+        
+        for i, node in enumerate(NODES):
+            if admin_count < num_admins:
+                NODE_ROLES[i] = "ADMIN"
+                admin_count += 1
+            elif regulator_count < num_regulators:
+                NODE_ROLES[i] = "REGULATOR"
+                regulator_count += 1
+            elif node.hashPower > 0:
+                NODE_ROLES[i] = "MINER"
+            else:
+                NODE_ROLES[i] = random.choice(["USER", "OBSERVER"])
+        
+        ''' Privacy and Compliance Parameters '''
+        hasPrivacyLevels = True
+        dataRetentionPeriod = 86400 * 365  # 1 year in seconds
+        requireRedactionApproval = True
+        minRedactionApprovals = 2  # Minimum approvals for redaction
+        
+        ''' Smart Contract Redaction Policies '''
+        REDACTION_POLICIES = [
+            {
+                "policy_id": "GDPR_COMPLIANCE",
+                "policy_type": "DELETE",
+                "conditions": {"privacy_request": True, "data_expired": True},
+                "authorized_roles": ["ADMIN", "REGULATOR"],
+                "min_approvals": 2,
+                "time_lock": 86400  # 24 hours
+            },
+            {
+                "policy_id": "FINANCIAL_AUDIT",
+                "policy_type": "ANONYMIZE", 
+                "conditions": {"audit_required": True},
+                "authorized_roles": ["ADMIN", "REGULATOR"],
+                "min_approvals": 3,
+                "time_lock": 86400 * 7  # 7 days
+            },
+            {
+                "policy_id": "SECURITY_INCIDENT",
+                "policy_type": "MODIFY",
+                "conditions": {"security_breach": True},
+                "authorized_roles": ["ADMIN"],
+                "min_approvals": 1,
+                "time_lock": 0  # Immediate
+            }
+        ]
 

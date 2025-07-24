@@ -11,6 +11,7 @@ from Models.Bitcoin.Consensus import Consensus as c
 from Models.BlockCommit import BlockCommit as BaseBlockCommit
 from Models.Network import Network
 from Models.Transaction import LightTransaction as LT, FullTransaction as FT
+from Models.SmartContract import ContractExecutionEngine, PermissionManager, RedactionPolicy
 from Scheduler import Scheduler
 from Statistics import Statistics
 
@@ -18,6 +19,10 @@ SKlist = []
 PKlist = []
 shares = []
 rlist = []
+
+# Global instances for smart contract and permission management
+contract_engine = ContractExecutionEngine()
+permission_manager = PermissionManager()
 
 class BlockCommit(BaseBlockCommit):
     # Handling and running Events
@@ -46,6 +51,14 @@ class BlockCommit(BaseBlockCommit):
                 event.block.transactions = blockTrans
                 event.block.size = blockSize
                 event.block.usedgas = blockSize
+                
+                # Process smart contract transactions
+                if hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:
+                    BlockCommit.process_smart_contracts(event.block, miner, eventTime)
+                
+                # Process redaction requests
+                if p.hasRedact and hasattr(p, 'hasPermissions') and p.hasPermissions:
+                    BlockCommit.process_redaction_requests(event.block, miner, eventTime)
 
                 # hash the transactions and previous hash value
                 if p.hasRedact:
@@ -54,6 +67,10 @@ class BlockCommit(BaseBlockCommit):
                                    sort_keys=True).encode()
                     m = hashlib.sha256(x).hexdigest()
                     event.block.id = chameleonHash(miner.PK, m, event.block.r)
+                    
+                    # Store original hash for redaction tracking
+                    event.block.original_hash = event.block.id
+            
             miner.blockchain.append(event.block)
 
             if p.hasTrans and p.Ttechnique == "Light":
@@ -242,3 +259,145 @@ class BlockCommit(BaseBlockCommit):
         miner.redacted_tx[-1][2] = reward
         miner.redacted_tx[-1][3] = t
         return miner
+    
+    @staticmethod
+    def process_smart_contracts(block, miner, event_time):
+        """Process smart contract transactions in the block."""
+        from Models.SmartContract import SmartContract, ContractCall
+        
+        for tx in block.transactions:
+            if hasattr(tx, 'tx_type') and tx.tx_type == "CONTRACT_CALL" and tx.contract_call:
+                # Execute the smart contract call
+                success = contract_engine.execute_call(tx.contract_call, event_time)
+                if success:
+                    block.contract_calls.append(tx.contract_call)
+                    
+            elif hasattr(tx, 'tx_type') and tx.tx_type == "CONTRACT_DEPLOY":
+                # Deploy a new smart contract
+                if miner.can_perform_action("DEPLOY"):
+                    contract_address = miner.deploy_contract(
+                        f"contract_code_{tx.id}", 
+                        "GENERAL"
+                    )
+                    if contract_address:
+                        p.DEPLOYED_CONTRACTS.append(contract_address)
+                        block.smart_contracts.append(contract_address)
+    
+    @staticmethod
+    def process_redaction_requests(block, miner, event_time):
+        """Process redaction requests in the block."""
+        redaction_requests = []
+        
+        for tx in block.transactions:
+            if hasattr(tx, 'tx_type') and tx.tx_type == "REDACTION_REQUEST":
+                if miner.can_perform_action("REDACT"):
+                    request_id = miner.request_redaction(
+                        tx.metadata.get("target_block", 0),
+                        tx.metadata.get("target_tx", 0),
+                        tx.metadata.get("redaction_type", "DELETE"),
+                        tx.metadata.get("reason", "No reason provided")
+                    )
+                    if request_id:
+                        redaction_requests.append(request_id)
+        
+        # Process pending redaction votes
+        BlockCommit.process_redaction_voting(block, miner, event_time)
+        
+        return redaction_requests
+    
+    @staticmethod
+    def process_redaction_voting(block, miner, event_time):
+        """Process voting on pending redaction requests."""
+        # Check for pending redaction requests that need votes
+        for node in p.NODES:
+            for request in node.redaction_requests:
+                if request["status"] == "PENDING":
+                    # Simulate voting by other authorized nodes
+                    BlockCommit.simulate_redaction_voting(request, block, event_time)
+    
+    @staticmethod
+    def simulate_redaction_voting(request, block, event_time):
+        """Simulate voting process for redaction requests."""
+        if hasattr(p, 'NODE_ROLES'):
+            authorized_voters = [
+                node for node in p.NODES 
+                if p.NODE_ROLES.get(node.id, "USER") in ["ADMIN", "REGULATOR"]
+            ]
+            
+            votes_needed = getattr(p, 'minRedactionApprovals', 2)
+            votes_received = request.get("approvals", 0)
+            
+            # Simulate voting with 70% approval rate
+            for voter in authorized_voters[:votes_needed]:
+                if voter.id not in [r["voter"] for r in voter.redaction_approvals if r["request_id"] == request["request_id"]]:
+                    vote = random.random() < 0.7  # 70% approval rate
+                    if voter.vote_on_redaction(request["request_id"], vote, "Automated vote"):
+                        if vote:
+                            request["approvals"] += 1
+            
+            # Check if redaction is approved
+            if request["approvals"] >= votes_needed:
+                request["status"] = "APPROVED"
+                BlockCommit.execute_approved_redaction(request, block, event_time)
+            elif len(authorized_voters) - request["approvals"] < votes_needed:
+                request["status"] = "REJECTED"
+    
+    @staticmethod
+    def execute_approved_redaction(request, block, event_time):
+        """Execute an approved redaction request."""
+        target_block = request["target_block"]
+        target_tx = request["target_tx"]
+        redaction_type = request["redaction_type"]
+        requester_id = request["requester"]
+        
+        # Find the requester node
+        requester = next((node for node in p.NODES if node.id == requester_id), None)
+        if not requester or target_block >= len(requester.blockchain):
+            return False
+        
+        target_block_obj = requester.blockchain[target_block]
+        if target_tx >= len(target_block_obj.transactions):
+            return False
+        
+        # Record the redaction
+        approvers = [
+            approval["voter"] for approval in requester.redaction_approvals 
+            if approval["request_id"] == request["request_id"] and approval["vote"]
+        ]
+        
+        target_block_obj.add_redaction_record(
+            redaction_type, target_tx, requester_id, approvers
+        )
+        
+        # Perform the actual redaction
+        if redaction_type == "DELETE":
+            BlockCommit.delete_tx(requester, target_block, target_tx)
+        elif redaction_type == "MODIFY":
+            # Modify transaction to anonymize sensitive data
+            target_tx_obj = target_block_obj.transactions[target_tx]
+            target_tx_obj.value = "REDACTED"
+            target_tx_obj.metadata = {"redacted": True, "original_redacted": True}
+            BlockCommit.redact_tx(requester, target_block, target_tx, 0.001)
+        elif redaction_type == "ANONYMIZE":
+            # Anonymize transaction data
+            target_tx_obj = target_block_obj.transactions[target_tx]
+            target_tx_obj.sender = 0
+            target_tx_obj.to = 0
+            target_tx_obj.metadata = {"anonymized": True}
+            BlockCommit.redact_tx(requester, target_block, target_tx, 0.001)
+        
+        return True
+    
+    @staticmethod
+    def check_redaction_policy(transaction, redaction_type, requester_role):
+        """Check if a redaction request complies with the defined policies."""
+        if not hasattr(p, 'REDACTION_POLICIES'):
+            return True  # No policies defined, allow all
+        
+        for policy in p.REDACTION_POLICIES:
+            if policy["policy_type"] == redaction_type:
+                if requester_role in policy["authorized_roles"]:
+                    # Additional condition checks could be added here
+                    return True
+        
+        return False

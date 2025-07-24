@@ -13,10 +13,66 @@ from Models.Incentives import Incentives
 
 
 def main():
-    print("START SIMULATION >>")
+    print("START SIMULATION >> Enhanced Smart Contract & Permissioned Blockchain")
+    
+    # Initialize permissions and smart contracts
+    if hasattr(p, 'hasPermissions') and p.hasPermissions:
+        # Assign roles to nodes
+        for node in p.NODES:
+            if hasattr(p, 'NODE_ROLES') and node.id in p.NODE_ROLES:
+                node.update_role(p.NODE_ROLES[node.id])
+                print(f"Node {node.id} assigned role: {node.role}")
+    
+    # Deploy initial smart contracts
+    if hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:
+        # Deploy audit and privacy contracts
+        admin_nodes = [node for node in p.NODES if hasattr(node, 'role') and node.role == "ADMIN"]
+        if admin_nodes:
+            admin = admin_nodes[0]
+            
+            # Deploy redaction audit contract
+            audit_contract_code = """
+            contract RedactionAudit {
+                struct RedactionRecord {
+                    address requester;
+                    uint256 timestamp;
+                    string reason;
+                    bytes32 originalHash;
+                    bytes32 newHash;
+                    bool approved;
+                }
+                mapping(bytes32 => RedactionRecord) public redactions;
+                function requestRedaction(bytes32 _id, string _reason) public;
+                function approveRedaction(bytes32 _id) public;
+            }
+            """
+            audit_address = admin.deploy_contract(audit_contract_code, "AUDIT")
+            if audit_address:
+                p.DEPLOYED_CONTRACTS.append(audit_address)
+                print(f"Deployed audit contract at: {audit_address}")
+            
+            # Deploy privacy compliance contract
+            privacy_contract_code = """
+            contract DataPrivacy {
+                struct PrivacyPolicy {
+                    uint256 retentionPeriod;
+                    bool allowRedaction;
+                    address[] authorizedRedactors;
+                }
+                mapping(address => PrivacyPolicy) public policies;
+                function setPrivacyPolicy(uint256 _retention, bool _allowRedaction) public;
+                function checkRedactionPermission(address _requester) public view returns (bool);
+            }
+            """
+            privacy_address = admin.deploy_contract(privacy_contract_code, "PRIVACY")
+            if privacy_address:
+                p.DEPLOYED_CONTRACTS.append(privacy_address)
+                print(f"Deployed privacy contract at: {privacy_address}")
+    
     for i in range(p.Runs):
         t1 = time.time()
         clock = 0  # set clock to 0 at the start of the simulation
+        
         if p.hasTrans:
             if p.Ttechnique == "Light":
                 LT.create_transactions()  # generate pending transactions
@@ -52,6 +108,15 @@ def main():
 
         # calculate the simulation results (e.g., block statistics and miners' rewards)
         Statistics.calculate(t)
+        
+        # Print smart contract statistics
+        if hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:
+            print(f"Deployed contracts: {len(p.DEPLOYED_CONTRACTS)}")
+            
+        # Print redaction statistics
+        if hasattr(p, 'hasPermissions') and p.hasPermissions:
+            total_redaction_requests = sum(len(node.redaction_requests) for node in p.NODES)
+            print(f"Total redaction requests: {total_redaction_requests}")
 
         ########## reset all global variable before the next run #############
         Statistics.reset()  # reset all variables used to calculate the results
