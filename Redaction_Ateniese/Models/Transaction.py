@@ -1,8 +1,5 @@
 import random
-import sys
-
-from InputsConfig import InputsConfig as p
-import numpy as np
+import InputsConfig as p
 import Models.Network as Network
 import operator
 import copy
@@ -37,7 +34,7 @@ class Transaction(object):
                  value=0,
                  size=0.000546,
                  fee=0,
-                 tx_type="TRANSFER",
+                 tx_type="TRANSFER", # TRANSFER, CONTRACT_CALL, CONTRACT_DEPLOY, REDACTION_REQUEST
                  contract_call=None,
                  metadata=None,
                  is_redactable=True,
@@ -63,7 +60,7 @@ class LightTransaction():
         LightTransaction.pending_transactions = []
         pool = LightTransaction.pending_transactions
         Psize = int(p.Tn * p.Binterval)  # (The nbr of tx to be created per s / time (in s) creating a block)
-        Bsize =0
+        Bsize = 0  # block size in MB
         for i in range(Psize):
             # assign values for transactions' attributes. You can ignore some attributes if not of an interest, and the default values will then be used
             tx = Transaction()
@@ -73,7 +70,7 @@ class LightTransaction():
             tx.size = random.expovariate(1 / p.Tsize)
             tx.fee = random.expovariate(1 / p.Tfee)
             
-            # Determine transaction type based on probability
+            # Determine transaction type based on probability  # TODO make this a function to be reused in FullTransaction
             rand_val = random.random()
             if rand_val < 0.1 and hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:  # 10% smart contract calls
                 tx.tx_type = "CONTRACT_CALL"
@@ -85,11 +82,11 @@ class LightTransaction():
                     gas_limit=random.randint(50000, 200000)
                 )
                 tx.size *= 1.5  # Smart contract calls are larger
-            elif rand_val < 0.15 and hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:  # 5% contract deployment
+            elif rand_val < 0.15 and hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:  # 5% contract deployment (15% - 10% = 5%)
                 tx.tx_type = "CONTRACT_DEPLOY"
                 tx.size *= 3  # Contract deployment is much larger
                 tx.fee *= 2  # Higher fee for deployment
-            elif rand_val < 0.2 and p.hasRedact:  # 5% redaction requests
+            elif rand_val < 0.2 and p.hasRedact:  # 5% redaction requests (20% - 15% = 5%)
                 tx.tx_type = "REDACTION_REQUEST"
                 tx.metadata = {
                     "target_block": random.randint(1, 10),
@@ -97,10 +94,10 @@ class LightTransaction():
                     "redaction_type": random.choice(["DELETE", "MODIFY", "ANONYMIZE"]),
                     "reason": "Privacy compliance"
                 }
-            else:  # 80% regular transfers
+            else:  # 80% regular transfers (100% - 20% = 80%)
                 tx.tx_type = "TRANSFER"
             
-            # Set privacy level
+            # Set privacy level  # TODO make this a function to be reused in FullTransaction
             privacy_rand = random.random()
             if privacy_rand < 0.7:
                 tx.privacy_level = "PUBLIC"
@@ -110,7 +107,7 @@ class LightTransaction():
                 tx.privacy_level = "CONFIDENTIAL"
                 tx.is_redactable = True  # Confidential transactions are always redactable
             
-            pool += [tx]
+            pool += [tx]  # add to pending transactions pool
             Bsize += tx.size
         random.shuffle(pool)
 
@@ -193,7 +190,7 @@ class FullTransaction():
                 tx.is_redactable = True
 
             sender.transactionsPool.append(tx)
-            FullTransaction.transaction_prop(tx)
+            FullTransaction.transaction_prop(tx)  # propogate transaction to other nodes
 
     # Transaction propogation & preparing pending lists for miners
     def transaction_prop(tx):

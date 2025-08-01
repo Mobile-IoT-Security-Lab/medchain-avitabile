@@ -1,6 +1,4 @@
-from Models.Block import Block
 from Models.Node import Node as BaseNode
-from Models.SmartContract import PermissionManager, ContractExecutionEngine
 from CH.ChameleonHash import PK, SK, p, q, g
 import time
 import uuid
@@ -8,15 +6,15 @@ import uuid
 
 class Node(BaseNode):
     def __init__(self, id, hashPower):
-        '''Initialize a new enhanced node with smart contract and permission support.'''
+        '''Initialize a new enhanced node with smart contract and permission support, and hashrate measured in hashes per second.'''
         super().__init__(id)  # ,blockchain,transactionsPool,blocks,balance)
         self.hashPower = hashPower
         self.blockchain = []  # create an array for each miner to store chain state locally
         self.transactionsPool = []
         self.blocks = 0  # total number of blocks mined in the main chain
         self.balance = 0  # to count all reward that a miner made, including block rewards + transactions fees
-        self.PK = PK
-        self.SK = SK
+        self.PK = PK  # Public Key for chameleon hash
+        self.SK = SK  # Secret Key for chameleon hash
         
         # Enhanced features for smart contracts and permissions
         self.role = "USER"  # Default role, will be updated from InputsConfig
@@ -43,7 +41,7 @@ class Node(BaseNode):
         if hasattr(p, 'PERMISSION_LEVELS') and role in p.PERMISSION_LEVELS:
             self.permissions = self._get_role_permissions(role)
     
-    def _get_role_permissions(self, role: str) -> list:
+    def _get_role_permissions(self, role: str) -> list:  # private method
         """Get permissions for a given role."""
         role_permissions = {
             "ADMIN": ["READ", "WRITE", "DEPLOY", "REDACT", "APPROVE", "AUDIT"],
@@ -71,7 +69,7 @@ class Node(BaseNode):
             address=hashlib.sha256(f"{self.id}{contract_code}{random.random()}".encode()).hexdigest()[:40],
             code=contract_code,
             owner=str(self.id),
-            is_redactable=(contract_type != "AUDIT")
+            is_redactable=(contract_type != "AUDIT")  # Audit contracts are not redactable
         )
         
         self.deployed_contracts.append(contract.address)
@@ -108,7 +106,7 @@ class Node(BaseNode):
             return False  # Already voted
         
         self.voted_redactions.add(request_id)
-        self.redaction_votes[request_id] = vote
+        self.redaction_votes[request_id] = vote  # 1 vote per request for each node
         
         approval_record = {
             "request_id": request_id,

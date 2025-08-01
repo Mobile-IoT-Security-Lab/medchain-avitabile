@@ -5,13 +5,13 @@ import time
 import CH.ChameleonHash as ch
 import CH.SecretSharing as ss
 
-from CH.ChameleonHash import q, g, SK, PK, KeyGen, forge, forgeSplit, chameleonHash, chameleonHashSplit
+from CH.ChameleonHash import q, g, SK, PK, KeyGen, forge, chameleonHash
 from InputsConfig import InputsConfig as p
 from Models.Bitcoin.Consensus import Consensus as c
 from Models.BlockCommit import BlockCommit as BaseBlockCommit
 from Models.Network import Network
 from Models.Transaction import LightTransaction as LT, FullTransaction as FT
-from Models.SmartContract import ContractExecutionEngine, PermissionManager, RedactionPolicy
+from Models.SmartContract import ContractExecutionEngine, PermissionManager
 from Scheduler import Scheduler
 from Statistics import Statistics
 
@@ -318,29 +318,34 @@ class BlockCommit(BaseBlockCommit):
     @staticmethod
     def simulate_redaction_voting(request, block, event_time):
         """Simulate voting process for redaction requests."""
-        if hasattr(p, 'NODE_ROLES'):
-            authorized_voters = [
-                node for node in p.NODES 
-                if p.NODE_ROLES.get(node.id, "USER") in ["ADMIN", "REGULATOR"]
-            ]
-            
-            votes_needed = getattr(p, 'minRedactionApprovals', 2)
-            votes_received = request.get("approvals", 0)
-            
-            # Simulate voting with 70% approval rate
-            for voter in authorized_voters[:votes_needed]:
-                if voter.id not in [r["voter"] for r in voter.redaction_approvals if r["request_id"] == request["request_id"]]:
-                    vote = random.random() < 0.7  # 70% approval rate
-                    if voter.vote_on_redaction(request["request_id"], vote, "Automated vote"):
-                        if vote:
-                            request["approvals"] += 1
-            
-            # Check if redaction is approved
-            if request["approvals"] >= votes_needed:
-                request["status"] = "APPROVED"
-                BlockCommit.execute_approved_redaction(request, block, event_time)
-            elif len(authorized_voters) - request["approvals"] < votes_needed:
-                request["status"] = "REJECTED"
+        if not hasattr(p, 'NODE_ROLES'):
+            return # No roles defined, skip voting
+        
+        authorized_voters = [
+            node for node in p.NODES 
+            if p.NODE_ROLES.get(node.id, "USER") in ["ADMIN", "REGULATOR"]
+        ]
+        
+        votes_needed = getattr(p, 'minRedactionApprovals', 2)
+        votes_received = request.get("approvals", 0)
+        
+        # Simulate voting with 70% approval rate
+        rv = random.randint(votes_needed, len(authorized_voters)-1)  # random number of voters between the quorum (votes_needed) and the total of authorized voters
+
+        for voter in authorized_voters[:rv]:
+            if voter.id not in [r["voter"] for r in voter.redaction_approvals if r["request_id"] == request["request_id"]]:
+                vote = random.random() < 0.7  # 70% approval rate
+                if voter.vote_on_redaction(request["request_id"], vote, "Automated vote"):
+                    if vote:
+                        request["approvals"] += 1
+        
+        # Check if redaction is approved
+        if request["approvals"] >= votes_needed:
+            request["status"] = "APPROVED"
+            BlockCommit.execute_approved_redaction(request, block, event_time)
+        elif len(authorized_voters) - request["approvals"] < votes_needed:  # if there aren't enough votes left to reach the quorum, mark as rejected in order to save the next voting simulation
+            request["status"] = "REJECTED"
+        # else: the request remains "pending"
     
     @staticmethod
     def execute_approved_redaction(request, block, event_time):
@@ -351,8 +356,8 @@ class BlockCommit(BaseBlockCommit):
         requester_id = request["requester"]
         
         # Find the requester node
-        requester = next((node for node in p.NODES if node.id == requester_id), None)
-        if not requester or target_block >= len(requester.blockchain):
+        requester = next((node for node in p.NODES if node.id == requester_id), None)  # next() is used to find the first matching node inside the generator
+        if not requester or target_block >= len(requester.blockchain):  # if target_block is out of range
             return False
         
         target_block_obj = requester.blockchain[target_block]
@@ -364,7 +369,6 @@ class BlockCommit(BaseBlockCommit):
             approval["voter"] for approval in requester.redaction_approvals 
             if approval["request_id"] == request["request_id"] and approval["vote"]
         ]
-        
         target_block_obj.add_redaction_record(
             redaction_type, target_tx, requester_id, approvers
         )
@@ -389,7 +393,7 @@ class BlockCommit(BaseBlockCommit):
         return True
     
     @staticmethod
-    def check_redaction_policy(transaction, redaction_type, requester_role):
+    def check_redaction_policy(redaction_type, requester_role):
         """Check if a redaction request complies with the defined policies."""
         if not hasattr(p, 'REDACTION_POLICIES'):
             return True  # No policies defined, allow all

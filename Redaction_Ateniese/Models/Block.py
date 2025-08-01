@@ -1,3 +1,5 @@
+import time
+
 class Block(object):
     """ Defines the enhanced Block model with smart contract support.
 
@@ -38,7 +40,7 @@ class Block(object):
         self.miner = miner
         self.transactions = transactions or []
         self.size = size
-        self.r = r
+        self.r = r  # Randomness for chameleon hash
         self.smart_contracts = smart_contracts or []
         self.contract_calls = contract_calls or []
         self.redaction_metadata = redaction_metadata or {}
@@ -52,7 +54,6 @@ class Block(object):
         
     def add_redaction_record(self, redaction_type: str, target_tx: int, requester: int, approvers: list):
         """Add a record of redaction performed on this block."""
-        import time
         redaction_record = {
             "timestamp": time.time(),
             "type": redaction_type,

@@ -1,9 +1,7 @@
 from InputsConfig import InputsConfig as p
 from Models.Consensus import Consensus as c
-from Models.Incentives import Incentives
 import pandas as pd
-import os
-from openpyxl import load_workbook
+import time
 
 
 class Statistics:
@@ -107,7 +105,7 @@ class Statistics:
             for request in node.redaction_requests:
                 if request["status"] == "APPROVED":
                     Statistics.redactionApprovals += 1
-                    redaction_type = request.get("redaction_type", "DELETE")
+                    redaction_type = request.get("redaction_type", "DELETE")  # Default to DELETE if not specified
                     if redaction_type in Statistics.redactionsByType:
                         Statistics.redactionsByType[redaction_type] += 1
                     
@@ -123,7 +121,6 @@ class Statistics:
         
         # Calculate average redaction time
         if Statistics.redactionTimestamps:
-            import time
             current_time = time.time()
             redaction_times = [current_time - ts for ts in Statistics.redactionTimestamps]
             Statistics.averageRedactionTime = sum(redaction_times) / len(redaction_times)

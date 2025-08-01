@@ -1,6 +1,5 @@
 from InputsConfig import InputsConfig as p
-from Event import Event, Queue
-from Scheduler import Scheduler
+from Event import Queue
 from Statistics import Statistics
 import time
 from Models.Bitcoin.BlockCommit import BlockCommit
