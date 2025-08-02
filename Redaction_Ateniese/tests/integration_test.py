@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integration Test for Enhanced Redactable Blockchain
+Integration Test for Improved Redactable Blockchain
 This test simulates a realistic blockchain scenario with:
 - Multiple nodes with different roles
 - Smart contract deployment and interaction
@@ -12,7 +12,7 @@ import sys
 import os
 import time
 import random
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from InputsConfig import InputsConfig as p
 from Models.SmartContract import SmartContract, ContractCall
@@ -22,8 +22,8 @@ from Models.Block import Block
 
 
 def simulate_realistic_blockchain_scenario():
-    """Simulate a realistic blockchain scenario with enhanced features."""
-    print("Enhanced Redactable Blockchain - Realistic Integration Test")
+    """Simulate a realistic blockchain scenario with improved features."""
+    print("Improved Redactable Blockchain - Realistic Integration Test")
     print("=" * 65)
     
     # Phase 1: Network Setup
@@ -336,7 +336,7 @@ def simulate_realistic_blockchain_scenario():
     print(f"  - {len(regulator.redaction_requests)} redaction requests")
     print(f"  - {sum(len(node.redaction_approvals) for node in [admin, regulator, regulator2])} approvals processed")
     
-    print("\n🎉 All enhanced blockchain features are working correctly!")
+    print("\n🎉 All improved blockchain features are working correctly!")
     print("The system successfully demonstrates:")
     print("  • Role-based access control")
     print("  • Smart contract deployment and execution")

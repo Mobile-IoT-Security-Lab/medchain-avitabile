@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Suite for Enhanced Redactable Blockchain
-This test suite provides thorough testing of all enhanced features including:
+Comprehensive Test Suite for Improved Redactable Blockchain
+This test suite provides thorough testing of all improved features including:
 - Smart contract deployment and execution
 - Permission-based access control
 - Redaction request workflow
@@ -15,7 +15,7 @@ import os
 import unittest
 import time
 import json
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from InputsConfig import InputsConfig as p
 from Models.SmartContract import SmartContract, ContractCall, RedactionPolicy, PermissionManager
@@ -25,7 +25,7 @@ from Models.Block import Block
 
 
 class TestEnhancedBlockchain(unittest.TestCase):
-    """Comprehensive test cases for enhanced blockchain features."""
+    """Comprehensive test cases for improved blockchain features."""
     
     def setUp(self):
         """Set up test environment before each test."""
@@ -231,8 +231,8 @@ class TestEnhancedBlockchain(unittest.TestCase):
         print("✓ Complete redaction workflow working correctly")
     
     def test_enhanced_block_features(self):
-        """Test enhanced block features including redaction capabilities."""
-        print("\n=== Testing Enhanced Block Features ===")
+        """Test improved block features including redaction capabilities."""
+        print("\n=== Testing Improved Block Features ===")
         
         # Create block with different transaction types
         block = Block(
@@ -302,7 +302,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         audit_block = Block(depth=5, block_type="AUDIT")
         self.assertFalse(audit_block.is_redactable(), "Audit block should not be redactable")
         
-        print("✓ Enhanced block features working correctly")
+        print("✓ Improved block features working correctly")
     
     def test_policy_compliance_system(self):
         """Test redaction policy compliance checking."""
@@ -454,7 +454,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
 
 def run_comprehensive_tests():
     """Run all comprehensive tests with detailed output."""
-    print("Enhanced Redactable Blockchain - Comprehensive Test Suite")
+    print("Improved Redactable Blockchain - Comprehensive Test Suite")
     print("=" * 60)
     
     # Create test suite
@@ -510,7 +510,7 @@ def run_comprehensive_tests():
             print(f"  - {test}: {error_msg}")
     
     if result.wasSuccessful():
-        print("\n🎉 ALL TESTS PASSED! The enhanced blockchain features are working correctly.")
+        print("\n🎉 ALL TESTS PASSED! The improved blockchain features are working correctly.")
     else:
         print(f"\n⚠️  {len(result.failures + result.errors)} test(s) failed. Please review the issues above.")
     

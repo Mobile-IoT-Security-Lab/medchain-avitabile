@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Performance Test Suite for Enhanced Redactable Blockchain
-This test suite evaluates the performance of enhanced features under load:
+Performance Test Suite for Improved Redactable Blockchain
+This test suite evaluates the performance of improved features under load:
 - Smart contract deployment at scale
 - Transaction processing with different types
 - Redaction request handling
@@ -13,7 +13,7 @@ import os
 import time
 import statistics
 import random
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from InputsConfig import InputsConfig as p
 from Models.SmartContract import SmartContract, ContractCall
@@ -23,7 +23,7 @@ from Models.Block import Block
 
 
 class PerformanceTestSuite:
-    """Performance testing for enhanced blockchain features."""
+    """Performance testing for improved blockchain features."""
     
     def __init__(self):
         self.results = {}
@@ -372,7 +372,7 @@ class PerformanceTestSuite:
     
     def run_all_performance_tests(self):
         """Run all performance tests."""
-        print("Enhanced Redactable Blockchain - Performance Test Suite")
+        print("Improved Redactable Blockchain - Performance Test Suite")
         print("=" * 60)
         
         start_time = time.time()

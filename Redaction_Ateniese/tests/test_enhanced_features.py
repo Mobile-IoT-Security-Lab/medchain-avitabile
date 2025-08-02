@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Test script for the Enhanced Redactable Blockchain with Smart Contract Support
+Test script for the Improved Redactable Blockchain with Smart Contract Support
 Demonstrates key features of the smart contract and permissioned redaction system.
 """
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from InputsConfig import InputsConfig as p
 from Models.SmartContract import SmartContract, ContractCall, RedactionPolicy, PermissionManager
@@ -104,8 +104,8 @@ def test_redaction_workflow():
     print()
 
 def test_enhanced_transactions():
-    """Test enhanced transaction types."""
-    print("=== Testing Enhanced Transaction Types ===")
+    """Test improved transaction types."""
+    print("=== Testing Improved Transaction Types ===")
     
     # Create different types of transactions
     
@@ -157,10 +157,10 @@ def test_enhanced_transactions():
     print()
 
 def test_enhanced_block():
-    """Test enhanced block with smart contract and redaction features."""
-    print("=== Testing Enhanced Block Features ===")
+    """Test improved block with smart contract and redaction features."""
+    print("=== Testing Improved Block Features ===")
     
-    # Create an enhanced block
+    # Create an improved block
     block = Block(
         depth=1,
         id=12345,
@@ -228,7 +228,7 @@ def test_redaction_policies():
 
 def run_all_tests():
     """Run all test functions."""
-    print("Enhanced Redactable Blockchain Test Suite")
+    print("Improved Redactable Blockchain Test Suite")
     print("=" * 50)
     print()
     
