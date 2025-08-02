@@ -1,5 +1,5 @@
 import random
-import InputsConfig as p
+from InputsConfig import InputsConfig as p
 import Models.Network as Network
 import operator
 import copy

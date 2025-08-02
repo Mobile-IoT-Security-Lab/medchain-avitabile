@@ -14,6 +14,11 @@ from Models.Incentives import Incentives
 def main():
     print("START SIMULATION >> Improved Smart Contract & Permissioned Blockchain")
     
+    # Initialize configuration if not already initialized
+    if not hasattr(p, 'NODES') or not p.NODES:
+        print("Configuration not initialized. Initializing with default settings...")
+        p.initialize()
+    
     # Initialize permissions and smart contracts
     if hasattr(p, 'hasPermissions') and p.hasPermissions:
         # Assign roles to nodes
