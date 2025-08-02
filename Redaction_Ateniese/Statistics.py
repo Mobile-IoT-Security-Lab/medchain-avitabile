@@ -22,7 +22,7 @@ class Statistics:
     allRedactRuns = []
     round = 0
     
-    # Enhanced statistics for smart contracts and permissions
+    # Improved statistics for smart contracts and permissions
     smartContractData = []
     contractCalls = 0
     contractDeployments = 0
@@ -303,7 +303,7 @@ class Statistics:
         Statistics.staleRate = 0
         Statistics.blockData = []
         
-        # Reset enhanced statistics
+        # Reset improved statistics
         Statistics.smartContractData = []
         Statistics.contractCalls = 0
         Statistics.contractDeployments = 0

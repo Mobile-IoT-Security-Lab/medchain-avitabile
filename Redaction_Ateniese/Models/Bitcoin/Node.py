@@ -6,7 +6,7 @@ import uuid
 
 class Node(BaseNode):
     def __init__(self, id, hashPower):
-        '''Initialize a new enhanced node with smart contract and permission support, and hashrate measured in hashes per second.'''
+        '''Initialize a new improved node with smart contract and permission support, and hashrate measured in hashes per second.'''
         super().__init__(id)  # ,blockchain,transactionsPool,blocks,balance)
         self.hashPower = hashPower
         self.blockchain = []  # create an array for each miner to store chain state locally
@@ -16,7 +16,7 @@ class Node(BaseNode):
         self.PK = PK  # Public Key for chameleon hash
         self.SK = SK  # Secret Key for chameleon hash
         
-        # Enhanced features for smart contracts and permissions
+        # Improved features for smart contracts and permissions
         self.role = "USER"  # Default role, will be updated from InputsConfig
         self.permissions = []
         self.deployed_contracts = []  # Contracts deployed by this node

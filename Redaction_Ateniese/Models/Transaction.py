@@ -7,7 +7,7 @@ from Models.SmartContract import ContractCall
 
 
 class Transaction(object):
-    """ Defines the Enhanced Transaction model for Smart Contract support.
+    """ Defines the Improved Transaction model for Smart Contract support.
 
     :param int id: the uinque id or the hash of the transaction
     :param int timestamp: the time when the transaction is created. In case of Full technique, this will be array of two value (transaction creation time and receiving time)
@@ -152,7 +152,7 @@ class FullTransaction():
             tx.size = random.expovariate(1 / p.Tsize)
             tx.fee = random.expovariate(1 / p.Tfee)
             
-            # Enhanced transaction types for smart contracts
+            # Improved transaction types for smart contracts
             rand_val = random.random()
             if rand_val < 0.1 and hasattr(p, 'hasSmartContracts') and p.hasSmartContracts:
                 tx.tx_type = "CONTRACT_CALL"

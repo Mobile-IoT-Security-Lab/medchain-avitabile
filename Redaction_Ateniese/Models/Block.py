@@ -1,7 +1,7 @@
 import time
 
 class Block(object):
-    """ Defines the enhanced Block model with smart contract support.
+    """ Defines the improved Block model with smart contract support.
 
     :param int depth: the index of the block in the local blockchain ledger (0 for genesis block)
     :param int id: the uinque id or the hash of the block

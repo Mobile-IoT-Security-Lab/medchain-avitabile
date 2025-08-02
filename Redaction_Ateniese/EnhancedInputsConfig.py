@@ -2,21 +2,21 @@ import random
 
 class EnhancedInputsConfig:
     """
-    Enhanced configuration for smart contract and permissioned blockchain testing.
+    Improved configuration for smart contract and permissioned blockchain testing.
     This configuration is optimized for demonstrating the new features.
     """
     
     # Model selection
     model = 1  # Bitcoin model with enhancements
     
-    # Enhanced Block Parameters
+    # Improved Block Parameters
     Binterval = 300  # Faster block creation for testing (5 minutes)
     Bsize = 2.0  # Larger blocks to accommodate smart contracts
     Bdelay = 0.42
     Breward = 12.5
     Rreward = 0.05  # Higher redaction rewards
     
-    # Enhanced Transaction Parameters
+    # Improved Transaction Parameters
     hasTrans = True
     Ttechnique = "Light"
     Tn = 10  # Higher transaction rate for testing
@@ -24,13 +24,13 @@ class EnhancedInputsConfig:
     Tfee = 0.002  # Higher fees for smart contract operations
     Tsize = 0.001  # Larger transaction size for smart contracts
     
-    # Enhanced Node Parameters for Testing
+    # Improved Node Parameters for Testing
     NUM_NODES = 50  # Smaller network for faster testing
     NODES = []
     MINERS_PORTION = 0.4  # Higher miner percentage
     MAX_HASH_POWER = 100
     
-    # Create enhanced node structure
+    # Create improved node structure
     from Models.Bitcoin.Node import Node
     num_miners = int(NUM_NODES * MINERS_PORTION)
     
@@ -43,23 +43,23 @@ class EnhancedInputsConfig:
     for i in range(num_miners, NUM_NODES):
         NODES.append(Node(id=i, hashPower=0))
     
-    # Enhanced Simulation Parameters
+    # Improved Simulation Parameters
     simTime = 10000  # Shorter simulation for testing
     Runs = 1
     
-    # Enhanced Redaction Parameters
+    # Improved Redaction Parameters
     hasRedact = True
     hasMulti = True
     redactRuns = 5  # More redaction operations for testing
     adminNode = 0  # First node is admin
     
-    # Smart Contract Parameters (Enhanced)
+    # Smart Contract Parameters (Improved)
     hasSmartContracts = True
     DEPLOYED_CONTRACTS = []
     contractDeploymentRate = 0.1  # Higher deployment rate for testing
     maxContractsPerBlock = 2
     
-    # Permission Parameters (Enhanced)
+    # Permission Parameters (Improved)
     hasPermissions = True
     PERMISSION_LEVELS = {
         "ADMIN": 100,
@@ -69,7 +69,7 @@ class EnhancedInputsConfig:
         "OBSERVER": 20
     }
     
-    # Enhanced role assignment for testing
+    # Improved role assignment for testing
     NODE_ROLES = {}
     
     # Assign specific roles for testing
@@ -88,14 +88,14 @@ class EnhancedInputsConfig:
             NODE_ROLES[i] = random.choice(["USER", "OBSERVER"])
         role_assignment_count += 1
     
-    # Privacy and Compliance Parameters (Enhanced)
+    # Privacy and Compliance Parameters (Improved)
     hasPrivacyLevels = True
     dataRetentionPeriod = 86400 * 7  # 1 week for testing
     requireRedactionApproval = True
     minRedactionApprovals = 2
     redactionTimeLimit = 3600  # 1 hour for testing
     
-    # Enhanced Smart Contract Redaction Policies
+    # Improved Smart Contract Redaction Policies
     REDACTION_POLICIES = [
         {
             "policy_id": "TEST_GDPR_COMPLIANCE",
@@ -160,7 +160,7 @@ class EnhancedInputsConfig:
         "CONFIDENTIAL": 0.20   # 20% confidential transactions
     }
     
-    print(f"Enhanced Configuration Loaded:")
+    print(f"Improved Configuration Loaded:")
     print(f"  Nodes: {NUM_NODES} ({num_miners} miners, {NUM_NODES - num_miners} regular)")
     print(f"  Roles: {admin_count} admins, {regulator_count} regulators")
     print(f"  Smart Contracts: {'Enabled' if hasSmartContracts else 'Disabled'}")

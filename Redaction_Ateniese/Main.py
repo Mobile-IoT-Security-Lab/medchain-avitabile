@@ -12,7 +12,7 @@ from Models.Incentives import Incentives
 
 
 def main():
-    print("START SIMULATION >> Enhanced Smart Contract & Permissioned Blockchain")
+    print("START SIMULATION >> Improved Smart Contract & Permissioned Blockchain")
     
     # Initialize permissions and smart contracts
     if hasattr(p, 'hasPermissions') and p.hasPermissions:
