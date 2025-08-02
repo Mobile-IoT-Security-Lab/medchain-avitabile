@@ -2,3 +2,4 @@ papers/
 **pycache/**
 .vscode/
 *.pyc
+.pytest_cache/
