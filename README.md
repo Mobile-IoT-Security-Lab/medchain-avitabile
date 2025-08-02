@@ -1,38 +1,122 @@
-# Redactable-blockchains
+# MedChain Project
+
+This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation. In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
+
+## todos
+
+- [x] finish README.md
+- [ ] Add more tests
+- [ ] Add more documentation
+- [ ] Create a Fake Dataset of Medical Data of Patients
+- [ ] Upload the Dataset to IPFS
+- [ ] Create a Demo Script that:
+  - [ ] Using a Blockchain that Links to the IPFS Hash of or ID the Dataset
+  - [ ] Allows Users to Query the Dataset
+  - [ ] Allow Patients Right to be Forgotten
+  - [ ] Redact the Blockchain Record
+  - [ ] Redact the IPFS Record
+  ...
 
 ## Overview
 
-This project focuses on the implementation and evaluation of redactable blockchain systems. Redactable blockchains allow for the modification and removal of specific data from the blockchain while preserving the integrity and security of the overall system. The project comprises three repositories, BlockSim_Ateniese, BlockSim_Deuber, and BlockSim_Puddu. Each repository contains the implementation of a pioneer solution among the redaction approaches:  chameleon hash-based, voting-based and mutation redaction. By reproducing and comparing the results, as well as conducting new experiments, researchers can further study and analyze different redactable blockchain systems.
+This original benchmarks focused on the implementation and evaluation of 3 redactable blockchain systems:
 
-## How to Run the Project?
+- **Redaction_Ateniese**: Chameleon hash-based redaction with improved smart contract support
+- **Redaction_Deuber**: Voting-based redaction approach
+- **Redaction_Puddu**: Mutation-based redaction (μchain approach)
 
-1. I would recommend [PyCharm](https://www.jetbrains.com/pycharm/) as the *IDE* to run the code.
-2. Once you have cloned or downloaded the project, open it with PyCharm.
+I have improved the **Redaction_Ateniese** implementation to support smart contracts, getting inspiration from the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains".
 
-   ```bash
-   git clone
-   ```
+## Improved Redaction_Ateniese Features
 
-3. In an `import` statement of a Python file, click a package which is not yet imported. You can also run the following code to install the packages. [See details](https://www.jetbrains.com/help/pycharm/managing-dependencies.html#apply_dependencies)
+- **Smart Contract Support**: Full lifecycle management with deployment, execution, and state management for audit, privacy compliance, and general-purpose contracts
+- **Role-Based Access Control**: Five permission levels from OBSERVER (read-only) to ADMIN (full system control) with specific capabilities for each role
+- **Advanced Redaction Types**: DELETE (complete removal), MODIFY (selective editing), and ANONYMIZE (privacy protection) with multi-signature approval workflows
+- **Privacy & Compliance**: Built-in GDPR, HIPAA, and SOX compliance with configurable data retention policies and automated privacy level enforcement
+- **Transaction Distribution**: Optimized mix of transfers (80%), contract calls (10%), deployments (5%), and redaction requests (5%)
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+## Getting Started
 
-4. Configure the Python interpreter in PyCharm. [See details](https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html)
-5. Explore the modules and packages:
-   - Adjust the input parameters in the InputConfig.py file.
-   - Configure the results and statistical parameters in Statistics.py.
-   - The Models module contains the implementation of the redactable blockchain.
-6. Run the Main.py to start the simulation.
-7. Try with different input parameters and see how the results change.
+```bash
+# Clone the repository
+git clone [repository-url]
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the implementation
+python Main.py
+```
 
 ## Experimental Framework
 
 The simulations in this project are conducted using the [BlockSim simulator](https://github.com/maher243/BlockSim). BlockSim is an open-source simulator specifically designed for blockchain systems. It provides intuitive simulation constructs and allows for customization to support multiple blockchain design and deployment scenarios.
 
+### Improved Framework Features (Redaction_Ateniese)
+
+The improved implementation extends BlockSim with:
+
+- **Smart Contract Execution Engine**: Simulated smart contract deployment and execution
+- **Permission Management System**: Role-based access control simulation
+- **Privacy Policy Enforcement**: Automated privacy compliance checking
+- **Multi-Signature Governance**: Simulated approval workflows for redaction requests
+- **Performance Monitoring**: Advanced metrics collection and analysis
+
+## Configuration Examples
+
+### Basic Configuration (All Implementations)
+
+```python
+# InputsConfig.py
+Nodes = 20                    # Number of nodes
+Tn = 5                       # Transactions per second
+Binterval = 10               # Block interval in seconds
+hasRedact = True             # Enable redaction
+redactionProbability = 0.1   # 10% of blocks may be redacted
+```
+
+### Improved Configuration (Redaction_Ateniese)
+
+```python
+# EnhancedInputsConfig.py
+hasSmartContracts = True             # Enable smart contracts
+hasPermissions = True                # Enable role-based permissions
+hasPrivacyLevels = True              # Enable privacy classification
+requireRedactionApproval = True      # Require multi-sig approvals
+minRedactionApprovals = 2            # Minimum required approvals
+
+# Smart contract parameters
+contractDeploymentRate = 0.05        # 5% of transactions are deployments
+contractCallRate = 0.10              # 10% are contract calls
+
+# Privacy and compliance
+dataRetentionPeriod = 86400 * 365    # 1 year retention period
+privacyComplianceMode = "GDPR"       # Compliance framework
+
+# Node role assignments
+NODE_ROLES = {
+    1: "ADMIN",      # System administrator
+    2: "REGULATOR",  # Compliance officer
+    3: "MINER",      # Block producer
+    4: "USER"        # Regular participant
+}
+
+# Redaction policies
+REDACTION_POLICIES = [
+    {
+        "policy_id": "GDPR_COMPLIANCE",
+        "policy_type": "DELETE",
+        "authorized_roles": ["ADMIN", "REGULATOR"],
+        "min_approvals": 2,
+        "time_lock": 86400
+    }
+]
+```
+
 ## References
 
+- Gennaro Avitabile, Vincenzo Botta, Daniele Friolo and Ivan Visconti "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains"
 - [Deuber, D., Magri, B., & Thyagarajan, S. A. K. (2019, May). Redactable blockchain in the permissionless setting. In 2019 IEEE Symposium on Security and Privacy (SP) (pp. 124-138). IEEE.](https://ieeexplore.ieee.org/abstract/document/8835372)
 - [Ateniese, G., Magri, B., Venturi, D., & Andrade, E. (2017, April). Redactable blockchain–or–rewriting history in bitcoin and friends. In 2017 IEEE European symposium on security and privacy (EuroS&P) (pp. 111-126). IEEE.](https://ieeexplore.ieee.org/abstract/document/7961975/)
 - [Puddu, I., Dmitrienko, A., & Capkun, S. (2017). $\mu $ chain: How to Forget without Hard Forks. Cryptology ePrint Archive.](https://eprint.iacr.org/2017/106)
+- [Botta, V., Iovino, V., & Visconti, I. (2022). Towards Data Redaction in Bitcoin. IEEE Transactions on Network and Service Management, 19(4), 3872-3883.](https://doi.org/10.1109/TNSM.2022.3214279)
