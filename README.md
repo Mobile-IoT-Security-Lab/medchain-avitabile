@@ -1,6 +1,6 @@
 # MedChain Project
 
-This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation. In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
+This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation to implement a proof-of-concept for the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains". In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
 
 ## todos
 
@@ -19,7 +19,7 @@ This is a project for the Decentralized Systems course at the University of Geno
 
 ## Overview
 
-This original benchmarks focused on the implementation and evaluation of 3 redactable blockchain systems:
+The original benchmarks focused on the implementation and evaluation of 3 redactable blockchain systems:
 
 - **Redaction_Ateniese**: Chameleon hash-based redaction with improved smart contract support
 - **Redaction_Deuber**: Voting-based redaction approach
@@ -29,11 +29,13 @@ I have improved the **Redaction_Ateniese** implementation to support smart contr
 
 ## Improved Redaction_Ateniese Features
 
-- **Smart Contract Support**: Full lifecycle management with deployment, execution, and state management for audit, privacy compliance, and general-purpose contracts
+- **Smart Contract Support** (Models/SmartContract.py): Full lifecycle management with deployment, execution, and state management for audit, privacy compliance, and general-purpose contracts
 - **Role-Based Access Control**: Five permission levels from OBSERVER (read-only) to ADMIN (full system control) with specific capabilities for each role
 - **Advanced Redaction Types**: DELETE (complete removal), MODIFY (selective editing), and ANONYMIZE (privacy protection) with multi-signature approval workflows
 - **Privacy & Compliance**: Built-in GDPR, HIPAA, and SOX compliance with configurable data retention policies and automated privacy level enforcement
-- **Transaction Distribution**: Optimized mix of transfers (80%), contract calls (10%), deployments (5%), and redaction requests (5%)
+- **Transaction Distribution** (Models/Transaction.py): Optimized mix of transfers (80%), contract calls (10%), deployments (5%), and redaction requests (5%)
+- **Test suite**.
+- **Improved scripts**: Models/Transaction.py, Models/Bitcoin/Node.py, Models/Block.py, Models/Bitcoin/BlockCommit.py, InputsConfig.py, Main.py, Statistics.py
 
 ## Getting Started
 
