@@ -5,6 +5,9 @@ This is a project for the Decentralized Systems course at the University of Geno
 ## todos
 
 - [x] finish README.md
+- [ ] implement completely the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains"
+  - [ ] implement SNARKs
+  - [ ] implement the proof-of-consistency
 - [ ] Add more tests
 - [ ] Add more documentation
 - [ ] Create a Fake Dataset of Medical Data of Patients
