@@ -2,3 +2,15 @@ openpyxl
 xlsxwriter
 pandas
 numpy
+matplotlib
+seaborn
+requests
+cryptography
+hashlib
+json
+time
+os
+sys
+argparse
+logging
+datetime
