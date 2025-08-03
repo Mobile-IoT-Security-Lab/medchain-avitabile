@@ -7,3 +7,6 @@ seaborn
 requests
 cryptography
 pytest
+hashlib-compat
+dataclasses
+typing-extensions
