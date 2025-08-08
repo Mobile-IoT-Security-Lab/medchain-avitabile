@@ -15,6 +15,7 @@ from dataclasses import dataclass, asdict
 
 # Use built-in hashlib instead of external crypto libraries for compatibility
 
+TIME_WINDOW = 60 * 60  # 1 hour time window for proof validity
 
 @dataclass
 class ZKProof:
@@ -103,8 +104,8 @@ class SNARKCircuit:
         )
         
         return True
-        
-    def generate_proof(self, public_inputs: Dict, private_inputs: Dict) -> ZKProof:
+
+    def generate_proof(self, public_inputs: Dict, private_inputs: Dict) -> ZKProof:  # proof-of-concept
         """Generate a zero-knowledge proof for the circuit."""
         # Set all witness variables
         for key, value in private_inputs.items():
@@ -129,7 +130,8 @@ class SNARKCircuit:
         response = self._generate_response(private_inputs, challenge)
         
         return ZKProof(
-            proof_id=hashlib.sha256(json.dumps(proof_data).encode()).hexdigest()[:16],
+            proof_id=hashlib.sha256(json.dumps(proof_data).encode()).hexdigest()[:16],  # Shortened for readability
+            # proof_id=hashlib.sha256(json.dumps(proof_data).encode()).hexdigest(),
             operation_type=public_inputs.get("operation_type", "UNKNOWN"),
             commitment=commitment,
             nullifier=nullifier,
@@ -173,7 +175,7 @@ class SNARKVerifier:
         Args:
             proof: The ZK proof to verify
             public_inputs: Public inputs for verification
-            
+            a
         Returns:
             bool: True if proof is valid, False otherwise
         """
@@ -185,7 +187,7 @@ class SNARKVerifier:
                 
             # Check 2: Timestamp validity (not too old or in future)
             current_time = int(time.time())
-            if abs(current_time - proof.timestamp) > 3600:  # 1 hour window
+            if abs(current_time - proof.timestamp) > TIME_WINDOW:
                 print(f"❌ Proof verification failed: Invalid timestamp")
                 return False
                 
@@ -225,15 +227,16 @@ class SNARKVerifier:
         """Verify Merkle tree consistency."""
         expected_root = public_inputs.get("merkle_root", "")
         return proof.merkle_root == expected_root
+      
+    # unused at the moment ...  
+    # def batch_verify(self, proofs: List[ZKProof], public_inputs_list: List[Dict]) -> Dict[str, bool]:
+    #     """Batch verify multiple proofs for efficiency."""
+    #     results = {}
         
-    def batch_verify(self, proofs: List[ZKProof], public_inputs_list: List[Dict]) -> Dict[str, bool]:
-        """Batch verify multiple proofs for efficiency."""
-        results = {}
-        
-        for proof, public_inputs in zip(proofs, public_inputs_list):
-            results[proof.proof_id] = self.verify_proof(proof, public_inputs)
+    #     for proof, public_inputs in zip(proofs, public_inputs_list):
+    #         results[proof.proof_id] = self.verify_proof(proof, public_inputs)
             
-        return results
+    #     return results
 
 
 class RedactionSNARKManager:
