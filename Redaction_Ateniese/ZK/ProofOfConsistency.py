@@ -69,16 +69,16 @@ class MerkleTreeConsistency:
     
     @staticmethod
     def compute_merkle_root(data_hashes: List[str]) -> str:
-        """Compute Merkle root from list of data hashes."""
+        """Compute Merkle root from list of data hashes. Hash of the concatenation of all data hashes."""
         if not data_hashes:
-            return hashlib.sha256(b"").hexdigest()
-            
+            return hashlib.sha256(b"").hexdigest()  # hash of an empty byte string
+
         if len(data_hashes) == 1:
             return data_hashes[0]
             
         # Pad with last element if odd number of elements
         if len(data_hashes) % 2 == 1:
-            data_hashes.append(data_hashes[-1])
+            data_hashes.append(data_hashes[-1])  # duplicates last element
             
         next_level = []
         for i in range(0, len(data_hashes), 2):
@@ -94,7 +94,7 @@ class MerkleTreeConsistency:
             return []
             
         proof = []
-        current_hashes = data_hashes[:]
+        current_hashes = data_hashes[:]  # copy of only the top-level hashes (complex structures will be pointed at, without copying them)
         current_index = target_index
         
         while len(current_hashes) > 1:
@@ -118,13 +118,13 @@ class MerkleTreeConsistency:
                 next_level.append(hashlib.sha256(combined.encode()).hexdigest())
                 
             current_hashes = next_level
-            current_index = current_index // 2
-            
-        return proof
+            current_index = current_index // 2  # move to next level (since each parent node represents two children from the level below)
+
+        return proof  # sequence of hashes needed to reconstruct the path from the target leaf to the root
     
     @staticmethod
     def verify_merkle_proof(leaf_hash: str, proof: List[str], root: str, leaf_index: int) -> bool:
-        """Verify Merkle proof."""
+        """Verify Merkle proof reconstructing the path from the leaf to the root."""
         current_hash = leaf_hash
         current_index = leaf_index
         

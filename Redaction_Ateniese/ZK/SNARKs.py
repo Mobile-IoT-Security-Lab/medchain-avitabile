@@ -246,7 +246,7 @@ class RedactionSNARKManager:
     """
     
     def __init__(self):
-        self.circuit = SNARKCircuit()
+        self.circuit = SNARKCircuit()  # mathematical "black box"
         self.verifier = SNARKVerifier()
         self.commitment_store = {}  # Store commitments for audit
         
@@ -284,8 +284,8 @@ class RedactionSNARKManager:
             
             # Generate the proof
             proof = self.circuit.generate_proof(public_inputs, private_inputs)
-            
-            # Store commitment for future verification
+
+            # Store commitment for future verification (immutable)
             commitment = RedactionCommitment(
                 original_hash=hashlib.sha256(private_inputs["original_data"].encode()).hexdigest(),
                 redacted_hash=hashlib.sha256(private_inputs["redacted_data"].encode()).hexdigest(),
