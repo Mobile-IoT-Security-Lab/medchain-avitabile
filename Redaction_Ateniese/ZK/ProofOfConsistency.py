@@ -613,9 +613,64 @@ class ConsistencyProofVerifier:
             return False, f"Merkle proof verification error: {str(e)}"
     
     def _verify_hash_chain_proof(self, proof: ConsistencyProof) -> Tuple[bool, Optional[str]]:
-        """Verify hash chain proof."""
-        # Implementation would verify hash chain integrity
-        return True, None
+        """Verify hash chain proof. Even if the main verification is done inside ConsistencyProofGenerator."""
+        try:
+            # Extract post-redaction blocks
+            post_blocks = proof.post_redaction_state.get("blocks", [])
+            
+            if not post_blocks:
+                return False, "No blocks found in post-redaction state"
+            
+            # 1. Verify the hash chain integrity using existing method
+            is_chain_valid, chain_error = self.generator.hash_chain_checker.verify_chain_integrity(post_blocks)
+            if not is_chain_valid:
+                return False, f"Hash chain integrity check failed: {chain_error}"
+            
+            # 2. Verify the stored hash chain proof matches computed checksum
+            computed_checksum = self.generator.hash_chain_checker.compute_chain_checksum(post_blocks)
+            stored_proof = proof.hash_chain_proof
+            
+            if computed_checksum != stored_proof:
+                return False, f"Hash chain proof mismatch: expected {stored_proof}, computed {computed_checksum}"
+            
+            # 3. Additional verification: ensure each block's hash references are correct
+            for i in range(1, len(post_blocks)):
+                current_block = post_blocks[i]
+                previous_block = post_blocks[i - 1]
+                
+                # Check if current block correctly references previous block
+                expected_previous = previous_block.get("id", "")
+                actual_previous = current_block.get("previous", "")
+                
+                if expected_previous != actual_previous:
+                    return False, f"Block {i} hash reference mismatch: expected previous '{expected_previous}', got '{actual_previous}'"
+                
+                # Verify block depth progression
+                expected_depth = previous_block.get("depth", 0) + 1
+                actual_depth = current_block.get("depth", 0)
+                
+                if expected_depth != actual_depth:
+                    return False, f"Block {i} depth mismatch: expected {expected_depth}, got {actual_depth}"
+                
+                # Verify timestamp progression (blocks should be chronologically ordered)
+                prev_timestamp = previous_block.get("timestamp", 0)
+                curr_timestamp = current_block.get("timestamp", 0)
+                
+                if curr_timestamp < prev_timestamp:
+                    return False, f"Block {i} timestamp regression: block {curr_timestamp} < previous {prev_timestamp}"
+            
+            # 4. Verify genesis block properties
+            if len(post_blocks) > 0:
+                genesis_block = post_blocks[0]
+                if genesis_block.get("depth", 0) != 0:
+                    return False, f"Genesis block depth should be 0, got {genesis_block.get('depth', 0)}"
+                if genesis_block.get("previous", "") != "":
+                    return False, f"Genesis block should have empty previous hash, got '{genesis_block.get('previous', '')}'"
+            
+            return True, None
+            
+        except Exception as e:
+            return False, f"Hash chain proof verification error: {str(e)}"
     
     def _verify_contract_state_proof(self, proof: ConsistencyProof) -> Tuple[bool, Optional[str]]:
         """Verify smart contract state proof."""
