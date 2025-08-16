@@ -893,4 +893,4 @@ def test_consistency_system():
 
 
 if __name__ == "__main__":
-    test_consistency_system()
+    test_consistency_system()  # TODO: check if I completely and correctly check and test all this file (ProofOfConsistency.py)
