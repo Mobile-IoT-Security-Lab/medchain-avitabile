@@ -462,8 +462,12 @@ class ConsistencyProofGenerator:
                 else:
                     adjusted_post_order.append(idx)
             post_order = adjusted_post_order
-            
-        if pre_order != post_order:
+            # idx = 0: 0 >= 2? No  → append(0) → [0]
+            # idx = 1: 1 >= 2? No  → append(1) → [0, 1]  
+            # idx = 2: 2 >= 2? Yes → append(3) → [0, 1, 3]
+            # idx = 3: 3 >= 2? Yes → append(4) → [0, 1, 3, 4]
+
+        if pre_order != post_order:  # [0, 1, 3, 4] != [0, 1, 3, 4] and not [0, 1, 2, 3]
             return False, "Transaction ordering was not preserved"
             
         return True, None
@@ -482,7 +486,7 @@ class ConsistencyProofGenerator:
             if tx_hashes:
                 # Generate proof for first transaction as example
                 proof = self.merkle_checker.generate_merkle_proof(tx_hashes, 0)
-                proofs.extend(proof)
+                proofs.extend(proof)  # :)
                 
         return proofs
     
