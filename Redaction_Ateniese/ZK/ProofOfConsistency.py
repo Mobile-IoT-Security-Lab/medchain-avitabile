@@ -673,9 +673,137 @@ class ConsistencyProofVerifier:
             return False, f"Hash chain proof verification error: {str(e)}"
     
     def _verify_contract_state_proof(self, proof: ConsistencyProof) -> Tuple[bool, Optional[str]]:
-        """Verify smart contract state proof."""
-        # Implementation would verify contract state transitions
-        return True, None
+        """Verify smart contract state proof. Even if the main verification is done inside ConsistencyProofGenerator."""
+        try:
+            # Extract pre and post redaction states
+            pre_redaction_state = proof.pre_redaction_state
+            post_redaction_state = proof.post_redaction_state
+            
+            # Get contract states from both pre and post redaction data
+            pre_contract_states = pre_redaction_state.get("contract_states", {})
+            post_contract_states = post_redaction_state.get("contract_states", {})
+            
+            if not pre_contract_states and not post_contract_states:
+                return True, None  # No contracts to verify
+            
+            # 1. Verify that contract addresses are consistent
+            pre_addresses = set(pre_contract_states.keys())
+            post_addresses = set(post_contract_states.keys())
+            
+            # Check for unexpected contract removals or additions
+            removed_contracts = pre_addresses - post_addresses
+            added_contracts = post_addresses - pre_addresses
+            
+            if removed_contracts:
+                return False, f"Contracts unexpectedly removed during redaction: {list(removed_contracts)}"
+            
+            if added_contracts:
+                return False, f"Contracts unexpectedly added during redaction: {list(added_contracts)}"
+            
+            # 2. Verify state transitions for each contract
+            for contract_address in pre_addresses:
+                pre_state = pre_contract_states[contract_address]
+                post_state = post_contract_states[contract_address]
+                
+                # Create a mock operation for verification
+                # In a real implementation, this would come from the proof data
+                operation = {
+                    "type": "REDACT_CONTRACT_DATA",
+                    "contract_address": contract_address,
+                    "redacted_fields": []  # Would be populated from proof metadata
+                }
+                
+                # Use existing contract state verification
+                is_valid, error = self.generator.contract_checker.verify_state_transition(
+                    pre_state, post_state, operation
+                )
+                
+                if not is_valid:
+                    return False, f"Contract {contract_address} state transition invalid: {error}"
+            
+            # 3. Verify contract state consistency across blocks
+            pre_blocks = pre_redaction_state.get("blocks", [])
+            post_blocks = post_redaction_state.get("blocks", [])
+            
+            # Check that contract state references in blocks are consistent
+            for block_index, (pre_block, post_block) in enumerate(zip(pre_blocks, post_blocks)):
+                pre_contract_refs = pre_block.get("contract_references", {})
+                post_contract_refs = post_block.get("contract_references", {})
+                
+                # Verify contract references haven't been tampered with
+                for contract_addr in pre_contract_refs:
+                    if contract_addr in post_contract_refs:
+                        pre_ref = pre_contract_refs[contract_addr]
+                        post_ref = post_contract_refs[contract_addr]
+                        
+                        # Check state hash consistency (if available)
+                        if "state_hash" in pre_ref and "state_hash" in post_ref:
+                            # For non-redacted contracts, state hash should remain the same
+                            # For redacted contracts, we need to verify the hash change is valid
+                            if pre_ref.get("version", 0) == post_ref.get("version", 0):
+                                if pre_ref["state_hash"] != post_ref["state_hash"]:
+                                    return False, f"Contract {contract_addr} state hash changed without version increment in block {block_index}"
+            
+            # 4. Verify contract bytecode integrity (contracts shouldn't be modified during redaction)
+            for contract_address in pre_addresses:
+                pre_state = pre_contract_states[contract_address]
+                post_state = post_contract_states[contract_address]
+                
+                # Contract bytecode should remain unchanged
+                pre_bytecode = pre_state.get("bytecode", "")
+                post_bytecode = post_state.get("bytecode", "")
+                
+                if pre_bytecode != post_bytecode:
+                    return False, f"Contract {contract_address} bytecode was modified during redaction"
+                
+                # Contract ABI should remain unchanged
+                pre_abi = pre_state.get("abi", [])
+                post_abi = post_state.get("abi", [])
+                
+                if pre_abi != post_abi:
+                    return False, f"Contract {contract_address} ABI was modified during redaction"
+            
+            # 5. Verify balance consistency for token contracts
+            for contract_address in pre_addresses:
+                pre_state = pre_contract_states[contract_address]
+                post_state = post_contract_states[contract_address]
+                
+                # Check if this is a token contract with balances
+                if "balances" in pre_state and "balances" in post_state:
+                    pre_balances = pre_state["balances"]
+                    post_balances = post_state["balances"]
+                    
+                    # Total supply should be conserved (unless explicitly redacted)
+                    pre_total = sum(pre_balances.values()) if isinstance(pre_balances, dict) else 0
+                    post_total = sum(post_balances.values()) if isinstance(post_balances, dict) else 0
+                    
+                    # Allow for balance redaction, but flag suspicious total changes
+                    if abs(pre_total - post_total) > pre_total * 0.1:  # 10% threshold
+                        return False, f"Contract {contract_address} total balance changed significantly: {pre_total} -> {post_total}"
+            
+            # 6. Verify event log consistency
+            for contract_address in pre_addresses:
+                pre_state = pre_contract_states[contract_address]
+                post_state = post_contract_states[contract_address]
+                
+                pre_events = pre_state.get("events", [])
+                post_events = post_state.get("events", [])
+                
+                # Events can be redacted, but the count shouldn't increase
+                if len(post_events) > len(pre_events):
+                    return False, f"Contract {contract_address} gained events during redaction (suspicious)"
+                
+                # Check that non-redacted events remain intact
+                for i, (pre_event, post_event) in enumerate(zip(post_events, pre_events[:len(post_events)])):
+                    if "redacted" not in post_event:
+                        # Non-redacted events should be identical
+                        if pre_event != post_event:
+                            return False, f"Contract {contract_address} event {i} was modified without redaction marker"
+            
+            return True, None
+            
+        except Exception as e:
+            return False, f"Contract state proof verification error: {str(e)}"
 
 
 # Testing and example usage
