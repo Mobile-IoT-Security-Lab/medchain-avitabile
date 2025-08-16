@@ -442,7 +442,7 @@ class ConsistencyProofGenerator:
         pre_blocks = pre_data.get("blocks", [])
         post_blocks = post_data.get("blocks", [])
         
-        if redacted_block_index >= len(pre_blocks) or redacted_block_index >= len(post_blocks):
+        if redacted_block_index < 0 or redacted_block_index >= len(pre_blocks) or redacted_block_index >= len(post_blocks):  # index must not be bigger than block length
             return False, "Invalid block index"
             
         pre_txs = pre_blocks[redacted_block_index].get("transactions", [])
