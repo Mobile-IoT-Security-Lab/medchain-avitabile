@@ -458,6 +458,8 @@ class EnhancedRedactionEngine:
         # Get record
         if patient_id in self.medical_contract.state["medical_records"]:
             record = self.medical_contract.state["medical_records"][patient_id]
+            if isinstance(record, dict):
+                record = MedicalDataRecord(**record)
             
             # Log access
             self.medical_contract.state["access_logs"].append({
