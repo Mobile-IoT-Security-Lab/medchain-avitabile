@@ -12,7 +12,7 @@ import hashlib
 import time
 import random
 import os
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 
 
@@ -598,4 +598,5 @@ def test_ipfs_medical_data_system():
 
 
 if __name__ == "__main__":
-    test_ipfs_medical_data_system()
+    test_ipfs_medical_data_system()  # TODO: check if I completely and correctly check and test all this file (MedicalDataIPFS.py)
+    # TODO: Add this test to the tests suite

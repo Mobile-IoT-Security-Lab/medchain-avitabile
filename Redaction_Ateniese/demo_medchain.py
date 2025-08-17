@@ -20,18 +20,15 @@ License: MIT
 
 import sys
 import os
-import time
-import json
-from typing import Dict, List, Any
 
 # Add project paths
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
 from IPFS.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenerator, FakeIPFSClient
-from Enhanced.MedicalRedactionEngine import EnhancedRedactionEngine, MedicalDataRecord
+from Enhanced.MedicalRedactionEngine import EnhancedRedactionEngine
 from ZK.SNARKs import RedactionSNARKManager
-from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType
+from ZK.ProofOfConsistency import ConsistencyProofGenerator
 
 
 class MedChainDemo:
@@ -371,7 +368,7 @@ class MedChainDemo:
         print(f"   IPFS redactions: {len(ipfs_history)}")
         
         for redaction in self.demo_redactions:
-            print(f"   ▶ {redaction['type']}: Patient {redaction['patient_id']}")
+            print(f"   -> {redaction['type']}: Patient {redaction['patient_id']}")
             if 'snark_proof' in redaction:
                 print(f"     SNARK Proof: {redaction['snark_proof']}")
                 print(f"     Consistency Proof: {redaction['consistency_proof']}")

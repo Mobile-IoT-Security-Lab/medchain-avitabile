@@ -677,4 +677,5 @@ def test_enhanced_medical_redaction():
 
 
 if __name__ == "__main__":
-    test_enhanced_medical_redaction()
+    test_enhanced_medical_redaction()  # TODO: check if I completely and correctly check and test all this file (MedicalRedactionEngine.py)
+    # TODO: Add this test to the tests suite
