@@ -22,17 +22,15 @@ This is a project for the Decentralized Systems course at the University of Geno
 
 ## Overview
 
-The original benchmarks focused on the implementation and evaluation of 3 redactable blockchain systems:
+This project focuses on my implementation of redactable blockchain with smart contract support:
 
-- **Redaction_Ateniese**: Chameleon hash-based redaction with improved smart contract support
-- **Redaction_Deuber**: Voting-based redaction approach
-- **Redaction_Puddu**: Mutation-based redaction (μchain approach)
+- **My Implementation**: Chameleon hash-based redaction with complete smart contract support, SNARKs, proof-of-consistency, and medical use case implementation
 
-I have improved the **Redaction_Ateniese** implementation to support smart contracts, getting inspiration from the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains".
+My implementation has been significantly improved to support smart contracts and all features required by the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains".
 
 ## New Implementation: Complete Paper Implementation
 
-### 🔐 SNARKs Implementation (`Redaction_Ateniese/ZK/SNARKs.py`)
+### SNARKs Implementation (`ZK/SNARKs.py`)
 
 The project now includes a complete zero-knowledge SNARKs implementation for privacy-preserving redaction operations:
 
@@ -46,7 +44,7 @@ The project now includes a complete zero-knowledge SNARKs implementation for pri
 - **Verifier System**: Robust verification with replay attack prevention and temporal validity
 - **Integration**: Seamlessly integrated with the existing blockchain redaction system
 
-### ⚖️ Proof-of-Consistency (`Redaction_Ateniese/ZK/ProofOfConsistency.py`)
+### Proof-of-Consistency (`ZK/ProofOfConsistency.py`)
 
 Advanced consistency verification system ensuring blockchain integrity after redaction:
 
@@ -56,7 +54,7 @@ Advanced consistency verification system ensuring blockchain integrity after red
 - **Hash Chain Verification**: Ensures blockchain integrity is maintained
 - **Cryptographic Proofs**: Generates verifiable proofs for all consistency checks
 
-### 🏥 Enhanced Medical Data Engine (`Redaction_Ateniese/Enhanced/MedicalRedactionEngine.py`)
+### Medical Data Engine (`Enhanced/MedicalRedactionEngine.py`)
 
 Complete medical use case implementation with GDPR compliance:
 
@@ -67,7 +65,7 @@ Complete medical use case implementation with GDPR compliance:
 - **SNARK Integration**: All redaction operations include zero-knowledge proofs
 - **Audit Trail**: Comprehensive logging of all medical data operations
 
-### 💾 IPFS Integration (`Redaction_Ateniese/IPFS/MedicalDataIPFS.py`)
+### IPFS Integration (`IPFS/MedicalDataIPFS.py`)
 
 Distributed storage system with redaction capabilities:
 
@@ -78,7 +76,7 @@ Distributed storage system with redaction capabilities:
 - **Integrity Verification**: Ensures data consistency across IPFS network
 - **Encryption Support**: Optional encryption for sensitive medical data
 
-### 🚀 Complete Demo System (`Redaction_Ateniese/demo_medchain.py`)
+### Complete Demo System (`demo_medchain.py`)
 
 Comprehensive demonstration of all implemented features:
 
@@ -94,27 +92,27 @@ Comprehensive demonstration of all implemented features:
 
 #### Key Features Demonstrated
 
-- ✅ Complete GDPR Article 17 compliance
-- ✅ HIPAA-compliant data anonymization
-- ✅ Zero-knowledge proof generation and verification
-- ✅ Proof-of-consistency for all operations
-- ✅ Multi-signature approval workflows
-- ✅ Immutable audit trails
-- ✅ Distributed storage with redaction
-- ✅ Smart contract state management
+- Complete GDPR Article 17 compliance
+- HIPAA-compliant data anonymization
+- Zero-knowledge proof generation and verification
+- Proof-of-consistency for all operations
+- Multi-signature approval workflows
+- Immutable audit trails
+- Distributed storage with redaction
+- Smart contract state management
 
-### 🔧 Technical Improvements
+### Technical Improvements
 
 The implementation includes several technical advances:
 
-- **Chameleon Hash Integration**: Enhanced chameleon hash functions with secret sharing
+- **Chameleon Hash Integration**: My chameleon hash functions with secret sharing
 - **Multi-Party Redaction**: Support for collaborative redaction operations
 - **Policy Engine**: Configurable redaction policies with automatic enforcement
 - **Cryptographic Security**: Military-grade cryptographic primitives
 - **Performance Optimization**: Efficient proof generation and verification
 - **Scalability**: Designed for enterprise-scale medical data management
 
-### 🧪 Testing and Validation
+### Testing and Validation
 
 Comprehensive test suite covering all components:
 
@@ -124,7 +122,7 @@ Comprehensive test suite covering all components:
 - **Security Tests**: Cryptographic proof verification
 - **Compliance Tests**: GDPR and HIPAA compliance validation
 
-## Improved Redaction_Ateniese Features
+## My Implementation Features
 
 - **Smart Contract Support** (Models/SmartContract.py): Full lifecycle management with deployment, execution, and state management for audit, privacy compliance, and general-purpose contracts
 - **Role-Based Access Control**: Five permission levels from OBSERVER (read-only) to ADMIN (full system control) with specific capabilities for each role
@@ -136,7 +134,7 @@ Comprehensive test suite covering all components:
 
 ## Getting Started
 
-### Original Blockchain Simulation
+### MedChain Implementation
 
 ```bash
 # Clone the repository
@@ -145,19 +143,17 @@ git clone [repository-url]
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the original implementation
-cd Redaction_Ateniese
+# Run my implementation
 python Main.py
 ```
 
-### New MedChain Demo
+### Complete MedChain Demo
 
 ```bash
-# Install enhanced dependencies (includes SNARK and IPFS support)
+# Install dependencies (includes SNARK and IPFS support)
 pip install -r requirements.txt
 
 # Run the complete MedChain demo
-cd Redaction_Ateniese
 python demo_medchain.py
 
 # Run individual component tests
@@ -171,9 +167,9 @@ python IPFS/MedicalDataIPFS.py
 
 The simulations in this project are conducted using the [BlockSim simulator](https://github.com/maher243/BlockSim). BlockSim is an open-source simulator specifically designed for blockchain systems. It provides intuitive simulation constructs and allows for customization to support multiple blockchain design and deployment scenarios.
 
-### Improved Framework Features (Redaction_Ateniese)
+### Framework Features
 
-The improved implementation extends BlockSim with:
+The implementation extends BlockSim with:
 
 - **Smart Contract Execution Engine**: Simulated smart contract deployment and execution
 - **Permission Management System**: Role-based access control simulation
@@ -183,7 +179,7 @@ The improved implementation extends BlockSim with:
 
 ## Configuration Examples
 
-### Basic Configuration (All Implementations)
+### Basic Configuration
 
 ```python
 # InputsConfig.py
@@ -194,10 +190,10 @@ hasRedact = True             # Enable redaction
 redactionProbability = 0.1   # 10% of blocks may be redacted
 ```
 
-### Improved Configuration (Redaction_Ateniese)
+### My Configuration
 
 ```python
-# EnhancedInputsConfig.py
+# InputsConfig.py
 hasSmartContracts = True             # Enable smart contracts
 hasPermissions = True                # Enable role-based permissions
 hasPrivacyLevels = True              # Enable privacy classification
