@@ -8,9 +8,9 @@ This is a project for the Decentralized Systems course at the University of Geno
 - [x] implement completely the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains"
   - [x] implement SNARKs
   - [x] implement the proof-of-consistency
-- [x] Add more tests
+- [ ] Add more tests
 - [x] Add more documentation
-- [x] Create a Fake Dataset of Medical Data of Patients
+- [ ] Create a Fake Dataset of Medical Data of Patients
 - [x] Upload the Dataset to IPFS
 - [x] Create a Demo Script that:
   - [x] Using a Blockchain that Links to the IPFS Hash of or ID the Dataset
