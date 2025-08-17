@@ -9,12 +9,12 @@ for the "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" impl
 import json
 import time
 import hashlib
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
 from ZK.SNARKs import RedactionSNARKManager, ZKProof
 from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType, ConsistencyProof
-from Models.SmartContract import SmartContract, ContractCall, RedactionPolicy
+from Models.SmartContract import SmartContract, RedactionPolicy
 
 
 @dataclass
