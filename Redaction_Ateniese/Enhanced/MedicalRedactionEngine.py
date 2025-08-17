@@ -151,7 +151,7 @@ class MedicalDataContract(SmartContract):
                 string memory physician,
                 string memory ipfsHash
             ) public onlyAuthorized withValidConsent(patientId) {
-                // Implementation for storing medical data
+                // TODO: Implementation for storing medical data
             }
             
             function requestDataRedaction(
@@ -161,32 +161,32 @@ class MedicalDataContract(SmartContract):
                 bytes32 zkProofHash,
                 bytes32 consistencyProofHash
             ) public onlyAuthorized returns (string memory requestId) {
-                // Implementation for requesting redaction with proofs
+                // TODO: Implementation for requesting redaction with proofs
             }
             
             function executeRedaction(
                 string memory requestId
             ) public onlyAuthorized returns (bool success) {
-                // Implementation for executing approved redaction
+                // TODO: Implementation for executing approved redaction
             }
             
             function updateIPFSHash(
                 string memory patientId,
                 string memory newIpfsHash
             ) public onlyAuthorized {
-                // Implementation for updating IPFS hash after redaction
+                // TODO: Implementation for updating IPFS hash after redaction
             }
             
             function withdrawConsent(
                 string memory patientId
             ) public {
-                // Implementation for patient to withdraw consent
+                // TODO: Implementation for patient to withdraw consent
             }
             
             function queryMedicalData(
                 string memory patientId
             ) public view withValidConsent(patientId) returns (MedicalRecord memory) {
-                // Implementation for querying medical data
+                // TODO: Implementation for querying medical data
             }
         }
         """
