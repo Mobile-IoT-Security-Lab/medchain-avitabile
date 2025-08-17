@@ -75,7 +75,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
             self.assertFalse(self.user.can_perform_action(action),
                            f"User should NOT be able to {action}")
         
-        print("✓ Permission system working correctly")
+        print(" Permission system working correctly")
     
     def test_smart_contract_lifecycle(self):
         """Test complete smart contract deployment and interaction."""
@@ -121,8 +121,8 @@ class TestEnhancedBlockchain(unittest.TestCase):
         self.assertEqual(contract_call.function_name, "mint")
         self.assertEqual(len(contract_call.parameters), 2)
         
-        print(f"✓ Contract deployed at: {contract_address}")
-        print("✓ Smart contract lifecycle working correctly")
+        print(f" Contract deployed at: {contract_address}")
+        print(" Smart contract lifecycle working correctly")
     
     def test_transaction_types_and_privacy(self):
         """Test different transaction types and privacy levels."""
@@ -187,7 +187,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         self.assertFalse(redaction_tx.is_redactable)
         self.assertIn("target_block", redaction_tx.metadata)
         
-        print("✓ All transaction types working correctly")
+        print(" All transaction types working correctly")
     
     def test_redaction_workflow_complete(self):
         """Test complete redaction workflow with approvals."""
@@ -227,8 +227,8 @@ class TestEnhancedBlockchain(unittest.TestCase):
         double_vote = self.admin.vote_on_redaction(request_id, False, "Changed mind")
         self.assertFalse(double_vote, "Should not allow double voting")
         
-        print(f"✓ Redaction request {request_id[:8]}... processed correctly")
-        print("✓ Complete redaction workflow working correctly")
+        print(f" Redaction request {request_id[:8]}... processed correctly")
+        print(" Complete redaction workflow working correctly")
     
     def test_enhanced_block_features(self):
         """Test improved block features including redaction capabilities."""
@@ -302,7 +302,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         audit_block = Block(depth=5, block_type="AUDIT")
         self.assertFalse(audit_block.is_redactable(), "Audit block should not be redactable")
         
-        print("✓ Improved block features working correctly")
+        print(" Improved block features working correctly")
     
     def test_policy_compliance_system(self):
         """Test redaction policy compliance checking."""
@@ -365,7 +365,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         self.assertFalse(check_policy_compliance(self.user, gdpr_policy))
         self.assertFalse(check_policy_compliance(self.observer, gdpr_policy))
         
-        print("✓ Policy compliance system working correctly")
+        print(" Policy compliance system working correctly")
     
     def test_integration_scenario(self):
         """Test a complete integration scenario."""
@@ -449,7 +449,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         current_regulator_requests = len(self.regulator.redaction_requests)
         self.assertGreaterEqual(current_regulator_requests, 1)  # At least one request
         
-        print("✓ Integration scenario completed successfully")
+        print(" Integration scenario completed successfully")
 
 
 def run_comprehensive_tests():
@@ -468,16 +468,16 @@ def run_comprehensive_tests():
         
         def addSuccess(self, test):
             super().addSuccess(test)
-            print(f"✓ PASSED: {test._testMethodName}")
+            print(f" PASSED: {test._testMethodName}")
         
         def addError(self, test, err):
             super().addError(test, err)
-            print(f"✗ ERROR: {test._testMethodName}")
+            print(f" ERROR: {test._testMethodName}")
             print(f"  {err[1]}")
         
         def addFailure(self, test, err):
             super().addFailure(test, err)
-            print(f"✗ FAILED: {test._testMethodName}")
+            print(f" FAILED: {test._testMethodName}")
             print(f"  {err[1]}")
     
     # Run the tests
@@ -510,9 +510,9 @@ def run_comprehensive_tests():
             print(f"  - {test}: {error_msg}")
     
     if result.wasSuccessful():
-        print("\n🎉 ALL TESTS PASSED! The improved blockchain features are working correctly.")
+        print("\n ALL TESTS PASSED! The improved blockchain features are working correctly.")
     else:
-        print(f"\n⚠️  {len(result.failures + result.errors)} test(s) failed. Please review the issues above.")
+        print(f"\n️  {len(result.failures + result.errors)} test(s) failed. Please review the issues above.")
     
     return result.wasSuccessful()
 

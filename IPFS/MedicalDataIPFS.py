@@ -78,7 +78,7 @@ class FakeIPFSClient:
         if pin:
             self.pin_set.add(ipfs_hash)
             
-        print(f"📁 Added to IPFS: {ipfs_hash}")
+        print(f" Added to IPFS: {ipfs_hash}")
         return ipfs_hash
     
     def get(self, ipfs_hash: str) -> Optional[str]:
@@ -124,7 +124,7 @@ class FakeIPFSClient:
         # Unpin if pinned
         self.unpin(ipfs_hash)
         
-        print(f"🗑️  Removed from IPFS: {ipfs_hash}")
+        print(f"️  Removed from IPFS: {ipfs_hash}")
         return True
     
     def ls(self) -> List[str]:
@@ -270,14 +270,14 @@ class IPFSMedicalDataManager:
                     self.patient_mappings[patient_id] = []
                 self.patient_mappings[patient_id].append(ipfs_hash)
             
-            print(f"📤 Uploaded dataset {dataset.dataset_id} to IPFS: {ipfs_hash}")
+            print(f" Uploaded dataset {dataset.dataset_id} to IPFS: {ipfs_hash}")
             print(f"   Patients: {len(dataset.patient_records)}")
             print(f"   Size: {len(dataset_json)} bytes")
             
             return ipfs_hash
             
         except Exception as e:
-            print(f"❌ Failed to upload dataset: {e}")
+            print(f" Failed to upload dataset: {e}")
             return ""
     
     def download_dataset(self, ipfs_hash: str) -> Optional[MedicalDataset]:
@@ -286,7 +286,7 @@ class IPFSMedicalDataManager:
         try:
             content = self.ipfs_client.get(ipfs_hash)
             if not content:
-                print(f"❌ Dataset not found: {ipfs_hash}")
+                print(f" Dataset not found: {ipfs_hash}")
                 return None
             
             # Handle encryption
@@ -300,11 +300,11 @@ class IPFSMedicalDataManager:
             # Convert back to MedicalDataset
             dataset = MedicalDataset(**dataset_data)
             
-            print(f"📥 Downloaded dataset {dataset.dataset_id} from IPFS")
+            print(f" Downloaded dataset {dataset.dataset_id} from IPFS")
             return dataset
             
         except Exception as e:
-            print(f"❌ Failed to download dataset: {e}")
+            print(f" Failed to download dataset: {e}")
             return None
     
     def query_patient_data(self, patient_id: str) -> List[Dict[str, Any]]:
@@ -339,7 +339,7 @@ class IPFSMedicalDataManager:
             
             # Find all datasets containing this patient
             if patient_id not in self.patient_mappings:
-                print(f"❌ No data found for patient {patient_id}")
+                print(f" No data found for patient {patient_id}")
                 return False
             
             for ipfs_hash in self.patient_mappings[patient_id]:
@@ -356,7 +356,7 @@ class IPFSMedicalDataManager:
                         if redaction_type == "DELETE":
                             # Remove patient record completely
                             dataset.patient_records.pop(i)
-                            print(f"🗑️  Deleted patient {patient_id} from dataset {dataset.dataset_id}")
+                            print(f"️  Deleted patient {patient_id} from dataset {dataset.dataset_id}")
                             
                         elif redaction_type == "ANONYMIZE":
                             # Anonymize sensitive fields
@@ -365,7 +365,7 @@ class IPFSMedicalDataManager:
                             record["date_of_birth"] = "[REDACTED]"
                             record["insurance_id"] = "[REDACTED]"
                             record["emergency_contact"] = "[REDACTED]"
-                            print(f"🔒 Anonymized patient {patient_id} in dataset {dataset.dataset_id}")
+                            print(f" Anonymized patient {patient_id} in dataset {dataset.dataset_id}")
                             
                         elif redaction_type == "MODIFY":
                             # Modify specific fields based on reason
@@ -373,7 +373,7 @@ class IPFSMedicalDataManager:
                                 record["diagnosis"] = "[MODIFIED]"
                             if "treatment" in reason.lower():
                                 record["treatment"] = "[MODIFIED]"
-                            print(f"✏️  Modified patient {patient_id} in dataset {dataset.dataset_id}")
+                            print(f"️  Modified patient {patient_id} in dataset {dataset.dataset_id}")
                         
                         break
                 
@@ -433,14 +433,14 @@ class IPFSMedicalDataManager:
             
             self.redaction_log.append(redaction_log_entry)
             
-            print(f"✅ Successfully redacted patient {patient_id}")
+            print(f" Successfully redacted patient {patient_id}")
             print(f"   Type: {redaction_type}")
             print(f"   Affected datasets: {len(affected_datasets)}")
             
             return True
             
         except Exception as e:
-            print(f"❌ Failed to redact patient data: {e}")
+            print(f" Failed to redact patient data: {e}")
             return False
     
     def list_datasets(self) -> List[Dict[str, Any]]:
@@ -498,7 +498,7 @@ class IPFSMedicalDataManager:
 def test_ipfs_medical_data_system():
     """Test the IPFS medical data management system."""
     
-    print("\n💾 Testing IPFS Medical Data Management System")
+    print("\n Testing IPFS Medical Data Management System")
     print("=" * 60)
     
     # Initialize components
@@ -507,16 +507,16 @@ def test_ipfs_medical_data_system():
     dataset_generator = MedicalDatasetGenerator()
     
     # Generate sample dataset
-    print("\n📊 Generating sample medical dataset...")
+    print("\n Generating sample medical dataset...")
     dataset = dataset_generator.generate_dataset(num_patients=50, dataset_name="Emergency Department Records")
     print(f"  Generated dataset with {len(dataset.patient_records)} patients")
     
     # Upload to IPFS
-    print("\n📤 Uploading dataset to IPFS...")
+    print("\n Uploading dataset to IPFS...")
     ipfs_hash = data_manager.upload_dataset(dataset, encrypt=True)
     
     # Query specific patient data
-    print("\n🔍 Querying patient data...")
+    print("\n Querying patient data...")
     sample_patient_id = dataset.patient_records[0]["patient_id"]
     patient_data = data_manager.query_patient_data(sample_patient_id)
     
@@ -528,7 +528,7 @@ def test_ipfs_medical_data_system():
             print(f"    Diagnosis: {data['record']['diagnosis']}")
     
     # Test GDPR "Right to be Forgotten"
-    print("\n🔒 Testing GDPR Right to be Forgotten...")
+    print("\n Testing GDPR Right to be Forgotten...")
     test_patient_id = dataset.patient_records[1]["patient_id"]
     original_name = dataset.patient_records[1]["patient_name"]
     
@@ -549,7 +549,7 @@ def test_ipfs_medical_data_system():
             print(f"  Redacted patient name: {redacted_name}")
     
     # Test complete deletion
-    print("\n🗑️  Testing complete data deletion...")
+    print("\n️  Testing complete data deletion...")
     delete_patient_id = dataset.patient_records[2]["patient_id"]
     
     data_manager.redact_patient_data(
@@ -561,12 +561,12 @@ def test_ipfs_medical_data_system():
     # Verify deletion
     deleted_data = data_manager.query_patient_data(delete_patient_id)
     if not deleted_data:
-        print(f"  ✅ Patient {delete_patient_id} data completely deleted")
+        print(f"   Patient {delete_patient_id} data completely deleted")
     else:
-        print(f"  ❌ Patient {delete_patient_id} data still exists")
+        print(f"   Patient {delete_patient_id} data still exists")
     
     # Display redaction history
-    print("\n📋 Redaction History:")
+    print("\n Redaction History:")
     history = data_manager.get_redaction_history()
     for entry in history:
         print(f"  Redaction ID: {entry['redaction_id']}")
@@ -577,7 +577,7 @@ def test_ipfs_medical_data_system():
         print()
     
     # Verify IPFS integrity
-    print("\n🔍 Verifying IPFS integrity...")
+    print("\n Verifying IPFS integrity...")
     integrity_report = data_manager.verify_ipfs_integrity()
     print(f"  Total datasets: {integrity_report['total_datasets']}")
     print(f"  Accessible: {integrity_report['accessible_datasets']}")
@@ -585,7 +585,7 @@ def test_ipfs_medical_data_system():
     print(f"  Corrupted: {len(integrity_report['corrupted_datasets'])}")
     
     # List all datasets
-    print("\n📁 Dataset Registry:")
+    print("\n Dataset Registry:")
     datasets = data_manager.list_datasets()
     for ds in datasets:
         print(f"  {ds['dataset_id']}: {ds['name']}")
@@ -594,7 +594,7 @@ def test_ipfs_medical_data_system():
         print(f"    Version: {ds['version']}")
         print()
     
-    print("🎉 IPFS medical data management test completed!")
+    print(" IPFS medical data management test completed!")
 
 
 if __name__ == "__main__":

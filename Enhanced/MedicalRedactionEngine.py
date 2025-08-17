@@ -235,11 +235,11 @@ class EnhancedRedactionEngine:
                 "privacy_level": medical_record.privacy_level
             })
             
-            print(f"✅ Medical data stored for patient {medical_record.patient_id}")
+            print(f" Medical data stored for patient {medical_record.patient_id}")
             return True
             
         except Exception as e:
-            print(f"❌ Failed to store medical data: {e}")
+            print(f" Failed to store medical data: {e}")
             return False
     
     def request_data_redaction(
@@ -255,7 +255,7 @@ class EnhancedRedactionEngine:
         try:
             # Check if patient exists
             if patient_id not in self.medical_contract.state["medical_records"]:
-                print(f"❌ Patient {patient_id} not found")
+                print(f" Patient {patient_id} not found")
                 return None
             
             # Generate request ID
@@ -283,7 +283,7 @@ class EnhancedRedactionEngine:
             zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
             
             if not zk_proof:
-                print(f"❌ Failed to generate SNARK proof for redaction request")
+                print(f" Failed to generate SNARK proof for redaction request")
                 return None
             
             # Generate consistency proof
@@ -326,24 +326,24 @@ class EnhancedRedactionEngine:
             # Store request
             self.redaction_requests[request_id] = redaction_request
             
-            print(f"✅ Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
+            print(f" Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
             return request_id
             
         except Exception as e:
-            print(f"❌ Failed to create redaction request: {e}")
+            print(f" Failed to create redaction request: {e}")
             return None
     
     def approve_redaction(self, request_id: str, approver: str, comments: str = "") -> bool:
         """Approve a redaction request."""
         
         if request_id not in self.redaction_requests:
-            print(f"❌ Redaction request {request_id} not found")
+            print(f" Redaction request {request_id} not found")
             return False
         
         request = self.redaction_requests[request_id]
         
         if approver in request.approvals:
-            print(f"❌ Approver {approver} has already approved request {request_id}")
+            print(f" Approver {approver} has already approved request {request_id}")
             return False
         
         # Add approval
@@ -352,25 +352,25 @@ class EnhancedRedactionEngine:
         # Check if threshold is met
         if len(request.approvals) >= request.approval_threshold:
             request.status = "APPROVED"
-            print(f"✅ Redaction request {request_id} approved ({len(request.approvals)}/{request.approval_threshold})")
+            print(f" Redaction request {request_id} approved ({len(request.approvals)}/{request.approval_threshold})")
             
             # Auto-execute if approved
             return self.execute_redaction(request_id)
         else:
-            print(f"📝 Redaction request {request_id} approval added ({len(request.approvals)}/{request.approval_threshold})")
+            print(f" Redaction request {request_id} approval added ({len(request.approvals)}/{request.approval_threshold})")
             return True
     
     def execute_redaction(self, request_id: str) -> bool:
         """Execute an approved redaction request."""
         
         if request_id not in self.redaction_requests:
-            print(f"❌ Redaction request {request_id} not found")
+            print(f" Redaction request {request_id} not found")
             return False
         
         request = self.redaction_requests[request_id]
         
         if request.status != "APPROVED":
-            print(f"❌ Redaction request {request_id} not approved")
+            print(f" Redaction request {request_id} not approved")
             return False
         
         try:
@@ -384,7 +384,7 @@ class EnhancedRedactionEngine:
             }
             
             if not self.snark_manager.verify_redaction_proof(request.zk_proof, public_inputs):
-                print(f"❌ SNARK proof verification failed for request {request_id}")
+                print(f" SNARK proof verification failed for request {request_id}")
                 return False
             
             # Get current record
@@ -431,7 +431,7 @@ class EnhancedRedactionEngine:
             # Update request status
             request.status = "EXECUTED"
             
-            print(f"✅ Redaction request {request_id} executed successfully")
+            print(f" Redaction request {request_id} executed successfully")
             print(f"   Type: {request.redaction_type}")
             print(f"   Patient: {patient_id}")
             print(f"   SNARK Proof: {request.zk_proof.proof_id}")
@@ -440,7 +440,7 @@ class EnhancedRedactionEngine:
             return True
             
         except Exception as e:
-            print(f"❌ Failed to execute redaction request {request_id}: {e}")
+            print(f" Failed to execute redaction request {request_id}: {e}")
             return False
     
     def query_medical_data(self, patient_id: str, requester: str) -> Optional[MedicalDataRecord]:
@@ -448,11 +448,11 @@ class EnhancedRedactionEngine:
         
         # Check consent
         if patient_id not in self.medical_contract.state["consent_records"]:
-            print(f"❌ Patient {patient_id} not found")
+            print(f" Patient {patient_id} not found")
             return None
         
         if not self.medical_contract.state["consent_records"][patient_id]:
-            print(f"❌ Patient {patient_id} has withdrawn consent")
+            print(f" Patient {patient_id} has withdrawn consent")
             return None
         
         # Get record
@@ -558,7 +558,7 @@ class EnhancedRedactionEngine:
 def test_enhanced_medical_redaction():
     """Test the enhanced medical data redaction system."""
     
-    print("\n🏥 Testing Enhanced Medical Data Redaction System")
+    print("\n Testing Enhanced Medical Data Redaction System")
     print("=" * 60)
     
     # Initialize redaction engine
@@ -591,13 +591,13 @@ def test_enhanced_medical_redaction():
     ]
     
     # Store medical data
-    print("\n📋 Storing medical data...")
+    print("\n Storing medical data...")
     for patient_data in sample_patients:
         record = engine.create_medical_data_record(patient_data)
         engine.store_medical_data(record)
     
     # Test querying data
-    print("\n🔍 Querying medical data...")
+    print("\n Querying medical data...")
     record = engine.query_medical_data("PAT_001", "researcher_001")
     if record:
         print(f"  Patient: {record.patient_name}")
@@ -605,7 +605,7 @@ def test_enhanced_medical_redaction():
         print(f"  IPFS Hash: {record.ipfs_hash}")
     
     # Test redaction request with SNARK proof
-    print("\n🔐 Testing GDPR data deletion request...")
+    print("\n Testing GDPR data deletion request...")
     request_id = engine.request_data_redaction(
         patient_id="PAT_001",
         redaction_type="DELETE",
@@ -624,20 +624,20 @@ def test_enhanced_medical_redaction():
         print(f"  Approval Threshold: {request.approval_threshold}")
         
         # Approve the request
-        print("\n✅ Approving redaction request...")
+        print("\n Approving redaction request...")
         engine.approve_redaction(request_id, "admin_001", "GDPR compliance approved")
         engine.approve_redaction(request_id, "regulator_002", "Privacy assessment completed")
         
         # Check if patient data is deleted
-        print("\n🔍 Verifying data deletion...")
+        print("\n Verifying data deletion...")
         deleted_record = engine.query_medical_data("PAT_001", "researcher_001")
         if deleted_record is None:
-            print("  ✅ Patient data successfully deleted")
+            print("   Patient data successfully deleted")
         else:
-            print("  ❌ Patient data still exists")
+            print("   Patient data still exists")
     
     # Test anonymization request
-    print("\n🔐 Testing HIPAA anonymization request...")
+    print("\n Testing HIPAA anonymization request...")
     anon_request_id = engine.request_data_redaction(
         patient_id="PAT_002",
         redaction_type="ANONYMIZE",
@@ -653,7 +653,7 @@ def test_enhanced_medical_redaction():
         engine.approve_redaction(anon_request_id, "researcher_lead", "Research ethics approved")
         
         # Check anonymized data
-        print("\n🔍 Verifying data anonymization...")
+        print("\n Verifying data anonymization...")
         anon_record = engine.query_medical_data("PAT_002", "researcher_001")
         if anon_record:
             print(f"  Patient Name: {anon_record.patient_name}")
@@ -662,7 +662,7 @@ def test_enhanced_medical_redaction():
             print(f"  Diagnosis: {anon_record.diagnosis} (preserved for research)")
     
     # Display redaction history
-    print("\n📊 Redaction History:")
+    print("\n Redaction History:")
     history = engine.get_redaction_history()
     for record in history:
         print(f"  Request: {record['request_id']}")
@@ -673,7 +673,7 @@ def test_enhanced_medical_redaction():
         print(f"    Approvers: {len(record['approvers'])}")
         print()
     
-    print("🎉 Enhanced medical redaction system test completed!")
+    print(" Enhanced medical redaction system test completed!")
 
 
 if __name__ == "__main__":

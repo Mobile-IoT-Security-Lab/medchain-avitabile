@@ -27,34 +27,34 @@ def simulate_realistic_blockchain_scenario():
     print("=" * 65)
     
     # Phase 1: Network Setup
-    print("\n📡 Phase 1: Setting up blockchain network")
+    print("\n Phase 1: Setting up blockchain network")
     print("-" * 40)
     
     # Create network participants
     admin = Node(id=1, hashPower=500)
     admin.update_role("ADMIN")
-    print(f"✓ Admin node created (ID: {admin.id})")
+    print(f" Admin node created (ID: {admin.id})")
     
     regulator = Node(id=2, hashPower=200)
     regulator.update_role("REGULATOR")
-    print(f"✓ Regulator node created (ID: {regulator.id})")
+    print(f" Regulator node created (ID: {regulator.id})")
     
     miners = []
     for i in range(3):
         miner = Node(id=10 + i, hashPower=random.randint(800, 1200))
         miner.update_role("MINER")
         miners.append(miner)
-        print(f"✓ Miner node created (ID: {miner.id}, HashPower: {miner.hashPower})")
+        print(f" Miner node created (ID: {miner.id}, HashPower: {miner.hashPower})")
     
     users = []
     for i in range(10):
         user = Node(id=100 + i, hashPower=0)
         user.update_role("USER")
         users.append(user)
-    print(f"✓ {len(users)} user nodes created")
+    print(f" {len(users)} user nodes created")
     
     # Phase 2: Smart Contract Deployment
-    print("\n📜 Phase 2: Smart contract deployment")
+    print("\n Phase 2: Smart contract deployment")
     print("-" * 40)
     
     # Deploy a token contract
@@ -85,7 +85,7 @@ def simulate_realistic_blockchain_scenario():
     """
     
     token_address = admin.deploy_contract(token_contract_code, "FINANCIAL")
-    print(f"✓ Token contract deployed at: {token_address}")
+    print(f" Token contract deployed at: {token_address}")
     
     # Deploy a data storage contract
     data_contract_code = """
@@ -105,10 +105,10 @@ def simulate_realistic_blockchain_scenario():
     """
     
     data_address = admin.deploy_contract(data_contract_code, "GENERAL")
-    print(f"✓ Data storage contract deployed at: {data_address}")
+    print(f" Data storage contract deployed at: {data_address}")
     
     # Phase 3: Normal Operations
-    print("\n💰 Phase 3: Normal blockchain operations")
+    print("\n Phase 3: Normal blockchain operations")
     print("-" * 40)
     
     # Create genesis block
@@ -120,7 +120,7 @@ def simulate_realistic_blockchain_scenario():
         miner=miners[0].id,
         block_type="GENESIS"
     )
-    print("✓ Genesis block created")
+    print(" Genesis block created")
     
     blockchain = [genesis_block]
     
@@ -211,10 +211,10 @@ def simulate_realistic_blockchain_scenario():
         block.transactions = transactions
         blockchain.append(block)
     
-    print(f"✓ {len(blockchain) - 1} blocks mined with {sum(len(b.transactions) for b in blockchain[1:])} transactions")
+    print(f" {len(blockchain) - 1} blocks mined with {sum(len(b.transactions) for b in blockchain[1:])} transactions")
     
     # Phase 4: Governance and Redaction
-    print("\n🔒 Phase 4: Governance and redaction workflow")
+    print("\n Phase 4: Governance and redaction workflow")
     print("-" * 40)
     
     # Simulate GDPR compliance scenario
@@ -235,7 +235,7 @@ def simulate_realistic_blockchain_scenario():
     )
     
     if request_id:
-        print(f"✓ Redaction request created: {request_id[:12]}...")
+        print(f" Redaction request created: {request_id[:12]}...")
         
         # Admin reviews and approves
         admin_approval = admin.vote_on_redaction(
@@ -243,7 +243,7 @@ def simulate_realistic_blockchain_scenario():
             True, 
             "Reviewed: Personal data identified, GDPR compliance required"
         )
-        print(f"✓ Admin approval: {admin_approval}")
+        print(f" Admin approval: {admin_approval}")
         
         # Create second regulator for additional approval
         regulator2 = Node(id=3, hashPower=150)
@@ -254,7 +254,7 @@ def simulate_realistic_blockchain_scenario():
             True,
             "Privacy impact assessment completed, approval granted"
         )
-        print(f"✓ Second regulator approval: {regulator2_approval}")
+        print(f" Second regulator approval: {regulator2_approval}")
         
         # Apply redaction to blockchain
         target_block_obj = blockchain[target_block]
@@ -265,11 +265,11 @@ def simulate_realistic_blockchain_scenario():
             approvers=[admin.id, regulator2.id]
         )
         
-        print("✓ Redaction applied to blockchain")
+        print(" Redaction applied to blockchain")
         print(f"  Block {target_block} now has {len(target_block_obj.redaction_history)} redaction record(s)")
     
     # Phase 5: Audit and Compliance
-    print("\n📊 Phase 5: Audit and compliance verification")
+    print("\n Phase 5: Audit and compliance verification")
     print("-" * 40)
     
     # Audit the blockchain state
@@ -296,11 +296,11 @@ def simulate_realistic_blockchain_scenario():
             integrity_issues.append(f"Block {i} was redacted but should not be redactable")
     
     if integrity_issues:
-        print("⚠️  Integrity issues found:")
+        print("️  Integrity issues found:")
         for issue in integrity_issues:
             print(f"  - {issue}")
     else:
-        print("✅ Blockchain integrity verified")
+        print(" Blockchain integrity verified")
     
     # Check privacy compliance
     privacy_compliant_blocks = 0
@@ -316,27 +316,27 @@ def simulate_realistic_blockchain_scenario():
                 privacy_compliant_blocks += 1
     
     compliance_rate = (privacy_compliant_blocks / (total_blocks - 1)) * 100  # Exclude genesis
-    print(f"✅ Privacy compliance rate: {compliance_rate:.1f}%")
+    print(f" Privacy compliance rate: {compliance_rate:.1f}%")
     
     # Final Summary
     print("\n" + "=" * 65)
     print("INTEGRATION TEST SUMMARY")
     print("=" * 65)
-    print("✅ Network setup: PASSED")
-    print("✅ Smart contract deployment: PASSED")
-    print("✅ Transaction processing: PASSED")
-    print("✅ Redaction workflow: PASSED")
-    print("✅ Governance system: PASSED")
-    print("✅ Audit capabilities: PASSED")
-    print("✅ Privacy compliance: PASSED")
+    print(" Network setup: PASSED")
+    print(" Smart contract deployment: PASSED")
+    print(" Transaction processing: PASSED")
+    print(" Redaction workflow: PASSED")
+    print(" Governance system: PASSED")
+    print(" Audit capabilities: PASSED")
+    print(" Privacy compliance: PASSED")
     
-    print(f"\n📈 Performance metrics:")
+    print(f"\n Performance metrics:")
     print(f"  - {total_transactions} transactions processed")
     print(f"  - {len(admin.deployed_contracts)} contracts deployed")
     print(f"  - {len(regulator.redaction_requests)} redaction requests")
     print(f"  - {sum(len(node.redaction_approvals) for node in [admin, regulator, regulator2])} approvals processed")
     
-    print("\n🎉 All improved blockchain features are working correctly!")
+    print("\n All improved blockchain features are working correctly!")
     print("The system successfully demonstrates:")
     print("  • Role-based access control")
     print("  • Smart contract deployment and execution")
@@ -353,7 +353,7 @@ if __name__ == "__main__":
         success = simulate_realistic_blockchain_scenario()
         sys.exit(0 if success else 1)
     except Exception as e:
-        print(f"\n❌ Integration test failed with error: {e}")
+        print(f"\n Integration test failed with error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

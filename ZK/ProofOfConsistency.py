@@ -809,7 +809,7 @@ class ConsistencyProofVerifier:
 # Testing and example usage
 def test_consistency_system():
     """Test the proof-of-consistency system."""
-    print("\n🔗 Testing Proof-of-Consistency System")
+    print("\n Testing Proof-of-Consistency System")
     print("=" * 50)
     
     generator = ConsistencyProofGenerator()
@@ -874,22 +874,22 @@ def test_consistency_system():
     ]
     
     for check_type in consistency_checks:
-        print(f"\n📋 Generating {check_type.value} proof...")
+        print(f"\n Generating {check_type.value} proof...")
         
         proof = generator.generate_consistency_proof(
             check_type, pre_data, post_data, operation
         )
         
         print(f"  ID: {proof.proof_id}")
-        print(f"  Valid: {'✅' if proof.is_valid else '❌'}")
+        print(f"  Valid: {'' if proof.is_valid else ''}")
         if proof.error_details:
             print(f"  Error: {proof.error_details}")
             
         # Verify proof
         is_valid, error = verifier.verify_proof(proof)
-        print(f"  Verification: {'✅ PASSED' if is_valid else f'❌ FAILED - {error}'}")
+        print(f"  Verification: {' PASSED' if is_valid else f' FAILED - {error}'}")
     
-    print("\n🎉 Consistency system test completed!")
+    print("\n Consistency system test completed!")
 
 
 if __name__ == "__main__":

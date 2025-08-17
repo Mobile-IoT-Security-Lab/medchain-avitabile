@@ -182,37 +182,37 @@ class SNARKVerifier:
         try:
             # Check 1: Nullifier hasn't been used before
             if proof.nullifier in self.verified_nullifiers:
-                print(f"❌ Proof verification failed: Nullifier already used")
+                print(f" Proof verification failed: Nullifier already used")
                 return False
                 
             # Check 2: Timestamp validity (not too old or in future)
             current_time = int(time.time())
             if abs(current_time - proof.timestamp) > TIME_WINDOW:
-                print(f"❌ Proof verification failed: Invalid timestamp")
+                print(f" Proof verification failed: Invalid timestamp")
                 return False
                 
             # Check 3: Verify challenge-response
             if not self._verify_challenge_response(proof, public_inputs):
-                print(f"❌ Proof verification failed: Invalid challenge-response")
+                print(f" Proof verification failed: Invalid challenge-response")
                 return False
                 
             # Check 4: Operation type validity
             if proof.operation_type not in ["DELETE", "MODIFY", "ANONYMIZE"]:
-                print(f"❌ Proof verification failed: Invalid operation type")
+                print(f" Proof verification failed: Invalid operation type")
                 return False
                 
             # Check 5: Merkle root consistency
             if not self._verify_merkle_consistency(proof, public_inputs):
-                print(f"❌ Proof verification failed: Merkle root inconsistency")
+                print(f" Proof verification failed: Merkle root inconsistency")
                 return False
                 
             # All checks passed
             self.verified_nullifiers.add(proof.nullifier)
-            print(f"✅ SNARK proof {proof.proof_id} verified successfully")
+            print(f" SNARK proof {proof.proof_id} verified successfully")
             return True
             
         except Exception as e:
-            print(f"❌ Proof verification error: {e}")
+            print(f" Proof verification error: {e}")
             return False
             
     def _verify_challenge_response(self, proof: ZKProof, public_inputs: Dict) -> bool:
@@ -296,11 +296,11 @@ class RedactionSNARKManager:
             
             self.commitment_store[proof.proof_id] = commitment
             
-            print(f"✅ Created SNARK proof {proof.proof_id} for {proof.operation_type} operation")
+            print(f" Created SNARK proof {proof.proof_id} for {proof.operation_type} operation")
             return proof
             
         except Exception as e:
-            print(f"❌ Failed to create SNARK proof: {e}")
+            print(f" Failed to create SNARK proof: {e}")
             return None
             
     def verify_redaction_proof(self, proof: ZKProof, public_inputs: Dict) -> bool:
@@ -335,7 +335,7 @@ class RedactionSNARKManager:
 # Example usage and testing
 def test_snark_system():
     """Test the SNARK system with sample redaction operations."""
-    print("\n🔐 Testing SNARK System for Redaction Operations")
+    print("\n Testing SNARK System for Redaction Operations")
     print("=" * 60)
     
     manager = RedactionSNARKManager()
@@ -359,7 +359,7 @@ def test_snark_system():
     proof = manager.create_redaction_proof(redaction_request)
     
     if proof:
-        print(f"\n📋 Proof Details:")
+        print(f"\n Proof Details:")
         print(f"  ID: {proof.proof_id}")
         print(f"  Operation: {proof.operation_type}")
         print(f"  Timestamp: {proof.timestamp}")
@@ -376,15 +376,15 @@ def test_snark_system():
         }
         
         is_valid = manager.verify_redaction_proof(proof, public_inputs)
-        print(f"\n🔍 Verification Result: {'✅ VALID' if is_valid else '❌ INVALID'}")
+        print(f"\n Verification Result: {' VALID' if is_valid else ' INVALID'}")
         
         # Test audit
         audit_results = manager.audit_redaction_history([proof.proof_id])
-        print(f"\n📊 Audit Results:")
+        print(f"\n Audit Results:")
         for proof_id, result in audit_results.items():
             print(f"  {proof_id}: {result['status']}")
     
-    print("\n🎉 SNARK system test completed!")
+    print("\n SNARK system test completed!")
 
 
 if __name__ == "__main__":

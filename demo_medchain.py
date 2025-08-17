@@ -35,7 +35,7 @@ class MedChainDemo:
     """Complete MedChain demonstration."""
     
     def __init__(self):
-        print("🏥 Initializing MedChain Demo System")
+        print(" Initializing MedChain Demo System")
         print("=" * 50)
         
         # Initialize components
@@ -51,12 +51,12 @@ class MedChainDemo:
         self.demo_patients = []
         self.demo_redactions = []
         
-        print("✅ All components initialized successfully")
+        print(" All components initialized successfully")
         
     def run_complete_demo(self):
         """Run the complete MedChain demonstration."""
         
-        print("\n🚀 Starting MedChain Complete Demonstration")
+        print("\n Starting MedChain Complete Demonstration")
         print("=" * 60)
         
         try:
@@ -81,18 +81,18 @@ class MedChainDemo:
             # Phase 7: Advanced Redaction Scenarios
             self.phase7_advanced_redaction_scenarios()
             
-            print("\n🎉 MedChain Demo Completed Successfully!")
+            print("\n MedChain Demo Completed Successfully!")
             self.print_final_summary()
             
         except Exception as e:
-            print(f"\n❌ Demo failed with error: {e}")
+            print(f"\n Demo failed with error: {e}")
             import traceback
             traceback.print_exc()
     
     def phase1_create_and_upload_dataset(self):
         """Phase 1: Create medical dataset and upload to IPFS."""
         
-        print("\n📊 Phase 1: Creating Medical Dataset and IPFS Upload")
+        print("\n Phase 1: Creating Medical Dataset and IPFS Upload")
         print("-" * 50)
         
         # Generate comprehensive medical dataset
@@ -102,7 +102,7 @@ class MedChainDemo:
             dataset_name="MedChain Hospital Emergency Records"
         )
         
-        print(f"✅ Created dataset '{dataset.name}' with {len(dataset.patient_records)} patients")
+        print(f" Created dataset '{dataset.name}' with {len(dataset.patient_records)} patients")
         print(f"   Dataset ID: {dataset.dataset_id}")
         
         # Upload to IPFS
@@ -110,7 +110,7 @@ class MedChainDemo:
         ipfs_hash = self.ipfs_manager.upload_dataset(dataset, encrypt=True)
         
         if ipfs_hash:
-            print(f"✅ Dataset uploaded successfully")
+            print(f" Dataset uploaded successfully")
             print(f"   IPFS Hash: {ipfs_hash}")
             print(f"   Size: {self.ipfs_client.stat(ipfs_hash)['size']} bytes")
             
@@ -124,7 +124,7 @@ class MedChainDemo:
     def phase2_blockchain_integration(self):
         """Phase 2: Integrate medical data with blockchain smart contracts."""
         
-        print("\\n🔗 Phase 2: Blockchain Smart Contract Integration")
+        print("\\n Phase 2: Blockchain Smart Contract Integration")
         print("-" * 50)
         
         # Store medical records in smart contracts
@@ -140,7 +140,7 @@ class MedChainDemo:
             if success:
                 stored_count += 1
         
-        print(f"✅ Successfully stored {stored_count}/{len(self.demo_patients)} medical records")
+        print(f" Successfully stored {stored_count}/{len(self.demo_patients)} medical records")
         
         # Display contract state summary
         contract_state = self.redaction_engine.medical_contract.state
@@ -151,7 +151,7 @@ class MedChainDemo:
     def phase3_query_and_access_control(self):
         """Phase 3: Demonstrate querying and access control."""
         
-        print("\\n🔍 Phase 3: Data Querying and Access Control")
+        print("\\n Phase 3: Data Querying and Access Control")
         print("-" * 50)
         
         # Test authorized access
@@ -163,7 +163,7 @@ class MedChainDemo:
         # Authorized query
         record = self.redaction_engine.query_medical_data(patient_id, "authorized_physician")
         if record:
-            print(f"✅ Authorized access successful")
+            print(f" Authorized access successful")
             print(f"   Patient: {record.patient_name}")
             print(f"   Diagnosis: {record.diagnosis}")
             print(f"   Privacy Level: {record.privacy_level}")
@@ -172,7 +172,7 @@ class MedChainDemo:
         print(f"\\nQuerying IPFS data for patient {patient_id}...")
         ipfs_data = self.ipfs_manager.query_patient_data(patient_id)
         if ipfs_data:
-            print(f"✅ IPFS data found: {len(ipfs_data)} records")
+            print(f" IPFS data found: {len(ipfs_data)} records")
             for data in ipfs_data:
                 print(f"   Dataset: {data['dataset_id']}")
         
@@ -184,12 +184,12 @@ class MedChainDemo:
         # Try to query after consent withdrawal
         withdrawn_record = self.redaction_engine.query_medical_data(patient_id, "researcher")
         if not withdrawn_record:
-            print("✅ Access properly denied after consent withdrawal")
+            print(" Access properly denied after consent withdrawal")
     
     def phase4_gdpr_right_to_be_forgotten(self):
         """Phase 4: Implement GDPR Right to be Forgotten."""
         
-        print("\\n🔒 Phase 4: GDPR Right to be Forgotten Implementation")
+        print("\\n Phase 4: GDPR Right to be Forgotten Implementation")
         print("-" * 50)
         
         # Select patient for deletion
@@ -210,7 +210,7 @@ class MedChainDemo:
         )
         
         if request_id:
-            print(f"✅ Blockchain redaction request created: {request_id}")
+            print(f" Blockchain redaction request created: {request_id}")
             
             # Step 2: Get approvals
             print("\\nStep 2: Obtaining required approvals...")
@@ -226,7 +226,7 @@ class MedChainDemo:
             )
             
             if ipfs_success:
-                print("✅ IPFS data redaction completed")
+                print(" IPFS data redaction completed")
                 
                 # Verify deletion
                 print("\\nStep 4: Verifying complete deletion...")
@@ -239,11 +239,11 @@ class MedChainDemo:
                 ipfs_records = self.ipfs_manager.query_patient_data(patient_id)
                 ipfs_deleted = len(ipfs_records) == 0
                 
-                print(f"   Blockchain deletion: {'✅ Confirmed' if blockchain_deleted else '❌ Failed'}")
-                print(f"   IPFS deletion: {'✅ Confirmed' if ipfs_deleted else '❌ Failed'}")
+                print(f"   Blockchain deletion: {' Confirmed' if blockchain_deleted else ' Failed'}")
+                print(f"   IPFS deletion: {' Confirmed' if ipfs_deleted else ' Failed'}")
                 
                 if blockchain_deleted and ipfs_deleted:
-                    print("\\n🎉 GDPR Right to be Forgotten successfully implemented!")
+                    print("\\n GDPR Right to be Forgotten successfully implemented!")
                     self.demo_redactions.append({
                         "type": "GDPR_DELETION",
                         "patient_id": patient_id,
@@ -253,7 +253,7 @@ class MedChainDemo:
     def phase5_snark_and_consistency_verification(self):
         """Phase 5: Demonstrate SNARK proofs and consistency verification."""
         
-        print("\\n🔐 Phase 5: SNARK Proofs and Consistency Verification")
+        print("\\n Phase 5: SNARK Proofs and Consistency Verification")
         print("-" * 50)
         
         # Select patient for anonymization
@@ -275,7 +275,7 @@ class MedChainDemo:
         if request_id:
             request = self.redaction_engine.redaction_requests[request_id]
             
-            print(f"✅ Redaction request created with cryptographic proofs:")
+            print(f" Redaction request created with cryptographic proofs:")
             print(f"   Request ID: {request_id}")
             print(f"   SNARK Proof ID: {request.zk_proof.proof_id}")
             print(f"   Consistency Proof ID: {request.consistency_proof.proof_id}")
@@ -291,14 +291,14 @@ class MedChainDemo:
             }
             
             snark_valid = self.snark_manager.verify_redaction_proof(request.zk_proof, public_inputs)
-            print(f"   SNARK Proof Verification: {'✅ VALID' if snark_valid else '❌ INVALID'}")
+            print(f"   SNARK Proof Verification: {' VALID' if snark_valid else ' INVALID'}")
             
             # Verify consistency proof
             print("\\nVerifying consistency proof...")
             from ZK.ProofOfConsistency import ConsistencyProofVerifier
             verifier = ConsistencyProofVerifier()
             consistency_valid, error = verifier.verify_proof(request.consistency_proof)
-            print(f"   Consistency Proof Verification: {'✅ VALID' if consistency_valid else '❌ INVALID'}")
+            print(f"   Consistency Proof Verification: {' VALID' if consistency_valid else ' INVALID'}")
             if error:
                 print(f"   Error: {error}")
             
@@ -312,7 +312,7 @@ class MedChainDemo:
                 # Verify anonymization
                 anon_record = self.redaction_engine.query_medical_data(patient_id, "researcher")
                 if anon_record:
-                    print(f"✅ Anonymization completed:")
+                    print(f" Anonymization completed:")
                     print(f"   Original name: {patient_name}")
                     if hasattr(anon_record, 'patient_name'):
                         print(f"   Anonymized name: {anon_record.patient_name}")
@@ -335,14 +335,14 @@ class MedChainDemo:
     def phase6_audit_and_compliance(self):
         """Phase 6: Demonstrate audit capabilities and compliance reporting."""
         
-        print("\\n📊 Phase 6: Audit and Compliance Reporting")
+        print("\\n Phase 6: Audit and Compliance Reporting")
         print("-" * 50)
         
         # Blockchain audit
         print("Performing blockchain audit...")
         contract_state = self.redaction_engine.medical_contract.state
         
-        print(f"✅ Blockchain Audit Results:")
+        print(f" Blockchain Audit Results:")
         print(f"   Total patients in system: {len(contract_state['medical_records'])}")
         print(f"   Active consent records: {sum(contract_state['consent_records'].values())}")
         print(f"   Redaction operations: {len(contract_state['redaction_history'])}")
@@ -352,7 +352,7 @@ class MedChainDemo:
         print("\\nPerforming IPFS integrity audit...")
         integrity_report = self.ipfs_manager.verify_ipfs_integrity()
         
-        print(f"✅ IPFS Integrity Audit:")
+        print(f" IPFS Integrity Audit:")
         print(f"   Total datasets: {integrity_report['total_datasets']}")
         print(f"   Accessible datasets: {integrity_report['accessible_datasets']}")
         print(f"   Missing datasets: {len(integrity_report['missing_datasets'])}")
@@ -363,7 +363,7 @@ class MedChainDemo:
         blockchain_history = self.redaction_engine.get_redaction_history()
         ipfs_history = self.ipfs_manager.get_redaction_history()
         
-        print(f"✅ Redaction Audit Summary:")
+        print(f" Redaction Audit Summary:")
         print(f"   Blockchain redactions: {len(blockchain_history)}")
         print(f"   IPFS redactions: {len(ipfs_history)}")
         
@@ -384,7 +384,7 @@ class MedChainDemo:
     def phase7_advanced_redaction_scenarios(self):
         """Phase 7: Demonstrate advanced redaction scenarios."""
         
-        print("\\n🔬 Phase 7: Advanced Redaction Scenarios")
+        print("\\n Phase 7: Advanced Redaction Scenarios")
         print("-" * 50)
         
         # Scenario 1: Selective field modification
@@ -402,7 +402,7 @@ class MedChainDemo:
         
         if request_id:
             self.redaction_engine.approve_redaction(request_id, "medical_director", "Medical review approved")
-            print("✅ Selective field modification completed")
+            print(" Selective field modification completed")
         
         # Scenario 2: Batch anonymization for research
         print("\\nScenario 2: Batch anonymization for research cohort")
@@ -427,7 +427,7 @@ class MedChainDemo:
             self.redaction_engine.approve_redaction(req_id, "privacy_officer", "Anonymization verified")
             self.redaction_engine.approve_redaction(req_id, "study_coordinator", "Study protocol followed")
         
-        print(f"✅ Batch anonymization completed for {len(batch_requests)} patients")
+        print(f" Batch anonymization completed for {len(batch_requests)} patients")
         
         # Scenario 3: Emergency security redaction
         print("\\nScenario 3: Emergency security breach redaction")
@@ -445,17 +445,17 @@ class MedChainDemo:
         if request_id:
             # Emergency approval (lower threshold)
             self.redaction_engine.approve_redaction(request_id, "security_officer", "Emergency breach response")
-            print("✅ Emergency security redaction completed")
+            print(" Emergency security redaction completed")
     
     def print_final_summary(self):
         """Print final demo summary."""
         
-        print("\\n📋 MedChain Demo Summary Report")
+        print("\\n MedChain Demo Summary Report")
         print("=" * 60)
         
         # System metrics
         contract_state = self.redaction_engine.medical_contract.state
-        print(f"🏥 Medical Data Management:")
+        print(f" Medical Data Management:")
         print(f"   Initial patients: {len(self.demo_patients)}")
         print(f"   Current patients in blockchain: {len(contract_state['medical_records'])}")
         print(f"   Total redaction operations: {len(contract_state['redaction_history'])}")
@@ -463,39 +463,39 @@ class MedChainDemo:
         
         # IPFS metrics
         datasets = self.ipfs_manager.list_datasets()
-        print(f"\\n💾 IPFS Storage:")
+        print(f"\\n IPFS Storage:")
         print(f"   Datasets stored: {len(datasets)}")
         print(f"   IPFS redaction operations: {len(self.ipfs_manager.get_redaction_history())}")
         
         # Cryptographic proofs
         total_snarks = len([r for r in self.demo_redactions if 'snark_proof' in r])
-        print(f"\\n🔐 Cryptographic Proofs:")
+        print(f"\\n Cryptographic Proofs:")
         print(f"   SNARK proofs generated: {total_snarks}")
         print(f"   Consistency proofs generated: {total_snarks}")
         
         # Compliance metrics
-        print(f"\\n⚖️  Compliance Features Demonstrated:")
-        print(f"   ✅ GDPR Right to be Forgotten")
-        print(f"   ✅ HIPAA Data Anonymization")
-        print(f"   ✅ Emergency Security Response")
-        print(f"   ✅ Research Ethics Compliance")
-        print(f"   ✅ Zero-Knowledge Proofs")
-        print(f"   ✅ Consistency Verification")
-        print(f"   ✅ Immutable Audit Trail")
-        print(f"   ✅ Decentralized Storage (IPFS)")
+        print(f"\\n️  Compliance Features Demonstrated:")
+        print(f"    GDPR Right to be Forgotten")
+        print(f"    HIPAA Data Anonymization")
+        print(f"    Emergency Security Response")
+        print(f"    Research Ethics Compliance")
+        print(f"    Zero-Knowledge Proofs")
+        print(f"    Consistency Verification")
+        print(f"    Immutable Audit Trail")
+        print(f"    Decentralized Storage (IPFS)")
         
         # Technology stack
-        print(f"\\n🔧 Technology Stack Demonstrated:")
-        print(f"   ✅ Redactable Blockchain (Ateniese)")
-        print(f"   ✅ Smart Contracts with Redaction")
-        print(f"   ✅ zk-SNARKs for Privacy")
-        print(f"   ✅ Proof-of-Consistency")
-        print(f"   ✅ IPFS Distributed Storage")
-        print(f"   ✅ Role-Based Access Control")
-        print(f"   ✅ Multi-Signature Approvals")
-        print(f"   ✅ Chameleon Hash Functions")
+        print(f"\\n Technology Stack Demonstrated:")
+        print(f"    Redactable Blockchain (Ateniese)")
+        print(f"    Smart Contracts with Redaction")
+        print(f"    zk-SNARKs for Privacy")
+        print(f"    Proof-of-Consistency")
+        print(f"    IPFS Distributed Storage")
+        print(f"    Role-Based Access Control")
+        print(f"    Multi-Signature Approvals")
+        print(f"    Chameleon Hash Functions")
         
-        print(f"\\n🎉 MedChain demonstration successfully showcased all features from")
+        print(f"\\n MedChain demonstration successfully showcased all features from")
         print(f"   'Data Redaction in Smart-Contract-Enabled Permissioned Blockchains'!")
 
 
@@ -503,7 +503,7 @@ def main():
     """Main demo execution."""
     
     print("=" * 80)
-    print("🏥 MedChain: Data Redaction in Smart-Contract-Enabled Permissioned Blockchains")
+    print(" MedChain: Data Redaction in Smart-Contract-Enabled Permissioned Blockchains")
     print("=" * 80)
     print("\\nThis demo implements the complete research paper:")
     print("'Data Redaction in Smart-Contract-Enabled Permissioned Blockchains'")
