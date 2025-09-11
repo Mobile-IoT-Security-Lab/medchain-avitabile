@@ -2,24 +2,6 @@
 
 This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation to implement a proof-of-concept for the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains". In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
 
-## todos
-
-- [x] finish README.md
-- [x] implement completely the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains"
-  - [x] implement SNARKs
-  - [x] implement the proof-of-consistency
-- [ ] Add more tests
-- [x] Add more documentation
-- [ ] Create a Fake Dataset of Medical Data of Patients
-- [x] Upload the Dataset to IPFS
-- [x] Create a Demo Script that:
-  - [x] Using a Blockchain that Links to the IPFS Hash of or ID the Dataset
-  - [x] Allows Users to Query the Dataset
-  - [x] Allow Patients Right to be Forgotten
-  - [x] Redact the Blockchain Record
-  - [x] Redact the IPFS Record
-  ...
-
 ## Overview
 
 This project focuses on my implementation of redactable blockchain with smart contract support:
