@@ -167,6 +167,66 @@ class TestRedactTxMinimal(unittest.TestCase):
         self.assertEqual(request["status"], "APPROVED")
         self.assertEqual(len(requester.blockchain[self.block_index].transactions), 0)
 
+    def test_redaction_voting_rejects_when_quorum_unreachable(self):
+        # Fresh state with a tx at index 1
+        self.setUp()
+
+        requester = p.NODES[0]  # ADMIN by config in testing mode
+        req_id = requester.request_redaction(
+            target_block=self.block_index,
+            target_tx=self.tx_index,
+            redaction_type="DELETE",
+            reason="test-reject"
+        )
+        request = next(r for r in requester.redaction_requests if r["request_id"] == req_id)
+
+        # Compute authorized voters as in implementation
+        authorized_voters = [
+            node for node in p.NODES
+            if p.NODE_ROLES.get(node.id, "USER") in ["ADMIN", "REGULATOR"]
+        ]
+
+        # Temporarily require impossible quorum: more than available voters
+        original_quorum = getattr(p, 'minRedactionApprovals', 2)
+        p.minRedactionApprovals = len(authorized_voters) + 1
+
+        try:
+            # Patch randint to return upper bound to avoid ValueError when lower > upper
+            with patch('random.randint', side_effect=lambda a, b: b), \
+                 patch('random.random', return_value=1.0):  # all disapprove
+                BlockCommit.process_redaction_voting(block=None, miner=self.miner, event_time=0)
+
+            # Since quorum is impossible, status should be REJECTED
+            self.assertEqual(request["status"], "REJECTED")
+        finally:
+            p.minRedactionApprovals = original_quorum
+
+    def test_redaction_voting_pending_state(self):
+        # Fresh state with a tx at index 1
+        self.setUp()
+
+        requester = p.NODES[0]  # ADMIN by config in testing mode
+        req_id = requester.request_redaction(
+            target_block=self.block_index,
+            target_tx=self.tx_index,
+            redaction_type="DELETE",
+            reason="test-pending"
+        )
+        request = next(r for r in requester.redaction_requests if r["request_id"] == req_id)
+
+        # Ensure quorum is modest
+        votes_needed = getattr(p, 'minRedactionApprovals', 2)
+
+        # Force exactly votes_needed voters to participate and all disapprove
+        with patch('random.randint', return_value=votes_needed), \
+             patch('random.random', return_value=1.0):
+            BlockCommit.process_redaction_voting(block=None, miner=self.miner, event_time=0)
+
+        # Should remain pending: not enough approvals, but still possible to reach quorum
+        self.assertEqual(request["status"], "PENDING")
+        # And the transaction should still be present
+        self.assertGreaterEqual(len(requester.blockchain[self.block_index].transactions), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
