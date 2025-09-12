@@ -22,6 +22,9 @@ class TestPermissionManager(unittest.TestCase):
         # Contract-specific permissions
         contract = "0xABC"
         pm.contract_permissions[contract] = {"EXECUTE": [42]}
+        # Node must have some role registered to pass initial check
+        pm.assign_role(42, "USER")
+        pm.assign_role(43, "USER")
         self.assertFalse(pm.check_permission(42, "EXECUTE"))  # no resource provided
         self.assertTrue(pm.check_permission(42, "EXECUTE", resource=contract))
         self.assertFalse(pm.check_permission(43, "EXECUTE", resource=contract))
