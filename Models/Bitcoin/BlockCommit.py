@@ -225,19 +225,14 @@ class BlockCommit(BaseBlockCommit):
         # Forge new r
         # t1 = time.time()
         if p.hasMulti:
-            rlist = block.r
-            # print(f'rlist_temp: {rlist}')
-            # print(f'block id: {block.id}')
             # here we are sending the secret key i to the performing miner
             miner_list = [miner for miner in p.NODES if miner.hashPower > 0]
             # propagation delay in sharing secret key
             time.sleep(0.005)
             ss.secret_share(SK, minimum=len(miner_list), shares=len(p.NODES))
             r2 = forge(SK, m1, block.r, m2)
-            rlist[miner.id] = r2
-            # print(f'rlist_temp: {rlist}')
+            # compute new block id and update randomness
             id2 = chameleonHash(PK, m2, r2)
-            # print(f'block new id: {id2}')
             block.r = r2
             for node in p.NODES:
                 if node.id != miner.id:
