@@ -161,7 +161,6 @@ class ContractExecutionEngine(object):
             call.success = False
             return False
         
-        contract = self.deployed_contracts[call.contract_address] # TODO check if deletable line, contract is never accessed
         
         # Simulate contract execution
         gas_cost = self._calculate_gas_cost(call)
