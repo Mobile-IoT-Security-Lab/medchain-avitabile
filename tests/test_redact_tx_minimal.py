@@ -1,6 +1,7 @@
 import sys
 import os
 import unittest
+from unittest.mock import patch
 
 # Ensure project root is on path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,6 +21,12 @@ class TestRedactTxMinimal(unittest.TestCase):
 
         # Ensure all nodes have a genesis block
         BaseNode.generate_genesis_block()
+
+        # Assign roles to nodes as in Main.py
+        if hasattr(p, 'NODE_ROLES'):
+            for node in p.NODES:
+                if node.id in p.NODE_ROLES:
+                    node.update_role(p.NODE_ROLES[node.id])
 
         # Pick a miner node
         self.miner = next(n for n in p.NODES if n.hashPower > 0)
@@ -128,6 +135,37 @@ class TestRedactTxMinimal(unittest.TestCase):
         self.assertEqual(tx_after.sender, 0)
         self.assertEqual(tx_after.to, 0)
         self.assertTrue(tx_after.metadata.get("anonymized"))
+
+    def test_redaction_voting_approves_and_executes_delete(self):
+        # Fresh state with a tx at index 1
+        self.setUp()
+
+        # Choose an admin as requester to have REDACT permission
+        requester = p.NODES[0]
+        # Sanity: ensure requester has a block and tx at same index
+        self.assertGreaterEqual(len(requester.blockchain), 2)
+        self.assertGreaterEqual(len(requester.blockchain[self.block_index].transactions), 1)
+
+        # Create a redaction request to DELETE the tx
+        req_id = requester.request_redaction(
+            target_block=self.block_index,
+            target_tx=self.tx_index,
+            redaction_type="DELETE",
+            reason="test"
+        )
+        # Locate the request dict
+        request = next(r for r in requester.redaction_requests if r["request_id"] == req_id)
+
+        votes_needed = getattr(p, 'minRedactionApprovals', 2)
+
+        # Force deterministic voting: enough voters and all approve
+        with patch('random.randint', return_value=votes_needed), \
+             patch('random.random', return_value=0.0):
+            BlockCommit.process_redaction_voting(block=None, miner=self.miner, event_time=0)
+
+        # Should be approved and executed (tx deleted)
+        self.assertEqual(request["status"], "APPROVED")
+        self.assertEqual(len(requester.blockchain[self.block_index].transactions), 0)
 
 
 if __name__ == "__main__":
