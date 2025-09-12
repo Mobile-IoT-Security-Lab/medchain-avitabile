@@ -7,6 +7,7 @@ seaborn
 requests
 cryptography
 pytest
-hashlib-compat
-dataclasses
+# hashlib-compat is not a PyPI package; stdlib hashlib suffices
+# dataclasses is built-in on Python >=3.7; only install for older
+dataclasses; python_version < "3.7"
 typing-extensions
