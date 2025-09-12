@@ -1,3 +1,4 @@
+import os
 from InputsConfig import InputsConfig as p
 from Event import Queue
 from Statistics import Statistics
@@ -12,6 +13,28 @@ from Models.Incentives import Incentives
 
 
 def main():
+    # Optionally re-initialize configuration from environment flag before anything else
+    # Usage: TESTING_MODE=1 python Main.py
+    env_flag = os.getenv("TESTING_MODE")
+    if env_flag is not None:
+        is_testing = env_flag.strip().lower() in ("1", "true", "yes", "on")
+        try:
+            p.initialize(testing_mode=is_testing)
+            print(f"Config initialized from TESTING_MODE={env_flag} (testing_mode={is_testing})")
+        except Exception as e:
+            print(f"Warning: failed to re-initialize config from TESTING_MODE: {e}")
+    # Optional DRY_RUN: bail out after env-driven init
+    dry_flag = os.getenv("DRY_RUN")
+    if dry_flag is not None and dry_flag.strip().lower() in ("1", "true", "yes", "on"):
+        try:
+            print("DRY_RUN active: exiting before simulation")
+            print(f" testing_mode={getattr(p, 'TESTING_MODE', None)}")
+            print(f" NUM_NODES={getattr(p, 'NUM_NODES', 'n/a')}, MINERS_PORTION={getattr(p, 'MINERS_PORTION', 'n/a')}")
+            print(f" simTime={getattr(p, 'simTime', 'n/a')}, Binterval={getattr(p, 'Binterval', 'n/a')}")
+            print(f" hasSmartContracts={getattr(p, 'hasSmartContracts', 'n/a')}, hasPermissions={getattr(p, 'hasPermissions', 'n/a')}")
+        except Exception as e:
+            print(f"DRY_RUN summary error: {e}")
+        return
     print("START SIMULATION >> Improved Smart Contract & Permissioned Blockchain")
     
     # Initialize permissions and smart contracts
