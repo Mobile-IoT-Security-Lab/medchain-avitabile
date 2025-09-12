@@ -2,7 +2,6 @@ from InputsConfig import InputsConfig as p
 import random
 from Models.Block import Block
 from Event import Event, Queue
-from Models.Block import Block
 
 class Scheduler:
 
