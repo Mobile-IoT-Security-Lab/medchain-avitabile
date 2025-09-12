@@ -11,6 +11,7 @@ import time
 import hashlib
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+import copy
 
 from ZK.SNARKs import RedactionSNARKManager, ZKProof
 from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType, ConsistencyProof
@@ -394,23 +395,36 @@ class EnhancedRedactionEngine:
             # Execute redaction
             if request.redaction_type == "DELETE":
                 # Remove patient data
-                del self.medical_contract.state["medical_records"][patient_id]
-                del self.medical_contract.state["consent_records"][patient_id]
-                if patient_id in self.medical_contract.state["ipfs_mappings"]:
-                    del self.medical_contract.state["ipfs_mappings"][patient_id]
+                self.medical_contract.state["medical_records"].pop(patient_id, None)
+                self.medical_contract.state["consent_records"].pop(patient_id, None)
+                self.medical_contract.state["ipfs_mappings"].pop(patient_id, None)
                     
             elif request.redaction_type == "ANONYMIZE":
                 # Anonymize sensitive fields
-                current_record.patient_name = "[REDACTED]"
-                current_record.medical_record_number = "[REDACTED]"
-                current_record.physician = "[REDACTED]"
+                if isinstance(current_record, dict):
+                    current_record["patient_name"] = "[REDACTED]"
+                    current_record["medical_record_number"] = "[REDACTED]"
+                    current_record["physician"] = "[REDACTED]"
+                    self.medical_contract.state["medical_records"][patient_id] = current_record
+                else:
+                    current_record.patient_name = "[REDACTED]"
+                    current_record.medical_record_number = "[REDACTED]"
+                    current_record.physician = "[REDACTED]"
                 
             elif request.redaction_type == "MODIFY":
                 # Modify specific fields based on reason
-                if "diagnosis" in request.reason.lower():
-                    current_record.diagnosis = "[MODIFIED]"
-                if "treatment" in request.reason.lower():
-                    current_record.treatment = "[MODIFIED]"
+                reason_l = request.reason.lower()
+                if isinstance(current_record, dict):
+                    if "diagnosis" in reason_l:
+                        current_record["diagnosis"] = "[MODIFIED]"
+                    if "treatment" in reason_l:
+                        current_record["treatment"] = "[MODIFIED]"
+                    self.medical_contract.state["medical_records"][patient_id] = current_record
+                else:
+                    if "diagnosis" in reason_l:
+                        current_record.diagnosis = "[MODIFIED]"
+                    if "treatment" in reason_l:
+                        current_record.treatment = "[MODIFIED]"
             
             # Update redaction history
             redaction_record = {
@@ -503,7 +517,7 @@ class EnhancedRedactionEngine:
     def _simulate_redaction_state(self, record: MedicalDataRecord, redaction_type: str) -> Dict[str, Any]:
         """Simulate the contract state after redaction."""
         
-        simulated_state = self.medical_contract.state.copy()
+        simulated_state = copy.deepcopy(self.medical_contract.state)
         
         if redaction_type == "DELETE":
             if record.patient_id in simulated_state["medical_records"]:
