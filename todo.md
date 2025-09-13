@@ -12,8 +12,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 4. [x] Create `.env` template file with all required environment variables
 5. [x] Update requirements: add `web3>=6`, `ipfshttpclient==0.8.0a2`, `cryptography`, `python-dotenv`
 6. [x] IPFS Client Setup <!-- IPFS Implementation (Phase 1 - Lowest Friction) -->
-7. [ ] Set up local Kubo node (`ipfs daemon`) or configure pinning service
-8. [ ] Install and configure `ipfshttpclient` dependency
+7. [x] Set up local Kubo node (`ipfs daemon`) or configure pinning service
+8. [x] Install and configure `ipfshttpclient` dependency
 9. [ ] Implement `adapters/ipfs.py` with `RealIPFSClient` class
 10. [ ] Mirror all `FakeIPFSClient` methods: `add`, `get`, `pin`, `unpin`, `rm`, `ls`, `stat`
 11. [x] Add IPFS configuration variables: `IPFS_API_URL`, `IPFS_GATEWAY_URL`
