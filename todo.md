@@ -43,7 +43,7 @@ we have to implement the paper "Data Redaction in Smart-Contract-Enabled Permiss
   - [ ] Add an architecture diagram showing data flow: original on-chain ↔ censored IPFS
 
 - Code quality and fixes
-  - [ ] Fix stray `self.executed_redactions.a` in `Enhanced/MedicalRedactionEngine.py`
+  - [ ] Fix stray `self.executed_redactions.a` in `medical/MedicalRedactionEngine.py`
   - [ ] Clarify `ContractExecutionEngine.execute_call` (optional state mutation or remove unused local)
   - [ ] Clean TODOs in `MedicalDataContract` placeholders to match demo behavior
   - [ ] Some TODOs and “proof-of-concept” simplifications exist (e.g., `ContractExecutionEngine.execute_call` logic is simulated; several TODOs in medical contract code comments).

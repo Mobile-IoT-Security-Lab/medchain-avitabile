@@ -9,7 +9,7 @@ import unittest
 # Allow imports from project root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from IPFS.MedicalDataIPFS import test_ipfs_medical_data_system
+from medical.MedicalDataIPFS import test_ipfs_medical_data_system
 
 
 class TestIPFSMedicalDataSystem(unittest.TestCase):

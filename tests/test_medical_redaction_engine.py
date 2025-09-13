@@ -9,7 +9,7 @@ import unittest
 # Allow imports from project root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Enhanced.MedicalRedactionEngine import test_enhanced_medical_redaction
+from medical.MedicalRedactionEngine import test_enhanced_medical_redaction
 
 
 class TestMedicalRedactionEngine(unittest.TestCase):

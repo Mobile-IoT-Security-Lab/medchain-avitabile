@@ -25,8 +25,8 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
-from IPFS.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenerator, FakeIPFSClient
-from Enhanced.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenerator, FakeIPFSClient
+from medical.MedicalRedactionEngine import EnhancedRedactionEngine
 from ZK.SNARKs import RedactionSNARKManager
 from ZK.ProofOfConsistency import ConsistencyProofGenerator
 

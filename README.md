@@ -38,7 +38,7 @@ Advanced consistency verification system ensuring blockchain integrity after red
 - **Hash Chain Verification**: Ensures blockchain integrity is maintained
 - **Cryptographic Proofs**: Generates verifiable proofs for all consistency checks
 
-### Medical Data Engine (`Enhanced/MedicalRedactionEngine.py`)
+### Medical Data Engine (`medical/MedicalRedactionEngine.py`)
 
 Complete medical use case implementation with GDPR compliance:
 
@@ -49,7 +49,7 @@ Complete medical use case implementation with GDPR compliance:
 - **SNARK Integration**: All redaction operations include zero-knowledge proofs
 - **Audit Trail**: Comprehensive logging of all medical data operations
 
-### IPFS Integration (`IPFS/MedicalDataIPFS.py`)
+### IPFS Integration (`medical/MedicalDataIPFS.py`)
 
 Distributed storage system with redaction capabilities:
 
@@ -143,8 +143,8 @@ python demo_medchain.py
 # Run individual component tests
 python ZK/SNARKs.py
 python ZK/ProofOfConsistency.py
-python Enhanced/MedicalRedactionEngine.py
-python IPFS/MedicalDataIPFS.py
+python medical/MedicalRedactionEngine.py
+python medical/MedicalDataIPFS.py
 ```
 
 ## Experimental Framework

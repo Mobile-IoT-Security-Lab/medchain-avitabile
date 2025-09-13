@@ -25,8 +25,8 @@ This project simulates a redactable, permissioned blockchain with smart contract
   - `ZK/ProofOfConsistency.py`: Proof-of-consistency generators and verifiers for blocks, Merkle trees, hash chain, and contract state.
 
 - Medical use case + IPFS
-  - `Enhanced/MedicalRedactionEngine.py`: Contract-backed medical records, redaction approvals, SNARK + consistency integration.
-  - `IPFS/MedicalDataIPFS.py`: Fake IPFS client, dataset generator, patient-data mapping, redaction with versioning.
+  - `medical/MedicalRedactionEngine.py`: Contract-backed medical records, redaction approvals, SNARK + consistency integration.
+  - `medical/MedicalDataIPFS.py`: Fake IPFS client, dataset generator, patient-data mapping, redaction with versioning.
   - `demo_medchain.py`: End-to-end demo across dataset → blockchain → proofs → audits.
 
 - Tests
@@ -50,8 +50,8 @@ This project simulates a redactable, permissioned blockchain with smart contract
 - Component demos
   - `python ZK/SNARKs.py`
   - `python ZK/ProofOfConsistency.py`
-  - `python Enhanced/MedicalRedactionEngine.py`
-  - `python IPFS/MedicalDataIPFS.py`
+  - `python medical/MedicalRedactionEngine.py`
+  - `python medical/MedicalDataIPFS.py`
 
 ## Key Concepts
 

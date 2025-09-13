@@ -5,7 +5,7 @@ Quiet test for EnhancedRedactionEngine ensuring no exceptions and correct final 
 import sys, os, unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Enhanced.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import EnhancedRedactionEngine
 
 class TestMedicalRedactionQuiet(unittest.TestCase):
     def setUp(self):
