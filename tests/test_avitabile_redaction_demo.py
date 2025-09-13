@@ -3,7 +3,7 @@
 import sys, os, unittest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from demos.avitabile_redaction_demo import run_avitabile_redaction_demo
+from demo.avitabile_redaction_demo import run_avitabile_redaction_demo
 
 
 class TestAvitabileRedactionDemo(unittest.TestCase):
@@ -17,4 +17,3 @@ class TestAvitabileRedactionDemo(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

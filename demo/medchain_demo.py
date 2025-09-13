@@ -183,4 +183,3 @@ class MedChainDemo:
 if __name__ == "__main__":
     demo = MedChainDemo()
     demo.run_complete_demo()
-

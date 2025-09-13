@@ -9,7 +9,7 @@ import unittest
 # Allow imports from project root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from demos.redactable_blockchain_demo import run_demo
+from demo.redactable_blockchain_demo import run_demo
 
 
 class TestRedactableBlockchainDemo(unittest.TestCase):
@@ -22,4 +22,3 @@ class TestRedactableBlockchainDemo(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

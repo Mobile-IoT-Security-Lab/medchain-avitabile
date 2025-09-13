@@ -3,7 +3,7 @@
 import sys, os, unittest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from demos.avitabile_consistency_demo import run_avitabile_consistency_demo
+from demo.avitabile_consistency_demo import run_avitabile_consistency_demo
 
 
 class TestAvitabileConsistencyDemo(unittest.TestCase):
@@ -14,4 +14,3 @@ class TestAvitabileConsistencyDemo(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

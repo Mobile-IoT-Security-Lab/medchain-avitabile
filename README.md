@@ -60,7 +60,7 @@ Distributed storage system with redaction capabilities:
 - **Integrity Verification**: Ensures data consistency across IPFS network
 - **Encryption Support**: Optional encryption for sensitive medical data
 
-### Complete Demo System (`demos/medchain_demo.py`)
+### Complete Demo System (`demo/medchain_demo.py`)
 
 Comprehensive demonstration of all implemented features:
 
@@ -138,17 +138,17 @@ python Main.py
 pip install -r requirements.txt
 
 # Run the complete MedChain demo
-python -m demos.medchain_demo
+python -m demo.medchain_demo
 
 # Run individual component demos
 python ZK/SNARKs.py
 python ZK/ProofOfConsistency.py
-python -m demos.medical_redaction_demo
-python -m demos.ipfs_demo
-python -m demos.redactable_blockchain_demo
-python -m demos.avitabile_redaction_demo
-python -m demos.avitabile_consistency_demo
-python -m demos.avitabile_censored_ipfs_pipeline
+python -m demo.medical_redaction_demo
+python -m demo.ipfs_demo
+python -m demo.redactable_blockchain_demo
+python -m demo.avitabile_redaction_demo
+python -m demo.avitabile_consistency_demo
+python -m demo.avitabile_censored_ipfs_pipeline
 ```
 
 ## Experimental Framework

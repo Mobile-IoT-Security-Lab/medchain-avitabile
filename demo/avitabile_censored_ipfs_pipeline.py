@@ -142,6 +142,18 @@ class AvitabilePipelineDemo:
                 assert cens[f] == "[REDACTED]", f"Field {f} should be redacted in IPFS record"
         print(f" Mapping valid for {some_pid}; IPFS: {ipfs_hash}")
 
+        # Short integrity readout for sample patient
+        integ = self.engine.medical_contract.state.get("record_integrity", {}).get(some_pid, {})
+        if integ:
+            print(" Integrity record:")
+            print(f"  - original_hash: {integ.get('original_hash')}")
+            # external original hash if present
+            if 'original_external_hash' in integ:
+                print(f"  - original_external_hash: {integ.get('original_external_hash')}")
+            print(f"  - current_hash:  {integ.get('current_hash')}")
+            versions = integ.get('versions', [])
+            print(f"  - versions:      {len(versions)} entries")
+
     # Phase D: CRUD operations and roles
     def phase_d_crud_and_right_to_be_forgotten(self):
         print("\nPhase D: CRUD + Right to be Forgotten")

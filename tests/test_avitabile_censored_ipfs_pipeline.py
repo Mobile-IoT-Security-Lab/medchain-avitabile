@@ -3,7 +3,7 @@
 import sys, os, unittest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from demos.avitabile_censored_ipfs_pipeline import run_avitabile_censored_ipfs_pipeline_demo
+from demo.avitabile_censored_ipfs_pipeline import run_avitabile_censored_ipfs_pipeline_demo
 
 
 class TestAvitabileCensoredPipelineDemo(unittest.TestCase):
@@ -17,4 +17,3 @@ class TestAvitabileCensoredPipelineDemo(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
