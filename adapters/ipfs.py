@@ -7,6 +7,8 @@ Usage:
 Env flags:
     USE_REAL_IPFS=1                Enable real IPFS client if possible
     IPFS_API_ADDR=...              Multiaddr or HTTP address (default /ip4/127.0.0.1/tcp/5001/http)
+    IPFS_API_URL=...               Alias for IPFS_API_ADDR
+    IPFS_GATEWAY_URL=...           Optional gateway base for public links (default http://127.0.0.1:8080/ipfs)
 """
 from __future__ import annotations
 
@@ -28,7 +30,8 @@ class RealIPFSClient:
         if ipfshttpclient is None:
             raise RuntimeError("ipfshttpclient not installed; cannot create RealIPFSClient")
 
-        preferred = api_addr or env_str("IPFS_API_ADDR")
+        # Accept either IPFS_API_ADDR (multiaddr) or IPFS_API_URL (http URL)
+        preferred = api_addr or env_str("IPFS_API_ADDR") or env_str("IPFS_API_URL")
         candidates = []
         if preferred:
             candidates.append(preferred)
@@ -141,6 +144,14 @@ class RealIPFSClient:
             except Exception:
                 return None
 
+    def gateway_url(self, ipfs_hash: str) -> str:
+        """Return a human-friendly gateway URL for the given CID.
+
+        Uses IPFS_GATEWAY_URL if set, otherwise defaults to local Kubo gateway.
+        """
+        base = env_str("IPFS_GATEWAY_URL", "http://127.0.0.1:8080/ipfs") or "http://127.0.0.1:8080/ipfs"
+        return f"{base.rstrip('/')}/{ipfs_hash}"
+
 
 def get_ipfs_client() -> Optional[RealIPFSClient]:
     """Return a RealIPFSClient if env allows and ipfshttpclient is available and reachable.
@@ -153,4 +164,3 @@ def get_ipfs_client() -> Optional[RealIPFSClient]:
         return RealIPFSClient()
     except Exception:
         return None
-

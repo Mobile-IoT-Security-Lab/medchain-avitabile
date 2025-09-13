@@ -234,10 +234,11 @@ Overview
 
 How to use the real IPFS client
 
-- Start a local IPFS node: ipfs daemon
-- Copy .env.example to .env and set:
-  - USE_REAL_IPFS=1
-  - optionally IPFS_API_ADDR=/ip4/127.0.0.1/tcp/5001/http
+- Start a local IPFS node: `ipfs daemon`
+- Copy `.env.example` to `.env` and set:
+  - `USE_REAL_IPFS=1`
+  - optionally `IPFS_API_ADDR=/ip4/127.0.0.1/tcp/5001/http` or `IPFS_API_URL=http://127.0.0.1:5001`
+  - optionally `IPFS_GATEWAY_URL=http://127.0.0.1:8080/ipfs` for link construction
 - Create IPFSMedicalDataManager() without passing a client, or pass adapters.ipfs.get_ipfs_client()
 yourself.
 - Existing tests continue using the simulated client.

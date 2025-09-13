@@ -143,6 +143,11 @@ class FakeIPFSClient:
             }
         return None
 
+    def gateway_url(self, ipfs_hash: str) -> str:
+        """Return a pseudo-gateway URL for demo purposes."""
+        # Use a recognizable scheme; in real mode, adapters.ipfs.RealIPFSClient supplies real gateway URLs
+        return f"ipfs://{ipfs_hash}"
+
 
 class MedicalDatasetGenerator:
     """Generates fake medical datasets for testing."""
