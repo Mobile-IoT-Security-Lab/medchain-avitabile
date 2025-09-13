@@ -178,9 +178,33 @@ class MedChainDemo:
             self.demo_redactions.append(rid)
             # Also log an on-chain redaction request event (optional)
             if self.evm_enabled and self.evm_manager is not None:
-                txh = self.evm.requestDataRedaction(self.evm_manager, pid, "DELETE", "GDPR Article 17 request")
-                if txh:
-                    print(f"  On-chain requestDataRedaction tx: {txh}")
+                # Try with proof path using verifier stub. Build inputs from simulated engine.
+                # Compute simple public inputs as SHA-256 digests.
+                try:
+                    record = self.redaction_engine.medical_contract.state["medical_records"].get(pid)
+                    if record and hasattr(record, "__dict__"):
+                        import json, hashlib
+                        original_json = json.dumps(record.__dict__, sort_keys=True)
+                        redacted_json = self.redaction_engine._generate_redacted_data(record, "DELETE")
+                        original_hash = bytes.fromhex(hashlib.sha256(original_json.encode()).hexdigest())
+                        redacted_hash = bytes.fromhex(hashlib.sha256(redacted_json.encode()).hexdigest())
+                        policy_hex = self.redaction_engine._get_applicable_policy_hash("DELETE")
+                        policy_hash = bytes.fromhex(policy_hex)
+                        merkle_root = bytes.fromhex(hashlib.sha256(b"medical_contract_root").hexdigest())
+                        proof = b""  # verifier stub always true
+                        txh2 = self.evm.requestDataRedactionWithProof(
+                            self.evm_manager, pid, "DELETE", "GDPR Article 17 request",
+                            proof, policy_hash, merkle_root, original_hash, redacted_hash
+                        )
+                        if txh2:
+                            print(f"  On-chain requestDataRedactionWithProof tx: {txh2}")
+                    else:
+                        # Fallback without proof
+                        txh = self.evm.requestDataRedaction(self.evm_manager, pid, "DELETE", "GDPR Article 17 request")
+                        if txh:
+                            print(f"  On-chain requestDataRedaction tx: {txh}")
+                except Exception as e:
+                    print(f"  Skipped on-chain proof call: {e}")
 
     def phase5_snark_and_consistency_verification(self):
         print("\n Phase 5: SNARK Proofs and Consistency Verification")
@@ -192,6 +216,15 @@ class MedChainDemo:
         print("-" * 50)
         history = self.redaction_engine.get_redaction_history()
         print(f" Redactions executed: {len(history)}")
+        # Query on-chain events if enabled
+        if self.evm_enabled and self.evm_manager is not None:
+            try:
+                ds_logs = self.evm.get_events(self.evm_manager, "DataStored")
+                rr_logs = self.evm.get_events(self.evm_manager, "RedactionRequested")
+                print(f" On-chain DataStored events: {len(ds_logs)}")
+                print(f" On-chain RedactionRequested events: {len(rr_logs)}")
+            except Exception as e:
+                print(f" Failed to query on-chain events: {e}")
 
     def phase7_advanced_redaction_scenarios(self):
         print("\n Phase 7: Advanced Scenarios")
