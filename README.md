@@ -146,6 +146,8 @@ python ZK/ProofOfConsistency.py
 python -m demos.medical_redaction_demo
 python -m demos.ipfs_demo
 python -m demos.redactable_blockchain_demo
+python -m demos.avitabile_redaction_demo
+python -m demos.avitabile_consistency_demo
 ```
 
 ## Experimental Framework
