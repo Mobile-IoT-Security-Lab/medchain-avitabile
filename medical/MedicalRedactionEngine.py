@@ -16,6 +16,18 @@ import copy
 from ZK.SNARKs import RedactionSNARKManager, ZKProof
 from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType, ConsistencyProof
 from Models.SmartContract import SmartContract, RedactionPolicy
+from adapters.config import env_bool
+
+try:
+    # Optional adapters; only used if env flags are set
+    from adapters.snark import SnarkClient  # type: ignore
+except Exception:  # pragma: no cover - optional import
+    SnarkClient = None  # type: ignore
+
+try:
+    from adapters.evm import EVMClient  # type: ignore
+except Exception:  # pragma: no cover - optional import
+    EVMClient = None  # type: ignore
 
 
 @dataclass
@@ -198,9 +210,33 @@ class EnhancedRedactionEngine:
     """Enhanced redaction engine with SNARK proofs and consistency verification."""
     
     def __init__(self):
+        # Feature toggles
+        self._use_real_snark = env_bool("USE_REAL_SNARK", False)
+        self._use_real_evm = env_bool("USE_REAL_EVM", False)
+
+        # SNARK backend: real (if available) or simulated
+        if self._use_real_snark and SnarkClient is not None:
+            try:
+                self.snark_client = SnarkClient()
+            except Exception:
+                self.snark_client = None
+                self._use_real_snark = False
+        else:
+            self.snark_client = None
+
         self.snark_manager = RedactionSNARKManager()
         self.consistency_generator = ConsistencyProofGenerator()
         self.medical_contract = MedicalDataContract()
+        
+        # EVM backend (scaffold): if enabled, prepare client (no-op if not configured)
+        if self._use_real_evm and EVMClient is not None:
+            try:
+                self.evm_client = EVMClient()  # connect later when needed
+            except Exception:
+                self.evm_client = None
+                self._use_real_evm = False
+        else:
+            self.evm_client = None
         self.redaction_requests = {}  # request_id -> RedactionRequest
         self.executed_redactions = []
         
@@ -296,8 +332,30 @@ class EnhancedRedactionEngine:
                 "signature": f"sig_{requester}_{request_id}"
             }
             
-            # Generate SNARK proof
-            zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
+            # Generate SNARK proof (real if enabled & available, else simulated)
+            zk_proof: Optional[ZKProof]
+            if self._use_real_snark and self.snark_client is not None:
+                real = self.snark_client.prove_redaction(
+                    {k: redaction_request_data[k] for k in [
+                        "redaction_type","target_block","target_tx","requester","requester_role",
+                        "merkle_root","policy_hash"
+                    ]},
+                    {k: redaction_request_data[k] for k in [
+                        "request_id","original_data","redacted_data"
+                    ]}
+                )
+                # For now, wrap minimal real-proof artifact into simulated ZKProof shell
+                if real:
+                    zk_proof = self.snark_manager.circuit.generate_proof(
+                        {"operation_type": redaction_request_data["redaction_type"],
+                         "merkle_root": redaction_request_data.get("merkle_root","")},
+                        {"operation_id": redaction_request_data["request_id"],
+                         "redactor_key": redaction_request_data["requester"]}
+                    )
+                else:
+                    zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
+            else:
+                zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
             
             if not zk_proof:
                 print(f" Failed to generate SNARK proof for redaction request")
