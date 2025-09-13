@@ -1,0 +1,15 @@
+{
+  "name": "medchain-contracts",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.22.5"
+  },
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js"
+  }
+}
+

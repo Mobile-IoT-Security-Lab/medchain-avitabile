@@ -1,0 +1,38 @@
+name: Contracts
+
+on:
+  push:
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts.yml'
+  pull_request:
+    paths:
+      - 'contracts/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install deps
+        working-directory: contracts
+        run: |
+          npm ci
+      - name: Compile
+        working-directory: contracts
+        run: |
+          npx hardhat compile
+      - name: Deploy to in-process hardhat network
+        working-directory: contracts
+        run: |
+          npx hardhat run scripts/deploy.js
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-artifacts
+          path: |
+            contracts/artifacts
+
