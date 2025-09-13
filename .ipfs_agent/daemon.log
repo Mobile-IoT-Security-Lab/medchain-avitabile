@@ -1,0 +1,8 @@
+Initializing daemon...
+Kubo version: 0.27.0
+Repo version: 15
+System version: amd64/linux
+Golang version: go1.21.7
+Swarm not listening, running in offline mode.
+
+Error: serveHTTPApi: manet.Listen(/ip4/127.0.0.1/tcp/5101) failed: listen tcp4 127.0.0.1:5101: socket: operation not permitted
