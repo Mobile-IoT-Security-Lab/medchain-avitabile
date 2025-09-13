@@ -90,7 +90,8 @@ class MedicalDataContract(SmartContract):
             "consent_records": {},  # patient_id -> consent_status
             "access_logs": [],      # Log of all data access
             "redaction_history": [],  # History of redaction operations
-            "ipfs_mappings": {}     # patient_id -> IPFS hash
+            "ipfs_mappings": {},     # patient_id -> IPFS hash
+            "record_integrity": {}   # patient_id -> {original_hash, current_hash, versions: []}
         }
     
     def _get_medical_contract_code(self) -> str:
@@ -228,6 +229,15 @@ class EnhancedRedactionEngine:
             if medical_record.ipfs_hash:
                 self.medical_contract.state["ipfs_mappings"][medical_record.patient_id] = medical_record.ipfs_hash
             
+            # Compute and persist integrity hashes
+            record_dict = medical_record.__dict__.copy()
+            record_hash = hashlib.sha256(json.dumps(record_dict, sort_keys=True).encode()).hexdigest()
+            self.medical_contract.state["record_integrity"][medical_record.patient_id] = {
+                "original_hash": record_hash,
+                "current_hash": record_hash,
+                "versions": [record_hash]
+            }
+            
             # Log access
             self.medical_contract.state["access_logs"].append({
                 "action": "STORE",
@@ -257,6 +267,12 @@ class EnhancedRedactionEngine:
             # Check if patient exists
             if patient_id not in self.medical_contract.state["medical_records"]:
                 print(f" Patient {patient_id} not found")
+                return None
+            
+            # Enforce role authorization based on policy
+            policy = self._get_policy_for_type(redaction_type)
+            if policy and requester_role not in policy.authorized_roles:
+                print(f" Requester role {requester_role} not authorized for {redaction_type}")
                 return None
             
             # Generate request ID
@@ -392,12 +408,22 @@ class EnhancedRedactionEngine:
             patient_id = request.target_data_field
             current_record = self.medical_contract.state["medical_records"][patient_id]
             
+            # Integrity: capture pre-hash
+            current_dict = current_record.copy() if isinstance(current_record, dict) else current_record.__dict__.copy()
+            pre_hash = hashlib.sha256(json.dumps(current_dict, sort_keys=True).encode()).hexdigest()
+            
             # Execute redaction
             if request.redaction_type == "DELETE":
                 # Remove patient data
                 self.medical_contract.state["medical_records"].pop(patient_id, None)
                 self.medical_contract.state["consent_records"].pop(patient_id, None)
                 self.medical_contract.state["ipfs_mappings"].pop(patient_id, None)
+                # Update integrity registry
+                integ = self.medical_contract.state["record_integrity"].get(patient_id, {})
+                if integ:
+                    integ.setdefault("versions", []).append(pre_hash)
+                    integ["current_hash"] = None
+                    integ["deleted"] = True
                     
             elif request.redaction_type == "ANONYMIZE":
                 # Anonymize sensitive fields
@@ -410,6 +436,14 @@ class EnhancedRedactionEngine:
                     current_record.patient_name = "[REDACTED]"
                     current_record.medical_record_number = "[REDACTED]"
                     current_record.physician = "[REDACTED]"
+                # Update integrity registry
+                updated = self.medical_contract.state["medical_records"][patient_id]
+                updated_dict = updated if isinstance(updated, dict) else updated.__dict__
+                post_hash = hashlib.sha256(json.dumps(updated_dict, sort_keys=True).encode()).hexdigest()
+                integ = self.medical_contract.state["record_integrity"].get(patient_id, {})
+                if integ:
+                    integ.setdefault("versions", []).append(post_hash)
+                    integ["current_hash"] = post_hash
                 
             elif request.redaction_type == "MODIFY":
                 # Modify specific fields based on reason
@@ -425,6 +459,14 @@ class EnhancedRedactionEngine:
                         current_record.diagnosis = "[MODIFIED]"
                     if "treatment" in reason_l:
                         current_record.treatment = "[MODIFIED]"
+                # Update integrity registry
+                updated = self.medical_contract.state["medical_records"][patient_id]
+                updated_dict = updated if isinstance(updated, dict) else updated.__dict__
+                post_hash = hashlib.sha256(json.dumps(updated_dict, sort_keys=True).encode()).hexdigest()
+                integ = self.medical_contract.state["record_integrity"].get(patient_id, {})
+                if integ:
+                    integ.setdefault("versions", []).append(post_hash)
+                    integ["current_hash"] = post_hash
             
             # Update redaction history
             redaction_record = {
@@ -436,7 +478,9 @@ class EnhancedRedactionEngine:
                 "approvers": request.approvals,
                 "timestamp": int(time.time()),
                 "zk_proof_id": request.zk_proof.proof_id,
-                "consistency_proof_id": request.consistency_proof.proof_id
+                "consistency_proof_id": request.consistency_proof.proof_id,
+                "pre_hash": pre_hash,
+                "post_hash": self.medical_contract.state["record_integrity"].get(patient_id, {}).get("current_hash")
             }
             
             self.medical_contract.state["redaction_history"].append(redaction_record)
@@ -560,14 +604,16 @@ class EnhancedRedactionEngine:
     
     def _get_approval_threshold(self, redaction_type: str) -> int:
         """Get approval threshold for redaction type."""
-        
-        thresholds = {
-            "DELETE": 2,
-            "ANONYMIZE": 3,
-            "MODIFY": 1
-        }
-        
-        return thresholds.get(redaction_type, 2)
+        policy = self._get_policy_for_type(redaction_type)
+        if policy:
+            return policy.min_approvals
+        return 2
+
+    def _get_policy_for_type(self, redaction_type: str) -> Optional[RedactionPolicy]:
+        for pol in getattr(self.medical_contract, "redaction_policies", []):
+            if getattr(pol, "policy_type", "") == redaction_type:
+                return pol
+        return None
 
 
 # Testing and demonstration

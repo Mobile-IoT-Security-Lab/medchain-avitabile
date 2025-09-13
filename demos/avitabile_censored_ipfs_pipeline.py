@@ -115,6 +115,11 @@ class AvitabilePipelineDemo:
             self.engine.store_medical_data(record)
             # Link in contract state
             self.engine.medical_contract.state["ipfs_mappings"][pid] = ipfs_hash
+            # Persist original external hash (computed from original dataset before censoring)
+            if pid in self.links and "original_hash" in self.links[pid]:
+                integ = self.engine.medical_contract.state["record_integrity"].get(pid, {})
+                integ["original_external_hash"] = self.links[pid]["original_hash"]
+                self.engine.medical_contract.state["record_integrity"][pid] = integ
             count += 1
 
         print(f" Stored {count} patient records on-chain and linked to IPFS")
@@ -155,6 +160,10 @@ class AvitabilePipelineDemo:
             requester_role="ADMIN",
         )
         assert rid_mod, "MODIFY request should be created"
+        # Show proofs for MODIFY
+        req_m = self.engine.redaction_requests[rid_mod]
+        print(" MODIFY SNARK:", json.dumps(req_m.zk_proof.to_dict(), indent=2))
+        print(" MODIFY Consistency:", json.dumps(req_m.consistency_proof.to_dict(), indent=2))
         self.engine.approve_redaction(rid_mod, "admin_001")
         # MODIFY threshold is 1 in engine
 
@@ -168,6 +177,10 @@ class AvitabilePipelineDemo:
             requester_role="REGULATOR",
         )
         assert rid_del, "DELETE request should be created"
+        # Show proofs for DELETE
+        req_d = self.engine.redaction_requests[rid_del]
+        print(" DELETE SNARK:", json.dumps(req_d.zk_proof.to_dict(), indent=2))
+        print(" DELETE Consistency:", json.dumps(req_d.consistency_proof.to_dict(), indent=2))
         self.engine.approve_redaction(rid_del, "admin_001")
         self.engine.approve_redaction(rid_del, "regulator_002")
 
@@ -187,6 +200,17 @@ class AvitabilePipelineDemo:
         assert not self.ipfs.query_patient_data(delete_pid), "Deleted patient should be gone from IPFS"
         print(" CRUD and RTBF operations completed")
 
+        # Demonstrate denial for unauthorized role (e.g., USER attempting DELETE)
+        print(" Attempting unauthorized DELETE by USER role (should be denied)")
+        rid_denied = self.engine.request_data_redaction(
+            patient_id=update_pid,
+            redaction_type="DELETE",
+            reason="Unauthorized attempt",
+            requester="user_001",
+            requester_role="USER",
+        )
+        assert rid_denied is None, "Unauthorized DELETE should be denied"
+
     def run(self):
         censored, ipfs_hash = self.phase_a_upload_censored()
         self.phase_b_store_on_chain(censored, ipfs_hash)
@@ -203,4 +227,3 @@ def run_avitabile_censored_ipfs_pipeline_demo():
 
 if __name__ == "__main__":
     run_avitabile_censored_ipfs_pipeline_demo()
-
