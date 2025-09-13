@@ -11,3 +11,5 @@ pytest
 # dataclasses is built-in on Python >=3.7; only install for older
 dataclasses; python_version < "3.7"
 typing-extensions
+ipfshttpclient==0.8.0a2
+python-dotenv
