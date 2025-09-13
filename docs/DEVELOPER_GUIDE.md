@@ -27,7 +27,7 @@ This project simulates a redactable, permissioned blockchain with smart contract
 - Medical use case + IPFS
   - `medical/MedicalRedactionEngine.py`: Contract-backed medical records, redaction approvals, SNARK + consistency integration.
   - `medical/MedicalDataIPFS.py`: Fake IPFS client, dataset generator, patient-data mapping, redaction with versioning.
-  - `demo_medchain.py`: End-to-end demo across dataset → blockchain → proofs → audits.
+  - `demos/medchain_demo.py`: End-to-end demo across dataset → blockchain → proofs → audits.
 
 - Tests
   - `tests/`: Integration/performance and feature tests (SNARK, IPFS, redaction flow, consistency).
@@ -44,14 +44,14 @@ This project simulates a redactable, permissioned blockchain with smart contract
   - Effects: fewer nodes, faster block interval, higher tx rates; richer policy set and logs.
 
 - MedChain demo (full stack)
-  - Run: `python demo_medchain.py`
+  - Run: `python -m demos.medchain_demo`
   - Phases: dataset → store in contract → access control → GDPR delete → SNARK + consistency proofs → audit reports → advanced scenarios.
 
 - Component demos
   - `python ZK/SNARKs.py`
   - `python ZK/ProofOfConsistency.py`
-  - `python medical/MedicalRedactionEngine.py`
-  - `python medical/MedicalDataIPFS.py`
+  - `python -m demos.medical_redaction_demo`
+  - `python -m demos.ipfs_demo`
 
 ## Key Concepts
 

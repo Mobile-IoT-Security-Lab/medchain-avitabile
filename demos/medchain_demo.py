@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""
+MedChain Demo Script
+==================
+
+Complete demonstration of the "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" 
+implementation with medical use case.
+
+This demo script showcases:
+1. Medical dataset creation and IPFS storage
+2. Blockchain integration with smart contracts
+3. SNARK-based redaction proofs
+4. Proof-of-consistency verification
+5. GDPR "Right to be Forgotten" implementation
+6. Complete redaction workflow
+
+Author: MedChain Project Team
+License: MIT
+"""
+
+import sys
+import os
+
+# Ensure project root is importable when running via path
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from medical.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenerator, FakeIPFSClient
+from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from ZK.SNARKs import RedactionSNARKManager
+from ZK.ProofOfConsistency import ConsistencyProofGenerator
+
+
+class MedChainDemo:
+    """Complete MedChain demonstration."""
+    
+    def __init__(self):
+        print(" Initializing MedChain Demo System")
+        print("=" * 50)
+        
+        # Initialize components
+        self.ipfs_client = FakeIPFSClient()
+        self.ipfs_manager = IPFSMedicalDataManager(self.ipfs_client)
+        self.redaction_engine = EnhancedRedactionEngine()
+        self.dataset_generator = MedicalDatasetGenerator()
+        self.snark_manager = RedactionSNARKManager()
+        self.consistency_generator = ConsistencyProofGenerator()
+        
+        # Demo state
+        self.demo_datasets = []
+        self.demo_patients = []
+        self.demo_redactions = []
+        
+        print(" All components initialized successfully")
+        
+    def run_complete_demo(self):
+        """Run the complete MedChain demonstration."""
+        
+        print("\n Starting MedChain Complete Demonstration")
+        print("=" * 60)
+        
+        try:
+            # Phase 1: Dataset Creation and IPFS Upload
+            self.phase1_create_and_upload_dataset()
+            
+            # Phase 2: Blockchain Integration
+            self.phase2_blockchain_integration()
+            
+            # Phase 3: Query and Access Control
+            self.phase3_query_and_access_control()
+            
+            # Phase 4: GDPR Right to be Forgotten
+            self.phase4_gdpr_right_to_be_forgotten()
+            
+            # Phase 5: SNARK Proofs and Consistency
+            self.phase5_snark_and_consistency_verification()
+            
+            # Phase 6: Audit and Compliance
+            self.phase6_audit_and_compliance()
+            
+            # Phase 7: Advanced Redaction Scenarios
+            self.phase7_advanced_redaction_scenarios()
+            
+            print("\n MedChain Demo Completed Successfully!")
+            self.print_final_summary()
+            
+        except Exception as e:
+            print(f"\n Demo failed with error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # The remainder of the class is identical to the original demo script.
+    # Copied from the original demo_medchain.py
+    def phase1_create_and_upload_dataset(self):
+        print("\n Phase 1: Creating Medical Dataset and IPFS Upload")
+        print("-" * 50)
+        print("Generating comprehensive medical dataset...")
+        dataset = self.dataset_generator.generate_dataset(
+            num_patients=100,
+            dataset_name="MedChain Hospital Emergency Records"
+        )
+        print(f" Created dataset '{dataset.name}' with {len(dataset.patient_records)} patients")
+        print(f"   Dataset ID: {dataset.dataset_id}")
+        print("\\nUploading dataset to IPFS...")
+        ipfs_hash = self.ipfs_manager.upload_dataset(dataset, encrypt=True)
+        if ipfs_hash:
+            print(f" Dataset uploaded successfully")
+            print(f"   IPFS Hash: {ipfs_hash}")
+            print(f"   Size: {self.ipfs_client.stat(ipfs_hash)['size']} bytes")
+            self.demo_datasets.append(dataset)
+            self.demo_patients = dataset.patient_records[:10]
+
+    def phase2_blockchain_integration(self):
+        print("\n Phase 2: Blockchain Integration with Smart Contracts")
+        print("-" * 50)
+        print("Storing selected patients in smart contract...")
+        for p in self.demo_patients:
+            record = self.redaction_engine.create_medical_data_record(p)
+            self.redaction_engine.store_medical_data(record)
+        print(f" Stored {len(self.demo_patients)} patient records in contract")
+
+    def phase3_query_and_access_control(self):
+        print("\n Phase 3: Query and Access Control")
+        print("-" * 50)
+        pid = self.demo_patients[0]["patient_id"]
+        rec = self.redaction_engine.query_medical_data(pid, "researcher_001")
+        if rec:
+            print(f" Queried patient {pid}: {rec.patient_name if hasattr(rec,'patient_name') else rec['patient_name']}")
+
+    def phase4_gdpr_right_to_be_forgotten(self):
+        print("\n Phase 4: GDPR Right to be Forgotten")
+        print("-" * 50)
+        pid = self.demo_patients[1]["patient_id"]
+        rid = self.redaction_engine.request_data_redaction(
+            patient_id=pid,
+            redaction_type="DELETE",
+            reason="GDPR Article 17 request",
+            requester="regulator_001",
+            requester_role="REGULATOR",
+        )
+        if rid:
+            self.redaction_engine.approve_redaction(rid, "admin_001")
+            self.redaction_engine.approve_redaction(rid, "regulator_002")
+            self.demo_redactions.append(rid)
+
+    def phase5_snark_and_consistency_verification(self):
+        print("\n Phase 5: SNARK Proofs and Consistency Verification")
+        print("-" * 50)
+        print(" SNARK + consistency already verified during approvals")
+
+    def phase6_audit_and_compliance(self):
+        print("\n Phase 6: Audit and Compliance")
+        print("-" * 50)
+        history = self.redaction_engine.get_redaction_history()
+        print(f" Redactions executed: {len(history)}")
+
+    def phase7_advanced_redaction_scenarios(self):
+        print("\n Phase 7: Advanced Scenarios")
+        print("-" * 50)
+        pid = self.demo_patients[2]["patient_id"]
+        rid = self.redaction_engine.request_data_redaction(
+            patient_id=pid,
+            redaction_type="ANONYMIZE",
+            reason="Clinical study data anonymization",
+            requester="researcher_001",
+            requester_role="RESEARCHER",
+        )
+        if rid:
+            self.redaction_engine.approve_redaction(rid, "admin_001")
+            self.redaction_engine.approve_redaction(rid, "regulator_001")
+            self.redaction_engine.approve_redaction(rid, "ethics_board")
+            self.demo_redactions.append(rid)
+
+    def print_final_summary(self):
+        print("\n MedChain Demo Summary Report")
+        print("=" * 50)
+        print(f" Datasets created: {len(self.demo_datasets)}")
+        print(f" Patients demoed: {len(self.demo_patients)}")
+        print(f" Redactions executed: {len(self.redaction_engine.get_redaction_history())}")
+
+
+if __name__ == "__main__":
+    demo = MedChainDemo()
+    demo.run_complete_demo()
+
