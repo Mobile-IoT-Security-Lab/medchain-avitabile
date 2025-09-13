@@ -11,6 +11,7 @@ Env flags:
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+import time
 from .config import env_bool, env_str
 
 
@@ -27,9 +28,56 @@ class RealIPFSClient:
         if ipfshttpclient is None:
             raise RuntimeError("ipfshttpclient not installed; cannot create RealIPFSClient")
 
-        addr = api_addr or env_str("IPFS_API_ADDR", "/ip4/127.0.0.1/tcp/5001/http")
-        # ipfshttpclient.connect accepts multiaddr or URL
-        self._client = ipfshttpclient.connect(addr)  # may raise if daemon not running
+        preferred = api_addr or env_str("IPFS_API_ADDR")
+        candidates = []
+        if preferred:
+            candidates.append(preferred)
+        # Common defaults (multiaddr and HTTP URL)
+        candidates.extend([
+            "/ip4/127.0.0.1/tcp/5001/http",
+            "/dns/localhost/tcp/5001/http",
+            "http://127.0.0.1:5001",
+        ])
+
+        # Configure retries/backoff via env (best-effort parsing)
+        def _to_int(name: str, default: int) -> int:
+            try:
+                v = env_str(name)
+                return int(v) if v is not None and v != "" else default
+            except Exception:
+                return default
+
+        def _to_float(name: str, default: float) -> float:
+            try:
+                v = env_str(name)
+                return float(v) if v is not None and v != "" else default
+            except Exception:
+                return default
+
+        max_retries = max(1, _to_int("IPFS_CONNECT_RETRIES", 3))
+        backoff_base = max(0.05, _to_float("IPFS_CONNECT_BACKOFF_BASE", 0.25))
+
+        last_err = None
+        for addr in candidates:
+            for attempt in range(max_retries):
+                try:
+                    c = ipfshttpclient.connect(addr)
+                    # verify underlying daemon is responsive
+                    _ = c.version()
+                    self._client = c
+                    return
+                except Exception as e:  # pragma: no cover (env dependent)
+                    last_err = e
+                    if attempt < max_retries - 1:
+                        delay = backoff_base * (2 ** attempt)
+                        time.sleep(delay)
+                        continue
+                    break
+
+        raise RuntimeError(
+            "Unable to connect to IPFS API. Set IPFS_API_ADDR or start a local daemon with 'ipfs daemon'.\n"
+            f"Tried addresses: {candidates}. Last error: {last_err}"
+        )
 
     # Compatibility helpers
     def add(self, content: str, pin: bool = True) -> str:

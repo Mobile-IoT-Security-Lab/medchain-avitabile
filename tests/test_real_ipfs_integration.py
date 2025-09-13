@@ -12,8 +12,12 @@ class TestRealIPFSIntegration(unittest.TestCase):
         # Import inside test to avoid mandatory dependency
         from adapters.ipfs import get_ipfs_client
         self.client = get_ipfs_client()
-        if self.client is None:
-            self.skipTest("Real IPFS client not available or daemon not reachable")
+        self.assertIsNotNone(
+            self.client,
+            "Real IPFS client not available or daemon not reachable.\n"
+            "Start a local node (ipfs daemon) or set IPFS_API_ADDR to your API endpoint\n"
+            "(e.g., /ip4/127.0.0.1/tcp/5001/http or http://127.0.0.1:5001)."
+        )
 
     def test_add_and_get_roundtrip(self):
         content = "hello-medchain-real-ipfs"
