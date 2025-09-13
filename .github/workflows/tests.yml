@@ -32,14 +32,9 @@ jobs:
           # Best-effort install of repo requirements (some backports like dataclasses may not support py>=3.11)
           if [ -f requirements.txt ]; then pip install -r requirements.txt || true; fi
 
-      - name: Run targeted tests with coverage and timings
+      - name: Run full test suite with coverage and timings
         run: |
-          pytest -q tests/test_redact_tx_minimal.py --cov=. --cov-report=term-missing --durations=10
-
-      - name: Run broader subset (no performance) with coverage and timings
-        if: matrix.python-version == '3.10'
-        run: |
-          pytest -q tests -k "not performance" --cov=. --cov-report=term-missing --durations=10
+          pytest -q tests --cov=. --cov-report=term-missing --durations=10
 
       - name: Generate coverage badge
         if: matrix.python-version == '3.10'
