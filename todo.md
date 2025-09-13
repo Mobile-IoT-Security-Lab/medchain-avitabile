@@ -14,7 +14,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 6. [x] IPFS Client Setup <!-- IPFS Implementation (Phase 1 - Lowest Friction) -->
 7. [x] Set up local Kubo node (`ipfs daemon`) or configure pinning service
 8. [x] Install and configure `ipfshttpclient` dependency
-9. [ ] Implement `adapters/ipfs.py` with `RealIPFSClient` class
+9. [x] Implement `adapters/ipfs.py` with `RealIPFSClient` class
 10. [ ] Mirror all `FakeIPFSClient` methods: `add`, `get`, `pin`, `unpin`, `rm`, `ls`, `stat`
 11. [x] Add IPFS configuration variables: `IPFS_API_URL`, `IPFS_GATEWAY_URL`
 12. [ ] <!-- ### IPFS Encryption and Security --> Implement AES-GCM encryption for PHI before IPFS upload
