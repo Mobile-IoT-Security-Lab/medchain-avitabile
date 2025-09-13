@@ -226,8 +226,24 @@ class MedicalDatasetGenerator:
 class IPFSMedicalDataManager:
     """Manages medical data storage and redaction in IPFS."""
     
-    def __init__(self, ipfs_client: Optional[FakeIPFSClient] = None):
-        self.ipfs_client = ipfs_client or FakeIPFSClient()
+    def __init__(self, ipfs_client: Optional[Any] = None):
+        """Manager accepts either the simulated or real IPFS client.
+
+        If no client is provided and USE_REAL_IPFS=1 with a reachable daemon,
+        a real client will be used; otherwise the simulated FakeIPFSClient is used.
+        """
+        if ipfs_client is not None:
+            self.ipfs_client = ipfs_client
+        else:
+            # Best-effort: pick real client if available and enabled by env
+            try:
+                from adapters.ipfs import get_ipfs_client  # local import to avoid hard dep in tests
+
+                real = get_ipfs_client()
+            except Exception:
+                real = None
+
+            self.ipfs_client = real or FakeIPFSClient()
         self.dataset_registry = {}  # dataset_id -> dataset_metadata
         self.patient_mappings = {}  # patient_id -> [ipfs_hashes]
         self.redaction_log = []     # Log of all redaction operations
