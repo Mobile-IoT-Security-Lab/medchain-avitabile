@@ -30,6 +30,9 @@ from medical.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenera
 from medical.MedicalRedactionEngine import EnhancedRedactionEngine
 from ZK.SNARKs import RedactionSNARKManager
 from ZK.ProofOfConsistency import ConsistencyProofGenerator
+from adapters.ipfs import get_ipfs_client
+from adapters.evm import get_evm_client
+from adapters.config import env_str
 
 
 class MedChainDemo:
@@ -40,12 +43,34 @@ class MedChainDemo:
         print("=" * 50)
         
         # Initialize components
-        self.ipfs_client = FakeIPFSClient()
+        # Prefer real IPFS client if enabled and reachable; fallback to Fake
+        self.ipfs_client = get_ipfs_client() or FakeIPFSClient()
         self.ipfs_manager = IPFSMedicalDataManager(self.ipfs_client)
         self.redaction_engine = EnhancedRedactionEngine()
         self.dataset_generator = MedicalDatasetGenerator()
         self.snark_manager = RedactionSNARKManager()
         self.consistency_generator = ConsistencyProofGenerator()
+
+        # Try to initialize EVM backend (optional)
+        self.evm = get_evm_client()
+        self.evm_manager = None
+        self.evm_enabled = False
+        if self.evm is not None:
+            # Try load existing address or leave disabled if artifacts/address missing
+            addr = env_str("MEDICAL_CONTRACT_ADDRESS")
+            if addr:
+                loaded = self.evm.load_contract("MedicalDataManager", addr)
+                if loaded is not None:
+                    self.evm_manager = loaded
+                    self.evm_enabled = True
+            else:
+                # Best-effort deploy if artifacts present
+                deployed = self.evm.deploy("MedicalDataManager")
+                if deployed:
+                    mgr_addr, mgr = deployed
+                    print(f" Deployed MedicalDataManager at {mgr_addr}")
+                    self.evm_manager = mgr
+                    self.evm_enabled = True
         
         # Demo state
         self.demo_datasets = []
@@ -118,7 +143,15 @@ class MedChainDemo:
         for p in self.demo_patients:
             record = self.redaction_engine.create_medical_data_record(p)
             self.redaction_engine.store_medical_data(record)
-        print(f" Stored {len(self.demo_patients)} patient records in contract")
+            # If EVM backend is enabled, publish pointer to on-chain manager
+            if self.evm_enabled and self.evm_manager is not None and hasattr(self.demo_datasets[0], 'ipfs_hash'):
+                pid = p["patient_id"]
+                ipfs_hash = self.demo_datasets[0].ipfs_hash or ""
+                if ipfs_hash:
+                    txh = self.evm.storeMedicalData(self.evm_manager, pid, ipfs_hash)
+                    if txh:
+                        print(f"  On-chain storeMedicalData tx: {txh}")
+        print(f" Stored {len(self.demo_patients)} patient records (simulated); EVM pointers set: {self.evm_enabled}")
 
     def phase3_query_and_access_control(self):
         print("\n Phase 3: Query and Access Control")
@@ -143,6 +176,11 @@ class MedChainDemo:
             self.redaction_engine.approve_redaction(rid, "admin_001")
             self.redaction_engine.approve_redaction(rid, "regulator_002")
             self.demo_redactions.append(rid)
+            # Also log an on-chain redaction request event (optional)
+            if self.evm_enabled and self.evm_manager is not None:
+                txh = self.evm.requestDataRedaction(self.evm_manager, pid, "DELETE", "GDPR Article 17 request")
+                if txh:
+                    print(f"  On-chain requestDataRedaction tx: {txh}")
 
     def phase5_snark_and_consistency_verification(self):
         print("\n Phase 5: SNARK Proofs and Consistency Verification")
