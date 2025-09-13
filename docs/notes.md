@@ -231,3 +231,13 @@ Overview
 - Medical contract code strings include TODO placeholders (non‑executed, illustrative).
 - todo.md tracks broader tasks (censored pipeline completeness, policy checks E2E, more negative tests,
   demo CRUD surface, code cleanups).
+
+How to use the real IPFS client
+
+- Start a local IPFS node: ipfs daemon
+- Copy .env.example to .env and set:
+  - USE_REAL_IPFS=1
+  - optionally IPFS_API_ADDR=/ip4/127.0.0.1/tcp/5001/http
+- Create IPFSMedicalDataManager() without passing a client, or pass adapters.ipfs.get_ipfs_client()
+yourself.
+- Existing tests continue using the simulated client.
