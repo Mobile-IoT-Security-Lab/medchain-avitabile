@@ -52,6 +52,7 @@ This project simulates a redactable, permissioned blockchain with smart contract
   - `python ZK/ProofOfConsistency.py`
   - `python -m demos.medical_redaction_demo`
   - `python -m demos.ipfs_demo`
+  - `python -m demos.redactable_blockchain_demo`
 
 ## Key Concepts
 
