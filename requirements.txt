@@ -13,3 +13,4 @@ dataclasses; python_version < "3.7"
 typing-extensions
 ipfshttpclient==0.8.0a2
 python-dotenv
+web3>=6
