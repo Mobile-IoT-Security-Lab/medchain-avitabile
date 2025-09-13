@@ -124,3 +124,110 @@ Important Nuance
 
 - Built atop Ateniese baseline
   - Chameleon‑hash redactable chain forms the base, extended with contracts, proofs, and governance required by Avitabile’s setting.
+
+## stuff to study
+
+Overview
+
+- Python simulation of a redactable, permissioned blockchain (Bitcoin‑like) with smart contracts,
+  role‑based redaction governance, and a medical/IPFS demo.
+- Core redaction uses chameleon hashes (Ateniese‑style). Smart contracts, SNARKs, proof‑of‑consistency,
+  and IPFS are simulated to support the Avitabile paper use case.
+- Entry points: Main.py (simulator) and multiple demos under demo/.
+
+  Tech & Deps
+
+- Python 3.9–3.11 (CI tests across versions).
+- Deps: pandas, numpy, matplotlib, seaborn, requests, cryptography, pytest, openpyxl, xlsxwriter, typing-
+  extensions.
+- No real EVM/SNARK/IPFS libraries; these are modeled in Python for pedagogy/testing.
+
+  How To Run
+
+- Install: pip install -r requirements.txt
+- Simulator: python Main.py
+  - Quick config preview: TESTING_MODE=1 DRY_RUN=1 python Main.py
+  - Fast mode: TESTING_MODE=1 python Main.py
+- Demos:
+  - Full MedChain: python -m demo.medchain_demo
+  - Components: python ZK/SNARKs.py, python ZK/ProofOfConsistency.py, python -m
+  demo.redactable_blockchain_demo, python -m demo.avitabile_*, python -m demo.medical_redaction_demo,
+  python -m demo.ipfs_demo
+- Tests: pytest -q tests (CI also generates coverage badge to badges/coverage.svg)
+
+  Configuration
+
+- InputsConfig.py: central config. Toggle testing mode via InputsConfig.initialize(testing_mode=True) or
+  env var TESTING_MODE=1.
+- Key toggles: hasRedact, hasSmartContracts, hasPermissions, minRedactionApprovals, REDACTION_POLICIES,
+  transaction mix, network size.
+
+  Core Structure
+
+- Simulation
+  - Main.py: drives runs; deploys example contracts; assigns roles; runs event loop; prints stats;
+  writes Excel via Statistics.
+  - Event.py + Scheduler.py: event queue + block creation/propagation.
+  - Models/Bitcoin/*: concrete Bitcoin‑like mining/propagation, redaction workflow, longest‑chain.
+  - Models/Transaction.py: transaction model + generators (TRANSFER, CONTRACT_CALL, CONTRACT_DEPLOY,
+  REDACTION_REQUEST).
+  - Models/Block.py: block structure incl. contract lists, redaction metadata, redaction history.
+  - Models/Bitcoin/BlockCommit.py: the heart of block processing and redaction:
+    - Computes block ids via chameleon hash.
+    - Executes redactions by recomputing r with trapdoor: forge(...) + chameleonHash(...).
+    - Simulates contract deploy/call handling and redaction voting/approval.
+- Redaction primitives
+  - CH/ChameleonHash.py, CH/SecretSharing.py: trapdoor hash + (simulated) secret sharing; uses fixed
+  demo parameters and keys.
+- Smart contracts (simulated)
+  - Models/SmartContract.py: SmartContract, ContractCall, ContractExecutionEngine (gas calc + logs),
+  PermissionManager, RedactionPolicy.
+- ZK & Consistency (simulated)
+  - ZK/SNARKs.py: defines proof objects, a “circuit” scaffold, commitment/nullifier, and heuristic
+  verifier; demo/test harness included.
+  - ZK/ProofOfConsistency.py: proof object + generators and verifiers for block/hash chain/Merkle/
+  contract‑state/ordering.
+- Medical + IPFS (simulated)
+  - medical/MedicalRedactionEngine.py: medical contract wrapper, redaction requests → SNARK creation →
+  approvals → execution; audit trail.
+  - medical/MedicalDataIPFS.py: in‑memory “IPFS” client persisting to /tmp/fake_ipfs; dataset
+  generator; patient mappings; redaction with versioning and integrity checks.
+
+  Redaction Flow
+
+- Block redaction:
+  - Pick block+tx → modify/delete → recompute m2 (tx list + prev) → forge new r2 with trapdoor so
+  CH(new_msg, r2) = CH(old_msg, r1) → update block id → propagate.
+- Governance:
+  - InputsConfig assigns node roles (ADMIN, REGULATOR, MINER, USER, OBSERVER).
+  - Redaction request txs → request created by authorized roles → voting simulated among ADMIN/
+  REGULATOR → on quorum, apply redaction and record approvals/history.
+
+  Demos
+
+- demo/redactable_blockchain_demo.py: minimal chameleon‑hash redaction demo.
+- demo/avitabile_*: themed demos for redaction, consistency proofs, and a censored‑IPFS pipeline.
+- demo/medchain_demo.py: orchestrates dataset → storage → access → GDPR erasure → proofs → audit →
+  advanced redaction.
+
+  Tests
+
+- tests/ contains unit/integration/performance tests across:
+  - Transactions, node/network basics, redact paths, smart contracts, permission manager.
+  - ZK and consistency demo functions.
+  - IPFS/medical redaction flows.
+  - Avitabile demo harnesses.
+
+  Notable Limitations/Gaps
+
+- Simulations:
+  - SNARKs, contract execution, and IPFS are proof‑of‑concept models; not real cryptographic/EVM/IPFS
+  systems.
+  - Chameleon hash secrets/params are hardcoded and suitable only for demonstration.
+- Policy enforcement:
+  - Models/Bitcoin/BlockCommit.py.check_redaction_policy(...) exists but isn’t wired into the redaction
+  request flow. Quorum is driven by minRedactionApprovals without explicit per‑policy checks at request
+  time.
+- Medical contract code strings include TODO placeholders (non‑executed, illustrative).
+- todo.md tracks broader tasks (censored pipeline completeness, policy checks E2E, more negative tests,
+  demo CRUD surface, code cleanups).

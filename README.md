@@ -223,3 +223,35 @@ REDACTION_POLICIES = [
 - [Ateniese, G., Magri, B., Venturi, D., & Andrade, E. (2017, April). Redactable blockchain–or–rewriting history in bitcoin and friends. In 2017 IEEE European symposium on security and privacy (EuroS&P) (pp. 111-126). IEEE.](https://ieeexplore.ieee.org/abstract/document/7961975/)
 - [Puddu, I., Dmitrienko, A., & Capkun, S. (2017). $\mu $ chain: How to Forget without Hard Forks. Cryptology ePrint Archive.](https://eprint.iacr.org/2017/106)
 - [Botta, V., Iovino, V., & Visconti, I. (2022). Towards Data Redaction in Bitcoin. IEEE Transactions on Network and Service Management, 19(4), 3872-3883.](https://doi.org/10.1109/TNSM.2022.3214279)
+
+## Codebase Map
+
+- Overview
+  - Python simulation of a redactable, permissioned blockchain (Bitcoin‑like) with smart contracts, role‑based redaction governance, and a medical/IPFS demo.
+  - Core redaction uses chameleon hashes (Ateniese‑style). Smart contracts, SNARKs, proof‑of‑consistency, and IPFS are simulated to support the Avitabile paper use case.
+
+- How to Run
+  - Install deps: `pip install -r requirements.txt`
+  - Simulator: `python Main.py`  (fast preview: `TESTING_MODE=1 DRY_RUN=1 python Main.py`)
+  - Demos: `python -m demo.medchain_demo`, `python ZK/SNARKs.py`, `python ZK/ProofOfConsistency.py`, `python -m demo.redactable_blockchain_demo`, `python -m demo.avitabile_*`, `python -m demo.medical_redaction_demo`, `python -m demo.ipfs_demo`
+  - Tests: `pytest -q tests`
+
+- Configuration (`InputsConfig.py`)
+  - Central toggles: `hasRedact`, `hasSmartContracts`, `hasPermissions`, `minRedactionApprovals`, `REDACTION_POLICIES`, transaction mix, network size.
+  - Enable testing mode via `InputsConfig.initialize(testing_mode=True)` or env var `TESTING_MODE=1`.
+
+- Structure
+  - Core sim: `Main.py`, `Event.py`, `Scheduler.py`, `Models/Bitcoin/*`, `Models/Transaction.py`, `Models/Block.py`, `Statistics.py`.
+  - Redaction primitives: `CH/ChameleonHash.py`, `CH/SecretSharing.py`.
+  - Smart contracts (simulated): `Models/SmartContract.py` (contract model, execution engine, permissions, policies).
+  - ZK & consistency (simulated): `ZK/SNARKs.py`, `ZK/ProofOfConsistency.py`.
+  - Medical/IPFS (simulated): `medical/MedicalRedactionEngine.py`, `medical/MedicalDataIPFS.py`.
+  - Demos: `demo/*`.  Tests: `tests/*`.  Docs: `docs/*`.
+
+- Redaction Flow (high level)
+  - Modify/delete a historical tx → recompute message (tx list + prev) → forge new randomness `r` with trapdoor so the chameleon hash stays consistent → update block id and propagate; governance via role‑based approvals.
+
+- Known Limitations/Gaps
+  - SNARKs, contract execution, and IPFS are proof‑of‑concept simulations (not production crypto/EVM/IPFS).
+  - Chameleon‑hash parameters and keys are fixed for demo usage.
+  - Medical contract code strings contain TODO placeholders; policy checks can be further wired end‑to‑end in the redaction request path.
