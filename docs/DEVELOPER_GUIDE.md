@@ -55,6 +55,7 @@ This project simulates a redactable, permissioned blockchain with smart contract
   - `python -m demos.redactable_blockchain_demo`
   - `python -m demos.avitabile_redaction_demo`
   - `python -m demos.avitabile_consistency_demo`
+  - `python -m demos.avitabile_censored_ipfs_pipeline`
 
 ## Key Concepts
 

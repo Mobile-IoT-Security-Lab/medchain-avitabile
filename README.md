@@ -148,6 +148,7 @@ python -m demos.ipfs_demo
 python -m demos.redactable_blockchain_demo
 python -m demos.avitabile_redaction_demo
 python -m demos.avitabile_consistency_demo
+python -m demos.avitabile_censored_ipfs_pipeline
 ```
 
 ## Experimental Framework
