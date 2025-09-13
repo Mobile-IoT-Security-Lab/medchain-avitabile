@@ -6,11 +6,11 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 
 ## Real Implementation
 
-1. [ ] <!-- ### Core Architecture Changes --> Create `adapters/` directory structure
-2. [ ] Implement `adapters/config.py` with environment variable handling
-3. [ ] Add configuration flags: `USE_REAL_EVM`, `USE_REAL_SNARK`, `USE_REAL_IPFS` (default to simulation)
-4. [ ] Create `.env` template file with all required environment variables
-5. [ ] Update requirements: add `web3>=6`, `ipfshttpclient==0.8.0a2`, `cryptography`, `python-dotenv`
+1. [x] <!-- ### Core Architecture Changes --> Create `adapters/` directory structure
+2. [x] Implement `adapters/config.py` with environment variable handling
+3. [x] Add configuration flags: `USE_REAL_EVM`, `USE_REAL_SNARK`, `USE_REAL_IPFS` (default to simulation)
+4. [x] Create `.env` template file with all required environment variables
+5. [x] Update requirements: add `web3>=6`, `ipfshttpclient==0.8.0a2`, `cryptography`, `python-dotenv`
 6. [ ] IPFS Client Setup <!-- IPFS Implementation (Phase 1 - Lowest Friction) -->
 7. [ ] Set up local Kubo node (`ipfs daemon`) or configure pinning service
 8. [ ] Install and configure `ipfshttpclient` dependency
