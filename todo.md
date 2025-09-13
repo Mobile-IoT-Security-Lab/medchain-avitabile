@@ -6,6 +6,9 @@ we have to implement the paper "Data Redaction in Smart-Contract-Enabled Permiss
 
 ## todos (aligned with directives)
 
+- [ ] add real backends behind clean interfaces,
+- [ ] progressively swap the simulated pieces for production tools.
+
 - Paper implementation
   - [x] Integrate redactable blockchain with smart contracts (baseline in repo)
   - [x] Implement SNARKs for redaction proofs
