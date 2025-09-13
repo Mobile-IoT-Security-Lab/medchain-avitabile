@@ -97,6 +97,36 @@ class EVMClient:
         fn = contract.functions.setVerifier(verifier_address)
         return self._build_and_send(fn)
 
+    def requestDataRedactionWithProof(
+        self,
+        contract,
+        patient_id: str,
+        redaction_type: str,
+        reason: str,
+        proof: bytes,
+        policy_hash: bytes,
+        merkle_root: bytes,
+        original_hash: bytes,
+        redacted_hash: bytes,
+    ) -> Optional[str]:
+        if not self._connected:
+            return None
+        fn = contract.functions.requestDataRedactionWithProof(
+            patient_id, redaction_type, reason, proof, policy_hash, merkle_root, original_hash, redacted_hash
+        )
+        return self._build_and_send(fn)
+
+    # Events
+    def get_events(self, contract, event_name: str, from_block: int = 0, to_block: str | int = "latest") -> list:
+        if not self._connected:
+            return []
+        try:
+            event_abi = getattr(contract.events, event_name)
+            logs = event_abi().get_logs(fromBlock=from_block, toBlock=to_block)
+            return logs
+        except Exception:
+            return []
+
     # Artifacts and deployment
     def _artifact_path(self, contract_name: str) -> str:
         # Hardhat artifact path convention
