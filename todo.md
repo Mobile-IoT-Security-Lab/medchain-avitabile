@@ -31,8 +31,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 22. [x] Ensure no PHI stored on-chain, only content identifiers and commitments
 23. [x] Add events for all major operations (data storage, redaction requests, approvals)
 
-24. [ ] <!-- ### SNARK Verifier Contract --> Create `contracts/RedactionVerifier.sol` (to be generated from snarkjs)
-25. [ ] Integrate verifier contract with `MedicalDataManager.sol`
+24. [x] <!-- ### SNARK Verifier Contract --> Create `contracts/RedactionVerifier.sol` (to be generated from snarkjs)
+25. [x] Integrate verifier contract with `MedicalDataManager.sol`
 26. [ ] Require valid proofs on redaction requests via `verifyProof(...)`
 
 27. [ ] <!-- ### Contract Deployment and Tooling --> Set up compilation and deployment scripts
