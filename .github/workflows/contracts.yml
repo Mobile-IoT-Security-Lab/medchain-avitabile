@@ -34,6 +34,47 @@ jobs:
         working-directory: contracts
         run: |
           npx hardhat test
+      - name: Coverage (solidity-coverage)
+        working-directory: contracts
+        env:
+          COVERAGE: "1"
+        run: |
+          npx hardhat coverage
+      - name: Generate solidity coverage badge
+        if: github.event_name == 'push'
+        run: |
+          # Compute total line coverage from lcov.info
+          node -e "
+          const fs = require('fs');
+          const path = 'contracts/coverage/lcov.info';
+          const txt = fs.readFileSync(path, 'utf8');
+          let LF = 0, LH = 0; 
+          for (const line of txt.split(/\n/)) {
+            if (line.startsWith('LF:')) LF += parseInt(line.slice(3).trim(), 10);
+            if (line.startsWith('LH:')) LH += parseInt(line.slice(3).trim(), 10);
+          }
+          const pct = LF > 0 ? Math.round((LH / LF) * 100) : 0;
+          const color = pct >= 90 ? '#4c1' : pct >= 75 ? '#97CA00' : pct >= 60 ? '#dfb317' : pct >= 40 ? '#fe7d37' : '#e05d44';
+          const label = 'solidity coverage';
+          const val = pct + '%';
+          const labelW = 6 * label.length + 10; // rough
+          const valW = 6 * val.length + 10;     // rough
+          const width = labelW + valW;
+          const svg = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${width}\" height=\"20\">\n  <linearGradient id=\"b\" x2=\"0\" y2=\"100%\">\n    <stop offset=\"0\" stop-color=\"#bbb\" stop-opacity=\".1\"/>\n    <stop offset=\"1\" stop-opacity=\".1\"/>\n  </linearGradient>\n  <mask id=\"a\"><rect width=\"${width}\" height=\"20\" rx=\"3\" fill=\"#fff\"/></mask>\n  <g mask=\"url(#a)\">\n    <rect width=\"${labelW}\" height=\"20\" fill=\"#555\"/>\n    <rect x=\"${labelW}\" width=\"${valW}\" height=\"20\" fill=\"${color}\"/>\n    <rect width=\"${width}\" height=\"20\" fill=\"url(#b)\"/>\n  </g>\n  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"11\">\n    <text x=\"${labelW/2}\" y=\"14\">${label}</text>\n    <text x=\"${labelW + valW/2}\" y=\"14\">${val}</text>\n  </g>\n</svg>`;
+          require('fs').mkdirSync('badges', {recursive: true});
+          fs.writeFileSync('badges/solidity-coverage.svg', svg);
+          console.log('Wrote badges/solidity-coverage.svg with', pct+'%');
+          "
+      - name: Commit solidity coverage badge
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git add badges/solidity-coverage.svg
+          git diff --staged --quiet || git commit -m "Update solidity coverage badge [skip ci]" || true
+          git push || true
       - name: Deploy to in-process hardhat network
         working-directory: contracts
         run: |
@@ -44,5 +85,6 @@ jobs:
           name: contract-artifacts
           path: |
             contracts/artifacts
+            contracts/coverage
             contracts/deployments
             contracts/deployed_addresses.json
