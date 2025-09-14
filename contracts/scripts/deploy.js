@@ -2,25 +2,52 @@
 // then writes deployed addresses to contracts/deployments/<chainId>/.
 const fs = require('fs');
 const path = require('path');
+const hre = require('hardhat');
+
+async function getAddressCompat(contract) {
+  // ethers v6 exposes getAddress()/target; v5 uses .address
+  if (typeof contract.getAddress === 'function') {
+    return await contract.getAddress();
+  }
+  if (contract.address) return contract.address;
+  if (contract.target) return contract.target;
+  return '';
+}
+
+async function waitDeployedCompat(contract) {
+  // ethers v6: waitForDeployment(); v5: deployed()
+  if (typeof contract.waitForDeployment === 'function') {
+    await contract.waitForDeployment();
+  } else if (typeof contract.deployed === 'function') {
+    await contract.deployed();
+  }
+}
 
 // Minimal deploy script that compiles and deploys MedicalDataManager
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying with account:", deployer.address);
+  // Ensure compile has run
+  await hre.run('compile');
 
-  const Factory = await ethers.getContractFactory("MedicalDataManager");
+  const { ethers } = hre;
+  const [deployer] = await ethers.getSigners();
+  const deployerAddr = deployer.address || (deployer.getAddress && await deployer.getAddress());
+  console.log('Deploying with account:', deployerAddr);
+
+  const Factory = await ethers.getContractFactory('MedicalDataManager');
   const contract = await Factory.deploy();
-  await contract.deployed();
+  await waitDeployedCompat(contract);
 
   // Optional: deploy verifier and set it
-  const VerifierFactory = await ethers.getContractFactory("RedactionVerifier");
+  const VerifierFactory = await ethers.getContractFactory('RedactionVerifier');
   const verifier = await VerifierFactory.deploy();
-  await verifier.deployed();
+  await waitDeployedCompat(verifier);
+
+  const verifierAddr = await getAddressCompat(verifier);
   try {
-    const tx = await contract.setVerifier(verifier.address);
+    const tx = await contract.setVerifier(verifierAddr);
     await tx.wait();
   } catch (e) {
-    console.warn("setVerifier failed (non-fatal):", e.message || e);
+    console.warn('setVerifier failed (non-fatal):', e && e.message ? e.message : e);
   }
 
   // Network metadata
@@ -36,20 +63,21 @@ async function main() {
     blockNumber = await deployer.provider.getBlockNumber();
   }
 
-  console.log("MedicalDataManager deployed at:", contract.address);
-  console.log("RedactionVerifier deployed at:", verifier.address);
-  console.log("chainId:", chainId, "blockNumber:", blockNumber);
+  const managerAddr = await getAddressCompat(contract);
+  console.log('MedicalDataManager deployed at:', managerAddr);
+  console.log('RedactionVerifier deployed at:', verifierAddr);
+  console.log('chainId:', chainId, 'blockNumber:', blockNumber);
 
   // Write per-chain deployment files
   const deploymentsDir = path.join(__dirname, '..', 'deployments', chainId);
   fs.mkdirSync(deploymentsDir, { recursive: true });
   const managerOut = {
-    address: contract.address,
+    address: managerAddr,
     chainId: chainId,
     blockNumber: blockNumber || 0,
   };
   const verifierOut = {
-    address: verifier.address,
+    address: verifierAddr,
     chainId: chainId,
     blockNumber: blockNumber || 0,
   };

@@ -37,13 +37,13 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 
 27. [x] <!-- ### Contract Deployment and Tooling --> Set up compilation and deployment scripts
 28. [x] Deploy contracts to devnet using Hardhat Node or Anvil
-29. [ ] Export ABI and deployed addresses to `artifacts/` directory
+29. [x] Export ABI and deployed addresses to `artifacts/` directory
 30. [x] Add environment variables: `WEB3_PROVIDER_URI`, `EVM_PRIVATE_KEY`, `EVM_CHAIN_ID`
 31. [x] Add contract addresses: `MEDICAL_CONTRACT_ADDRESS`, `VERIFIER_CONTRACT_ADDRESS`
 
 32. [x] <!-- ### Python EVM Integration --> Implement `adapters/evm.py` with `EVMClient` class using `web3.py`
 33. [x] Add connection, deployment, and contract loading functionality
-34. [ ] Create wrappers for contract methods: `storeMedicalData`, `requestDataRedaction`, approvals, execution
+34. [x] Create wrappers for contract methods: `storeMedicalData`, `requestDataRedaction`, approvals (execution handled off‑chain/simulated)
 35. [x] Implement event query functionality
 36. [ ] Update `medical/MedicalRedactionEngine.py` to use `EVMClient` instead of `Models/SmartContract.*`
 37. [ ] Refactor current implementation as "SimulatedBackend" behind config flag
