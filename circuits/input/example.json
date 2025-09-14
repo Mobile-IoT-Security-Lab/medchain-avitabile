@@ -7,6 +7,12 @@
   "originalHash1": 0,
   "redactedHash0": 0,
   "redactedHash1": 0,
-  "policyAllowed": 1
-}
+  "policyAllowed": 1,
 
+  "originalData": [0, 0, 0, 0],
+  "redactedData": [0, 0, 0, 0],
+  "policyData": [0, 0],
+  "merklePathElements": [0, 0, 0, 0, 0, 0, 0, 0],
+  "merklePathIndices": [0, 0, 0, 0, 0, 0, 0, 0],
+  "enforceMerkle": 0
+}

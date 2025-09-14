@@ -103,7 +103,7 @@ def test_redaction_workflow():
         print("User cannot request redaction (insufficient permissions)")
     print()
 
-def test_enhanced_transactions():
+def test_my_transactions():
     """Test improved transaction types."""
     print("=== Testing Improved Transaction Types ===")
     
@@ -156,7 +156,7 @@ def test_enhanced_transactions():
     print(f"Redaction request: {redaction_tx.tx_type}, Type: {redaction_tx.metadata['redaction_type']}")
     print()
 
-def test_enhanced_block():
+def test_my_block():
     """Test improved block with smart contract and redaction features."""
     print("=== Testing Improved Block Features ===")
     
@@ -235,8 +235,8 @@ def run_all_tests():
     test_permission_system()
     test_smart_contract_deployment()
     test_redaction_workflow()
-    test_enhanced_transactions()
-    test_enhanced_block()
+    test_my_transactions()
+    test_my_block()
     test_redaction_policies()
     
     print("All tests completed successfully!")

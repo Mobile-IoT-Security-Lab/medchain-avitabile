@@ -1,0 +1,107 @@
+What This Is
+
+- A Python simulation of a redactable, permissioned blockchain (Bitcoin-like) with simulated smart contracts, role-
+based redaction governance, zero-knowledge SNARK/consistency proof stubs, and a medical/IPFS use case.
+- Real Solidity contracts + Hardhat are included for on-chain event logging (optional); IPFS + AES-GCM encryption
+supported via adapters.
+
+Core Entry Points
+
+- Medical/IPFS: medical/MedicalRedactionEngine.py, medical/MedicalDataIPFS.py.
+- Demos: demo/medchain_demo.py end-to-end; others under demo/.
+- Contracts: contracts/src/*.sol with Hardhat config/artifacts.
+
+How To Run
+
+- Install: pip install -r requirements.txt
+- Quick preview: TESTING_MODE=1 DRY_RUN=1 python Main.py
+- Full sim: python Main.py
+- Full demo: python -m demo.medchain_demo
+- Component demos: python ZK/SNARKs.py, python ZK/ProofOfConsistency.py, python -m demo.ipfs_demo, python -m
+demo.redactable_blockchain_demo
+- Tests: pytest -q tests (or target: pytest -q tests/test_smart_contracts.py -k policy)
+
+Config Must-Knows
+
+- InputsConfig.initialize(testing_mode=True) or env TESTING_MODE=1 for small/faster runs.
+- Transaction mix and roles: InputsConfig.py (TRANSACTION_TYPE_DISTRIBUTION, NODE_ROLES).
+- Redaction policies: InputsConfig.REDACTION_POLICIES (min approvals, roles, time locks).
+- IPFS encryption: set IPFS_ENC_KEY (base64 16/24/32 bytes) to use AES-GCM envelopes.
+- EVM path (optional): USE_REAL_EVM=1, artifacts in contracts/artifacts, local RPC on localhost:8545.
+
+Key Flows
+
+- Redaction via Chameleon Hash
+    - Blocks store r (randomness); block id is CH(g^m * PK^r mod p).
+    - To redact a tx, recompute m2 and forge r2 = forge(SK, m1, r1, m2) so block hash remains valid.
+    - See BlockCommit.redact_tx/delete_tx; multi-party comments are simulated via secret sharing stubs.
+- Governance and Permissions
+    - Node roles: ADMIN, REGULATOR, MINER, USER, OBSERVER (see Models/Bitcoin/Node.py).
+    - Redaction requests are created, voted, and executed if approvals meet minRedactionApprovals.
+    - Basic policy checks in BlockCommit.check_redaction_policy; richer policy objects in contracts/medical engine.
+- Smart Contracts (Simulated)
+    - In-memory ContractExecutionEngine executes ContractCall with a simple gas model.
+    - Contract deployment simulated via Node.deploy_contract.
+- SNARKs + Proof-of-Consistency (Simulated)
+    - ZK/SNARKs.py: builds a circuit, generates commitment/nullifier, Fiat-Shamir challenge, and verifies within a
+time window; tracks nullifiers to prevent replay.
+    - ZK/ProofOfConsistency.py: Merkle root, hash chain, transaction ordering, and smart contract state checks.
+- Medical + IPFS
+    - medical/MedicalDataIPFS.py: Fake IPFS client (or real via adapter) with dataset generator, AES-GCM envelopes
+if key present, redaction that updates datasets and mappings.
+    - medical/MedicalRedactionEngine.py: creates redaction requests with SNARK + consistency proofs; executes
+DELETE/ANONYMIZE/MODIFY and maintains integrity logs.
+    - EVM backend can mirror events on-chain using adapters/evm.py (optional).
+
+Study Path (2-3 hours)
+
+    1. Skim README.md and docs/DEVELOPER_GUIDE.md.
+    2. Read InputsConfig.py to understand toggles, roles, policies.
+    3. Walk through Main.py → Scheduler.py → Event.py to grasp the sim loop.
+    4. Read Models/Bitcoin/BlockCommit.py focusing on:
+    - generate_block, process_smart_contracts, process_redaction_requests, simulate_redaction_voting,
+execute_approved_redaction.
+    5. Study CH/ChameleonHash.py (hash + forge).
+    6. Review proofs: ZK/SNARKs.py, ZK/ProofOfConsistency.py (what they simulate and verify).
+    7. Finish with medical/IPFS: medical/MedicalRedactionEngine.py, medical/MedicalDataIPFS.py; run python -m
+demo.medchain_demo.
+
+Exam-Style Q&A
+
+- Q: How does chameleon-hash redaction keep the chain valid?
+    - A: By forging a new randomness r2 for altered message m2 with the trapdoor SK so CH(PK, m2, r2) equals the
+original hash; header/prev links remain consistent.
+- Q: What does the proof-of-consistency verify after redaction?
+    - A: Integrity of the block chain, Merkle roots, hash chain continuity, smart contract state transitions, and
+transaction ordering remain consistent.
+- Q: How are permissions enforced?
+    - A: Node roles map to permissions; redaction requires approvals per policy. PermissionManager.check_permission
+supports role- and contract-specific grants.
+- Q: What's the SNARK proof model here?
+    - A: A proof-of-concept: commitments, nullifiers, Fiat-Shamir challenge, and time window verification; not
+production cryptography.
+- Q: How does IPFS support “Right to be Forgotten”?
+    - A: Store encrypted payloads; redact by unpinning/removing old content and rotating encryption keys so old
+- Q: EVM integration purpose?
+    - A: Publish events and requests/approvals on-chain (via MedicalDataManager.sol); verifier is a stub to be
+replaced by a real snark verifier.
+
+High-Value Hands-On
+
+- Preview config: TESTING_MODE=1 DRY_RUN=1 python Main.py
+- Run demo: python -m demo.medchain_demo
+- SNARK test: python ZK/SNARKs.py
+- IPFS demo: python -m demo.ipfs_demo
+- Unit targets: pytest -q tests/test_smart_contracts.py -q, pytest -q tests/test_ipfs_encryption.py
+
+Gotchas
+
+- SNARKs/EVM/IPFS paths are pedagogical; do not assume production-grade crypto or chain semantics.
+- Chameleon-hash parameters are static for the demos.
+- Real EVM/IPFS require local nodes and environment flags; tests skip if not enabled.
+
+Want me to:
+
+- Add a STUDY_GUIDE.md to the repo you can print?
+- Run a small subset of tests now?
+- Deep-dive one path (e.g., redaction execution or IPFS AES-GCM flow) with code pointers?

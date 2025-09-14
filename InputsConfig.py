@@ -3,7 +3,7 @@ import random
 class InputsConfig:
     """
     Configuration for smart contract and permissioned blockchain testing.
-    This configuration supports both standard and enhanced testing modes.
+    This configuration supports both standard and my testing modes.
     
     Use InputsConfig.initialize(testing_mode=True) to enable faster testing configurations.
     
@@ -170,7 +170,7 @@ class InputsConfig:
         
         # Smart Contract Redaction Policies
         if cls.TESTING_MODE:
-            # Enhanced policies for testing
+            # My policies for testing
             cls.REDACTION_POLICIES = [
                 {
                     "policy_id": "TEST_GDPR_COMPLIANCE",
@@ -234,7 +234,7 @@ class InputsConfig:
                 }
             ]
         
-        # Testing and Enhanced Features
+        # Testing and My Features
         # Testing-specific parameters
         cls.ENABLE_DETAILED_LOGGING = cls.TESTING_MODE
         cls.ENABLE_PERFORMANCE_MONITORING = cls.TESTING_MODE
@@ -281,7 +281,7 @@ class InputsConfig:
         
         # Print configuration summary if in testing mode
         if cls.TESTING_MODE:
-            print(f"Enhanced Configuration Loaded (Testing Mode):")
+            print(f"My Configuration Loaded (Testing Mode):")
             print(f"  Nodes: {cls.NUM_NODES} ({num_miners} miners, {cls.NUM_NODES - num_miners} regular)")
             print(f"  Roles: {num_admins} admins, {num_regulators} regulators")
             print(f"  Smart Contracts: {'Enabled' if cls.hasSmartContracts else 'Disabled'}")
