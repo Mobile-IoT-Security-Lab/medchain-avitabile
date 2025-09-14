@@ -24,7 +24,7 @@ from Models.Transaction import Transaction
 from Models.Block import Block
 
 
-class TestEnhancedBlockchain(unittest.TestCase):
+class TestMyBlockchain(unittest.TestCase):
     """Comprehensive test cases for improved blockchain features."""
     
     def setUp(self):
@@ -230,7 +230,7 @@ class TestEnhancedBlockchain(unittest.TestCase):
         print(f" Redaction request {request_id[:8]}... processed correctly")
         print(" Complete redaction workflow working correctly")
     
-    def test_enhanced_block_features(self):
+    def test_my_block_features(self):
         """Test improved block features including redaction capabilities."""
         print("\n=== Testing Improved Block Features ===")
         
@@ -458,7 +458,7 @@ def run_comprehensive_tests():
     print("=" * 60)
     
     # Create test suite
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestEnhancedBlockchain)
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestMyBlockchain)
     
     # Run tests with custom result handler
     class DetailedTestResult(unittest.TextTestResult):

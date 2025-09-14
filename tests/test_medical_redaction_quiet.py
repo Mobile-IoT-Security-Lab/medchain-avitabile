@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Quiet test for EnhancedRedactionEngine ensuring no exceptions and correct final states.
+Quiet test for MyRedactionEngine ensuring no exceptions and correct final states.
 """
 import sys, os, unittest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import MyRedactionEngine
 
 class TestMedicalRedactionQuiet(unittest.TestCase):
     def setUp(self):
-        self.engine = EnhancedRedactionEngine()
+        self.engine = MyRedactionEngine()
         # Seed two patients
         p1 = {
             "patient_id": "Q_PAT_001",

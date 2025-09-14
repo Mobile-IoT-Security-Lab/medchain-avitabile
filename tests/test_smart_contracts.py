@@ -5,7 +5,7 @@ Unit tests focused exclusively on smart-contract classes and helpers.
 Covers:
 - ContractExecutionEngine deployment and call execution (gas, logging)
 - RedactionPolicy configuration in MedicalDataContract
-- Policy-derived approval thresholds in EnhancedRedactionEngine
+- Policy-derived approval thresholds in MyRedactionEngine
 - PermissionManager contract-specific permissions
 """
 
@@ -21,7 +21,7 @@ from Models.SmartContract import (
     ContractExecutionEngine,
     PermissionManager,
 )
-from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import MyRedactionEngine
 
 
 class TestContractExecutionEngine(unittest.TestCase):
@@ -72,7 +72,7 @@ class TestContractExecutionEngine(unittest.TestCase):
 
 class TestRedactionPolicies(unittest.TestCase):
     def setUp(self):
-        self.redaction = EnhancedRedactionEngine()
+        self.redaction = MyRedactionEngine()
         self.contract = self.redaction.medical_contract
 
     def test_medical_contract_policies(self):
@@ -110,4 +110,3 @@ class TestPermissionManagerContractSpecific(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
