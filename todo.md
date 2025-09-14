@@ -29,7 +29,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 20. [x] Create `contracts/MedicalDataManager.sol` from pseudo-code in `MedicalDataContract._get_medical_contract_code()`
 21. [x] Implement mappings for: patient records (IPFS hash + metadata), redaction requests/approvals, events
 22. [x] Ensure no PHI stored on-chain, only content identifiers and commitments
-23. [ ] Add events for all major operations (data storage, redaction requests, approvals)
+23. [x] Add events for all major operations (data storage, redaction requests, approvals)
 
 24. [ ] <!-- ### SNARK Verifier Contract --> Create `contracts/RedactionVerifier.sol` (to be generated from snarkjs)
 25. [ ] Integrate verifier contract with `MedicalDataManager.sol`

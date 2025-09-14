@@ -20,7 +20,11 @@ jobs:
       - name: Install deps
         working-directory: contracts
         run: |
-          npm ci
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
       - name: Compile
         working-directory: contracts
         run: |
@@ -35,4 +39,3 @@ jobs:
           name: contract-artifacts
           path: |
             contracts/artifacts
-
