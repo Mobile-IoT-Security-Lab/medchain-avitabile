@@ -17,8 +17,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 9. [x] Implement `adapters/ipfs.py` with `RealIPFSClient` class
 10. [x] Mirror all `FakeIPFSClient` methods: `add`, `get`, `pin`, `unpin`, `rm`, `ls`, `stat`
 11. [x] Add IPFS configuration variables: `IPFS_API_URL`, `IPFS_GATEWAY_URL`
-12. [ ] <!-- ### IPFS Encryption and Security --> Implement AES-GCM encryption for PHI before IPFS upload
-13. [ ] Design off-chain key management system (KMS or wallet-encrypted blob)
+12. [x] <!-- ### IPFS Encryption and Security --> Implement AES-GCM encryption for PHI before IPFS upload
+13. [x] Design off-chain key management system (KMS or wallet-encrypted blob)
 14. [ ] Store only IPFS CID + ciphertext hash on-chain
 15. [ ] Implement "redaction by erasure": key rotation + content unpinning
 16. [ ] Update `IPFSMedicalDataManager` to accept any client interface <!-- ### IPFS Integration -->

@@ -54,6 +54,7 @@ class TestIPFSAESGCM(unittest.TestCase):
         self.assertIn('"enc": "AES-GCM"', stored)
         self.assertIn('"ciphertext"', stored)
         self.assertIn('"nonce"', stored)
+        self.assertIn('"kid"', stored)
         self.assertNotIn('"patient_records"', stored)  # plaintext not present in envelope
 
         # Download + decrypt

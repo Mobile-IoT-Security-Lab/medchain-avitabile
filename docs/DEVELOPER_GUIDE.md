@@ -98,3 +98,37 @@ This project simulates a redactable, permissioned blockchain with smart contract
     - `python - <<'PY'`
     - `import os, base64; print(base64.b64encode(os.urandom(32)).decode())`
     - `PY`
+
+## Key Providers and Rotation
+
+- EnvKeyProvider
+  - Reads from `IPFS_ENC_KEY` (base64) and optional `IPFS_ENC_KEY_ID`.
+  - Maintains an optional pool `IPFS_ENC_KEYS` (JSON mapping kid→base64) to keep historical keys.
+  - Rotation: `EnvKeyProvider.rotate()` sets a new active key and appends it to the pool.
+
+- FileKeyProvider
+  - Stores AES keys encrypted with passphrase (scrypt + AES‑GCM) in a JSON keystore (`keystore.json`).
+  - Structure: `{ v, wrap: "AES-GCM-SCRYPT", params, keys: [ {kid,salt,nonce,ciphertext,klen}... ], active }`.
+  - Rotation appends a new wrapped key and marks it `active`. Legacy single‑key files are auto‑upgraded on first rotation.
+  - Use with manager:
+    - `prov = FileKeyProvider('keystore.json', passphrase='change-me')`
+    - `mgr = IPFSMedicalDataIPFS.IPFSMedicalDataManager(client, key_provider=prov)`
+  - One‑liners:
+    - Create/rotate: `python - <<'PY'\nfrom medical.key_provider import FileKeyProvider; prov=FileKeyProvider('keystore.json','pass'); print(prov.rotate())\nPY`
+  - CLI helper (within repo):
+    - `python scripts/keystore_cli.py rotate --provider file --keystore keystore.json --passphrase 'change-me'`
+    - `python scripts/keystore_cli.py list   --provider file --keystore keystore.json --passphrase 'change-me'`
+
+- EnvKeyProvider helpers
+  - Rotate with random key and print export lines: `python scripts/keystore_cli.py rotate --provider env --print-exports`
+  - List known ids: `python scripts/keystore_cli.py list --provider env`
+
+## Multi‑Key Decryption and Erasure
+
+- Envelopes include `kid` so the manager can ask the provider to resolve historical keys when decrypting.
+- After rotating to a new key, data encrypted with previous keys remains readable if the provider retains those keys.
+- To enforce data erasure:
+  - Rotate to a new key.
+  - Unpin/remove old IPFS content.
+  - Remove old key entries (FileKeyProvider: edit keystore; EnvKeyProvider: remove from `IPFS_ENC_KEYS`).
+  - Without the old key, ciphertext becomes unusable.

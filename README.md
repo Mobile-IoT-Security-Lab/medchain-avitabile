@@ -68,13 +68,38 @@ Distributed storage system with redaction capabilities:
 - Downloads automatically decrypt when the key is present; if missing, AES‑GCM content cannot be read.
 - Fallback behavior (when no key): a simulated `ENCRYPTED:` prefix is used for backward compatibility.
 
-Quick start
+Quick start (EnvKeyProvider)
 
 - Generate a key and set env var (example: AES‑256):
   - `python - <<'PY'\nimport os, base64; print(base64.b64encode(os.urandom(32)).decode())\nPY`
   - Add to `.env`: `IPFS_ENC_KEY=<printed_base64>`
 - Optional gateway config: `IPFS_GATEWAY_URL` (used by real IPFS adapter for links).
 
+FileKeyProvider (keystore file)
+
+- Store keys encrypted with scrypt + AES‑GCM and rotate safely.
+- Example usage:
+  - Create keystore with passphrase and first key:
+    - Python:
+      - `python - <<'PY'`
+      - `from medical.key_provider import FileKeyProvider; prov=FileKeyProvider('keystore.json', passphrase='change-me'); print(prov.rotate())`
+      - `PY`
+  - Use with the manager:
+    - `from medical.MedicalDataIPFS import IPFSMedicalDataManager, FakeIPFSClient`
+    - `from medical.key_provider import FileKeyProvider`
+    - `prov=FileKeyProvider('keystore.json', passphrase='change-me')`
+    - `mgr=IPFSMedicalDataManager(FakeIPFSClient(), key_provider=prov)`
+  - Rotate key later (creates new version and marks active): `prov.rotate()`
+  - CLI helper (inside repo):
+    - Rotate: `python scripts/keystore_cli.py rotate --provider file --keystore keystore.json --passphrase 'change-me'`
+    - List:   `python scripts/keystore_cli.py list   --provider file --keystore keystore.json --passphrase 'change-me'`
+  - Historical decryption: manager resolves by `kid` embedded in envelopes, so old datasets remain decryptable even after rotation.
+
+Key IDs and redaction by erasure
+
+- Every envelope includes a `kid` (key id) derived from the AES key.
+- Rotation creates new keys while preserving old ones for decryption (FileKeyProvider) or in an env-based pool (EnvKeyProvider via `IPFS_ENC_KEYS`).
+- A practical “redaction by erasure” pattern: rotate to a new key, unpin old ciphertext (allow GC), and remove the old key material from the keystore/pool so old data becomes undecipherable.
 
 ### Complete Demo System (`demo/medchain_demo.py`)
 

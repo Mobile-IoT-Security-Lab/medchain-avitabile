@@ -16,6 +16,7 @@ import base64
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from adapters.config import env_str
+from medical.key_provider import KeyProvider, EnvKeyProvider
 
 try:  # optional dependency present in requirements
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # type: ignore
@@ -238,7 +239,7 @@ class MedicalDatasetGenerator:
 class IPFSMedicalDataManager:
     """Manages medical data storage and redaction in IPFS."""
     
-    def __init__(self, ipfs_client: Optional[Any] = None):
+    def __init__(self, ipfs_client: Optional[Any] = None, key_provider: Optional[KeyProvider] = None):
         """Manager accepts either the simulated or real IPFS client.
 
         If no client is provided and USE_REAL_IPFS=1 with a reachable daemon,
@@ -259,9 +260,11 @@ class IPFSMedicalDataManager:
         self.dataset_registry = {}  # dataset_id -> dataset_metadata
         self.patient_mappings = {}  # patient_id -> [ipfs_hashes]
         self.redaction_log = []     # Log of all redaction operations
-        # Encryption configuration (AES-GCM via IPFS_ENC_KEY base64)
-        self._enc_key: Optional[bytes] = self._load_encryption_key()
-        self._enc_enabled: bool = self._enc_key is not None and AESGCM is not None
+        # Key provider for AES-GCM
+        self.key_provider: KeyProvider = key_provider or EnvKeyProvider()
+        self._enc_key: Optional[bytes] = None
+        self._enc_kid: Optional[str] = None
+        self._refresh_active_key()
         
     def upload_dataset(self, dataset: MedicalDataset, encrypt: bool = True) -> str:
         """Upload medical dataset to IPFS."""
@@ -273,7 +276,7 @@ class IPFSMedicalDataManager:
             # Encrypt if requested and a valid key is configured
             payload: str
             encryption_mode = None
-            if encrypt and self._enc_enabled:
+            if encrypt and self._enc_key is not None and AESGCM is not None:
                 payload = self._encrypt_json(dataset_json)
                 encryption_mode = "AES-GCM"
             elif encrypt:
@@ -339,10 +342,17 @@ class IPFSMedicalDataManager:
                 except Exception:
                     maybe_env = None
                 if isinstance(maybe_env, dict) and str(maybe_env.get("enc", "")).upper().startswith("AES-GCM"):
-                    if not self._enc_enabled:
-                        print(" AES-GCM content found but IPFS_ENC_KEY not set; cannot decrypt")
+                    kid = maybe_env.get("kid")
+                    key_for_decrypt: Optional[bytes] = self._enc_key
+                    # If kid is present and doesn't match active, try to resolve specific key
+                    if kid and self._enc_kid != kid and hasattr(self.key_provider, "resolve_key"):
+                        alt = self.key_provider.resolve_key(kid)
+                        if alt is not None:
+                            key_for_decrypt = alt
+                    if key_for_decrypt is None:
+                        print(" AES-GCM content found but no suitable key available; cannot decrypt")
                         return None
-                    dec = self._decrypt_envelope(maybe_env)
+                    dec = self._decrypt_envelope(maybe_env if key_for_decrypt == self._enc_key else maybe_env, override_key=key_for_decrypt)
                     if dec is None:
                         print(" Failed to decrypt AES-GCM content")
                         return None
@@ -361,17 +371,10 @@ class IPFSMedicalDataManager:
             print(f" Failed to download dataset: {e}")
             return None
 
-    def _load_encryption_key(self) -> Optional[bytes]:
-        val = env_str("IPFS_ENC_KEY")
-        if not val:
-            return None
-        try:
-            key = base64.b64decode(val)
-        except Exception:
-            return None
-        if len(key) not in (16, 24, 32):  # AES-128/192/256
-            return None
-        return key
+    def _refresh_active_key(self) -> None:
+        key, kid = self.key_provider.get_active_key()
+        self._enc_key = key
+        self._enc_kid = kid
 
     def _encrypt_json(self, plaintext_json: str) -> str:
         if AESGCM is None or self._enc_key is None:
@@ -384,20 +387,47 @@ class IPFSMedicalDataManager:
             "enc": "AES-GCM",
             "nonce": base64.b64encode(nonce).decode(),
             "ciphertext": base64.b64encode(ct).decode(),
+            "kid": self._enc_kid or "",
         }
         return json.dumps(env)
 
-    def _decrypt_envelope(self, env: Dict[str, Any]) -> Optional[str]:
-        if AESGCM is None or self._enc_key is None:
+    def _decrypt_envelope(self, env: Dict[str, Any], override_key: Optional[bytes] = None) -> Optional[str]:
+        if AESGCM is None:
             return None
         try:
             nonce_b = base64.b64decode(env.get("nonce", ""))
             ct_b = base64.b64decode(env.get("ciphertext", ""))
-            aes = AESGCM(self._enc_key)
+            key = override_key if override_key is not None else self._enc_key
+            if key is None:
+                return None
+            aes = AESGCM(key)
             pt = aes.decrypt(nonce_b, ct_b, None)
             return pt.decode()
         except Exception:
             return None
+
+    def rotate_encryption_key(self, new_key_b64: Optional[str] = None, passphrase: Optional[str] = None) -> bool:
+        """Rotate the active encryption key via the configured provider.
+
+        For EnvKeyProvider, rotation updates process env only. For FileKeyProvider, passphrase may be required.
+        """
+        new_key: Optional[bytes] = None
+        if new_key_b64:
+            try:
+                new_key = base64.b64decode(new_key_b64)
+            except Exception:
+                return False
+            if len(new_key) not in (16, 24, 32):
+                return False
+        try:
+            # Some providers may accept passphrase via attribute; set if present
+            if hasattr(self.key_provider, "passphrase") and passphrase is not None:
+                setattr(self.key_provider, "passphrase", passphrase)
+            res = self.key_provider.rotate(new_key=new_key)
+            self._refresh_active_key()
+            return res[0] is not None
+        except Exception:
+            return False
     
     def query_patient_data(self, patient_id: str) -> List[Dict[str, Any]]:
         """Query all data for a specific patient across datasets."""
