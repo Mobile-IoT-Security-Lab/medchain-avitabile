@@ -33,7 +33,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 
 24. [x] <!-- ### SNARK Verifier Contract --> Create `contracts/RedactionVerifier.sol` (to be generated from snarkjs)
 25. [x] Integrate verifier contract with `MedicalDataManager.sol`
-26. [ ] Require valid proofs on redaction requests via `verifyProof(...)`
+26. [x] Require valid proofs on redaction requests via `verifyProof(...)`
 
 27. [ ] <!-- ### Contract Deployment and Tooling --> Set up compilation and deployment scripts
 28. [ ] Deploy contracts to devnet using Hardhat Node or Anvil
