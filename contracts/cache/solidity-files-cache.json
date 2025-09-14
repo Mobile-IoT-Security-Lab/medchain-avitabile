@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/enriicola/Desktop/medchain-avitabile/contracts/src/MedicalDataManager.sol": {
-      "lastModificationDate": 1757860263392,
+      "lastModificationDate": 1757862453916,
       "contentHash": "09910299c5341959a14a0b3b7b72ad66",
       "sourceName": "src/MedicalDataManager.sol",
       "solcConfig": {
@@ -12,6 +12,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -26,6 +27,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -39,7 +43,7 @@
       ]
     },
     "/home/enriicola/Desktop/medchain-avitabile/contracts/src/RedactionVerifier.sol": {
-      "lastModificationDate": 1757860267052,
+      "lastModificationDate": 1757862453918,
       "contentHash": "562914368196924647f82a8f7b0b65fd",
       "sourceName": "src/RedactionVerifier.sol",
       "solcConfig": {
@@ -49,6 +53,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -63,6 +68,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -72,6 +80,46 @@
       ],
       "artifacts": [
         "RedactionVerifier"
+      ]
+    },
+    "/home/enriicola/Desktop/medchain-avitabile/contracts/src/AlwaysFalseVerifier.sol": {
+      "lastModificationDate": 1757868789675,
+      "contentHash": "afdef6117c84fcce6d6c5005b63fba37",
+      "sourceName": "src/AlwaysFalseVerifier.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": false
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AlwaysFalseVerifier"
       ]
     }
   }
