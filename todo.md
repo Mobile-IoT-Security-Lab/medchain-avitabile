@@ -27,8 +27,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 
 19. [x] <!-- ### Smart Contract Development --> Initialize Hardhat or Foundry project in `contracts/` directory
 20. [x] Create `contracts/MedicalDataManager.sol` from pseudo-code in `MedicalDataContract._get_medical_contract_code()`
-21. [ ] Implement mappings for: patient records (IPFS hash + metadata), redaction requests/approvals, events
-22. [ ] Ensure no PHI stored on-chain, only content identifiers and commitments
+21. [x] Implement mappings for: patient records (IPFS hash + metadata), redaction requests/approvals, events
+22. [x] Ensure no PHI stored on-chain, only content identifiers and commitments
 23. [ ] Add events for all major operations (data storage, redaction requests, approvals)
 
 24. [ ] <!-- ### SNARK Verifier Contract --> Create `contracts/RedactionVerifier.sol` (to be generated from snarkjs)

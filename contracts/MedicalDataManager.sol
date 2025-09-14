@@ -17,12 +17,14 @@ interface IRedactionVerifier {
 contract MedicalDataManager {
     event DataStored(string indexed patientId, string ipfsHash, bytes32 ciphertextHash, uint256 timestamp);
     event RedactionRequested(
+        uint256 indexed requestId,
         string indexed patientId,
         string redactionType,
         string reason,
         address requester,
         uint256 timestamp
     );
+    event RedactionApproved(uint256 indexed requestId, address indexed approver, uint256 approvals, uint256 timestamp);
 
     struct MedicalRecordPtr {
         string ipfsHash;        // CID of encrypted/censored data
@@ -30,9 +32,22 @@ contract MedicalDataManager {
         uint256 lastUpdated;    // last update timestamp
     }
 
+    struct RedactionRequestRec {
+        string patientId;
+        string redactionType;
+        string reason;
+        address requester;
+        uint256 timestamp;
+        bool executed;
+        uint256 approvals;
+    }
+
     mapping(string => MedicalRecordPtr) public medicalRecords; // patientId => record ptr
+    mapping(uint256 => RedactionRequestRec) public redactionRequests; // requestId => request
+    mapping(uint256 => mapping(address => bool)) public redactionApprovals; // requestId => approver => approved
     mapping(address => bool) public authorizedUsers;            // simplistic ACL (demo)
 
+    uint256 public nextRequestId; // auto-increment id for redaction requests
     address public verifier; // optional verifier; zero address disables proof checks
 
     modifier onlyAuthorized() {
@@ -72,7 +87,17 @@ contract MedicalDataManager {
         string calldata redactionType,
         string calldata reason
     ) external onlyAuthorized {
-        emit RedactionRequested(patientId, redactionType, reason, msg.sender, block.timestamp);
+        uint256 reqId = ++nextRequestId;
+        redactionRequests[reqId] = RedactionRequestRec({
+            patientId: patientId,
+            redactionType: redactionType,
+            reason: reason,
+            requester: msg.sender,
+            timestamp: block.timestamp,
+            executed: false,
+            approvals: 0
+        });
+        emit RedactionRequested(reqId, patientId, redactionType, reason, msg.sender, block.timestamp);
     }
 
     function requestDataRedactionWithProof(
@@ -91,6 +116,24 @@ contract MedicalDataManager {
             );
             require(ok, "Invalid proof");
         }
-        emit RedactionRequested(patientId, redactionType, reason, msg.sender, block.timestamp);
+        uint256 reqId = ++nextRequestId;
+        redactionRequests[reqId] = RedactionRequestRec({
+            patientId: patientId,
+            redactionType: redactionType,
+            reason: reason,
+            requester: msg.sender,
+            timestamp: block.timestamp,
+            executed: false,
+            approvals: 0
+        });
+        emit RedactionRequested(reqId, patientId, redactionType, reason, msg.sender, block.timestamp);
+    }
+
+    function approveRedaction(uint256 requestId) external onlyAuthorized {
+        require(redactionRequests[requestId].timestamp != 0, "Request not found");
+        require(!redactionApprovals[requestId][msg.sender], "Already approved");
+        redactionApprovals[requestId][msg.sender] = true;
+        redactionRequests[requestId].approvals += 1;
+        emit RedactionApproved(requestId, msg.sender, redactionRequests[requestId].approvals, block.timestamp);
     }
 }
