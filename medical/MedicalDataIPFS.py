@@ -12,8 +12,15 @@ import hashlib
 import time
 import random
 import os
+import base64
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
+from adapters.config import env_str
+
+try:  # optional dependency present in requirements
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM  # type: ignore
+except Exception:  # pragma: no cover
+    AESGCM = None  # type: ignore
 
 
 @dataclass
@@ -252,6 +259,9 @@ class IPFSMedicalDataManager:
         self.dataset_registry = {}  # dataset_id -> dataset_metadata
         self.patient_mappings = {}  # patient_id -> [ipfs_hashes]
         self.redaction_log = []     # Log of all redaction operations
+        # Encryption configuration (AES-GCM via IPFS_ENC_KEY base64)
+        self._enc_key: Optional[bytes] = self._load_encryption_key()
+        self._enc_enabled: bool = self._enc_key is not None and AESGCM is not None
         
     def upload_dataset(self, dataset: MedicalDataset, encrypt: bool = True) -> str:
         """Upload medical dataset to IPFS."""
@@ -260,13 +270,21 @@ class IPFSMedicalDataManager:
             # Convert dataset to JSON
             dataset_json = json.dumps(asdict(dataset), indent=2)
             
-            # Add encryption metadata if requested
-            if encrypt:
-                # In real implementation, this would encrypt the data
-                dataset_json = f"ENCRYPTED:{dataset_json}"
+            # Encrypt if requested and a valid key is configured
+            payload: str
+            encryption_mode = None
+            if encrypt and self._enc_enabled:
+                payload = self._encrypt_json(dataset_json)
+                encryption_mode = "AES-GCM"
+            elif encrypt:
+                # Fallback simulated encryption to preserve compatibility when no key provided
+                payload = f"ENCRYPTED:{dataset_json}"
+                encryption_mode = "SIMULATED"
+            else:
+                payload = dataset_json
             
             # Upload to IPFS
-            ipfs_hash = self.ipfs_client.add(dataset_json, pin=True)
+            ipfs_hash = self.ipfs_client.add(payload, pin=True)
             
             # Update dataset record
             dataset.ipfs_hash = ipfs_hash
@@ -281,7 +299,8 @@ class IPFSMedicalDataManager:
                 "last_updated": dataset.last_updated,
                 "version": dataset.version,
                 "patient_count": len(dataset.patient_records),
-                "encrypted": encrypt
+                "encrypted": encrypt,
+                "encryption": encryption_mode
             }
             
             # Build patient mappings
@@ -293,7 +312,7 @@ class IPFSMedicalDataManager:
             
             print(f" Uploaded dataset {dataset.dataset_id} to IPFS: {ipfs_hash}")
             print(f"   Patients: {len(dataset.patient_records)}")
-            print(f"   Size: {len(dataset_json)} bytes")
+            print(f"   Size: {len(payload)} bytes")
             
             return ipfs_hash
             
@@ -310,10 +329,24 @@ class IPFSMedicalDataManager:
                 print(f" Dataset not found: {ipfs_hash}")
                 return None
             
-            # Handle encryption
+            # Handle encryption formats
             if content.startswith("ENCRYPTED:"):
-                content = content[10:]  # Remove encryption prefix
-                # In real implementation, decrypt here
+                content = content[10:]
+            else:
+                # Try AES-GCM envelope (JSON with enc/nonce/ciphertext)
+                try:
+                    maybe_env = json.loads(content)
+                except Exception:
+                    maybe_env = None
+                if isinstance(maybe_env, dict) and str(maybe_env.get("enc", "")).upper().startswith("AES-GCM"):
+                    if not self._enc_enabled:
+                        print(" AES-GCM content found but IPFS_ENC_KEY not set; cannot decrypt")
+                        return None
+                    dec = self._decrypt_envelope(maybe_env)
+                    if dec is None:
+                        print(" Failed to decrypt AES-GCM content")
+                        return None
+                    content = dec
             
             # Parse JSON
             dataset_data = json.loads(content)
@@ -326,6 +359,44 @@ class IPFSMedicalDataManager:
             
         except Exception as e:
             print(f" Failed to download dataset: {e}")
+            return None
+
+    def _load_encryption_key(self) -> Optional[bytes]:
+        val = env_str("IPFS_ENC_KEY")
+        if not val:
+            return None
+        try:
+            key = base64.b64decode(val)
+        except Exception:
+            return None
+        if len(key) not in (16, 24, 32):  # AES-128/192/256
+            return None
+        return key
+
+    def _encrypt_json(self, plaintext_json: str) -> str:
+        if AESGCM is None or self._enc_key is None:
+            raise RuntimeError("AESGCM not available or IPFS_ENC_KEY invalid")
+        nonce = os.urandom(12)
+        aes = AESGCM(self._enc_key)
+        ct = aes.encrypt(nonce, plaintext_json.encode(), None)
+        env = {
+            "v": 1,
+            "enc": "AES-GCM",
+            "nonce": base64.b64encode(nonce).decode(),
+            "ciphertext": base64.b64encode(ct).decode(),
+        }
+        return json.dumps(env)
+
+    def _decrypt_envelope(self, env: Dict[str, Any]) -> Optional[str]:
+        if AESGCM is None or self._enc_key is None:
+            return None
+        try:
+            nonce_b = base64.b64decode(env.get("nonce", ""))
+            ct_b = base64.b64decode(env.get("ciphertext", ""))
+            aes = AESGCM(self._enc_key)
+            pt = aes.decrypt(nonce_b, ct_b, None)
+            return pt.decode()
+        except Exception:
             return None
     
     def query_patient_data(self, patient_id: str) -> List[Dict[str, Any]]:
@@ -495,11 +566,14 @@ class IPFSMedicalDataManager:
             if content:
                 integrity_report["accessible_datasets"] += 1
                 
-                # Basic corruption check
+                # Basic corruption check (accepts encrypted envelope JSON as valid)
                 try:
                     if content.startswith("ENCRYPTED:"):
                         content = content[10:]
-                    json.loads(content)
+                    parsed = json.loads(content)
+                    # If envelope, do not attempt to parse inner plaintext here
+                    if isinstance(parsed, dict) and "enc" in parsed and "ciphertext" in parsed:
+                        pass
                 except json.JSONDecodeError:
                     integrity_report["corrupted_datasets"].append({
                         "dataset_id": dataset_id,

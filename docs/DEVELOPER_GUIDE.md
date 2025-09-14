@@ -88,3 +88,13 @@ This project simulates a redactable, permissioned blockchain with smart contract
   - Combine with `TESTING_MODE` to preview config:
     - `TESTING_MODE=1 DRY_RUN=1 python3 Main.py`
     - `TESTING_MODE=0 DRY_RUN=1 python3 Main.py`
+
+- IPFS_ENC_KEY: Base64‑encoded AES key for dataset encryption (AES‑GCM)
+  - Length: 16/24/32 bytes (AES‑128/192/256)
+  - Used by `medical/MedicalDataIPFS.IPFSMedicalDataManager` when `encrypt=True`
+  - Upload: stores envelope `{enc:"AES-GCM",nonce,ciphertext}`; plaintext never hits IPFS
+  - Download: decrypts automatically; if key is missing, AES‑GCM content is unreadable
+  - Generate dev key (example AES‑256):
+    - `python - <<'PY'`
+    - `import os, base64; print(base64.b64encode(os.urandom(32)).decode())`
+    - `PY`

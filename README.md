@@ -60,6 +60,22 @@ Distributed storage system with redaction capabilities:
 - **Integrity Verification**: Ensures data consistency across IPFS network
 - **Encryption Support**: Optional encryption for sensitive medical data
 
+#### Dataset Encryption (AES‑GCM)
+
+- When `IPFS_ENC_KEY` is set (base64‑encoded 16/24/32‑byte key), datasets uploaded via `IPFSMedicalDataManager.upload_dataset(..., encrypt=True)` are encrypted with AES‑GCM.
+- The ciphertext is stored as an envelope JSON (no plaintext on IPFS):
+  - `{ "v": 1, "enc": "AES-GCM", "nonce": <base64>, "ciphertext": <base64> }`
+- Downloads automatically decrypt when the key is present; if missing, AES‑GCM content cannot be read.
+- Fallback behavior (when no key): a simulated `ENCRYPTED:` prefix is used for backward compatibility.
+
+Quick start
+
+- Generate a key and set env var (example: AES‑256):
+  - `python - <<'PY'\nimport os, base64; print(base64.b64encode(os.urandom(32)).decode())\nPY`
+  - Add to `.env`: `IPFS_ENC_KEY=<printed_base64>`
+- Optional gateway config: `IPFS_GATEWAY_URL` (used by real IPFS adapter for links).
+
+
 ### Complete Demo System (`demo/medchain_demo.py`)
 
 Comprehensive demonstration of all implemented features:
