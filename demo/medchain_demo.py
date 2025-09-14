@@ -27,7 +27,7 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 from medical.MedicalDataIPFS import IPFSMedicalDataManager, MedicalDatasetGenerator, FakeIPFSClient
-from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import MyRedactionEngine
 from ZK.SNARKs import RedactionSNARKManager
 from ZK.ProofOfConsistency import ConsistencyProofGenerator
 from adapters.ipfs import get_ipfs_client
@@ -46,7 +46,7 @@ class MedChainDemo:
         # Prefer real IPFS client if enabled and reachable; fallback to Fake
         self.ipfs_client = get_ipfs_client() or FakeIPFSClient()
         self.ipfs_manager = IPFSMedicalDataManager(self.ipfs_client)
-        self.redaction_engine = EnhancedRedactionEngine()
+        self.redaction_engine = MyRedactionEngine()
         self.dataset_generator = MedicalDatasetGenerator()
         self.snark_manager = RedactionSNARKManager()
         self.consistency_generator = ConsistencyProofGenerator()

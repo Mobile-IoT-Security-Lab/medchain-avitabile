@@ -11,7 +11,7 @@ Demonstrates the redaction workflow from
 3) Multi-party approval reaching policy thresholds
 4) Redaction execution and audit trail
 
-Uses the EnhancedRedactionEngine with built-in policy thresholds and proof checks.
+Uses the MyRedactionEngine with built-in policy thresholds and proof checks.
 """
 
 import os
@@ -22,14 +22,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import MyRedactionEngine
 
 
-def run_avitabile_redaction_demo() -> Tuple[EnhancedRedactionEngine, str, str]:
+def run_avitabile_redaction_demo() -> Tuple[MyRedactionEngine, str, str]:
     print("Avitabile Redaction Workflow Demo")
     print("=" * 35)
 
-    engine = EnhancedRedactionEngine()
+    engine = MyRedactionEngine()
 
     # Onboard two patients (contract-backed storage)
     print("\nOnboarding sample medical records...")

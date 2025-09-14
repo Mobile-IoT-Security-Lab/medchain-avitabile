@@ -27,7 +27,7 @@ from medical.MedicalDataIPFS import (
     MedicalDataset,
     FakeIPFSClient,
 )
-from medical.MedicalRedactionEngine import EnhancedRedactionEngine
+from medical.MedicalRedactionEngine import MyRedactionEngine
 
 
 PII_FIELDS = {
@@ -57,7 +57,7 @@ class AvitabilePipelineDemo:
         self.ipfs_client = FakeIPFSClient()
         self.ipfs = IPFSMedicalDataManager(self.ipfs_client)
         self.gen = MedicalDatasetGenerator()
-        self.engine = EnhancedRedactionEngine()
+        self.engine = MyRedactionEngine()
         # Local link registry: patient_id -> {original_hash, ipfs_hash}
         self.links: Dict[str, Dict[str, str]] = {}
 
