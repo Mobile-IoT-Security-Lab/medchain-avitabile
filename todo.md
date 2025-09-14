@@ -25,7 +25,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 17. [x] Inject `RealIPFSClient` when `USE_REAL_IPFS=1`
 18. [x] Maintain backward compatibility with `FakeIPFSClient` for tests
 
-19. [ ] <!-- ### Smart Contract Development --> Initialize Hardhat or Foundry project in `contracts/` directory
+19. [x] <!-- ### Smart Contract Development --> Initialize Hardhat or Foundry project in `contracts/` directory
 20. [ ] Create `contracts/MedicalDataManager.sol` from pseudo-code in `MedicalDataContract._get_medical_contract_code()`
 21. [ ] Implement mappings for: patient records (IPFS hash + metadata), redaction requests/approvals, events
 22. [ ] Ensure no PHI stored on-chain, only content identifiers and commitments
