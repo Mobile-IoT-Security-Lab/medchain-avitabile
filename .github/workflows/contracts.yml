@@ -46,7 +46,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           # Compute total line coverage from lcov.info (tolerate missing file)
-          node -e "
+          cat > generate_badge.js << 'EOF'
           const fs = require('fs');
           const path = 'contracts/coverage/lcov.info';
           let LF = 0, LH = 0;
@@ -66,11 +66,29 @@ jobs:
           const labelW = 6 * label.length + 10; // rough
           const valW = 6 * val.length + 10;     // rough
           const width = labelW + valW;
-          const svg = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${width}\" height=\"20\">\n  <linearGradient id=\"b\" x2=\"0\" y2=\"100%\">\n    <stop offset=\"0\" stop-color=\"#bbb\" stop-opacity=\".1\"/>\n    <stop offset=\"1\" stop-opacity=\".1\"/>\n  </linearGradient>\n  <mask id=\"a\"><rect width=\"${width}\" height=\"20\" rx=\"3\" fill=\"#fff\"/></mask>\n  <g mask=\"url(#a)\">\n    <rect width=\"${labelW}\" height=\"20\" fill=\"#555\"/>\n    <rect x=\"${labelW}\" width=\"${valW}\" height=\"20\" fill=\"${color}\"/>\n    <rect width=\"${width}\" height=\"20\" fill=\"url(#b)\"/>\n  </g>\n  <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"11\">\n    <text x=\"${labelW/2}\" y=\"14\">${label}</text>\n    <text x=\"${labelW + valW/2}\" y=\"14\">${val}</text>\n  </g>\n</svg>`;
+          const svg = `<?xml version="1.0" encoding="UTF-8"?>
+          <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20">
+            <linearGradient id="b" x2="0" y2="100%">
+              <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+              <stop offset="1" stop-opacity=".1"/>
+            </linearGradient>
+            <mask id="a"><rect width="${width}" height="20" rx="3" fill="#fff"/></mask>
+            <g mask="url(#a)">
+              <rect width="${labelW}" height="20" fill="#555"/>
+              <rect x="${labelW}" width="${valW}" height="20" fill="${color}"/>
+              <rect width="${width}" height="20" fill="url(#b)"/>
+            </g>
+            <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+              <text x="${labelW/2}" y="14">${label}</text>
+              <text x="${labelW + valW/2}" y="14">${val}</text>
+            </g>
+          </svg>`;
           fs.mkdirSync('badges', {recursive: true});
           fs.writeFileSync('badges/solidity-coverage.svg', svg);
           console.log('Wrote badges/solidity-coverage.svg with', pct+'%');
-          "
+          EOF
+          node generate_badge.js
+          rm generate_badge.js
       - name: Commit solidity coverage badge
         if: github.event_name == 'push'
         env:
