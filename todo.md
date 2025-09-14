@@ -48,7 +48,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 36. [x] Update `medical/MedicalRedactionEngine.py` to use `EVMClient` instead of `Models/SmartContract.*`
 37. [x] Refactor current implementation as "SimulatedBackend" behind config flag
 
-38. [ ] <!-- ### Circuit Development --> Install Node.js dependencies: Hardhat/Foundry, circom, snarkjs
+38. [x] <!-- ### Circuit Development --> Install Node.js dependencies: Hardhat/Foundry, circom, snarkjs
 39. [ ] Implement `redaction.circom` circuit proving...
 40. [ ] ...H(original) computation
 41. [ ] ...H(redacted) computation
