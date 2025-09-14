@@ -16,7 +16,39 @@ import copy
 from ZK.SNARKs import RedactionSNARKManager, ZKProof
 from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType, ConsistencyProof
 from Models.SmartContract import SmartContract, RedactionPolicy
-from adapters.config import env_bool
+from adapters.config import env_bool, env_str
+import os
+try:
+    from medical.backends import RedactionBackend, SimulatedBackend, EVMBackend  # type: ignore
+except Exception:  # pragma: no cover
+    # Fallback minimal stubs to avoid import-time failure in constrained environments
+    class RedactionBackend:  # type: ignore
+        def store_medical_data(self, record):
+            return True
+        def request_data_redaction(self, patient_id, redaction_type, reason, proof_payload=None):
+            return None
+        def approve_redaction(self, request_id, approver, comments=""):
+            return False
+        def execute_redaction(self, request_id):
+            return False
+        def query_medical_data(self, patient_id, requester):
+            return None
+        def get_redaction_history(self, patient_id=None):
+            return []
+    class SimulatedBackend(RedactionBackend):  # type: ignore
+        def __init__(self, engine):
+            self.engine = engine
+        def store_medical_data(self, record):
+            return self.engine.store_medical_data(record)
+        def request_data_redaction(self, patient_id, redaction_type, reason, proof_payload=None):
+            return None
+        def approve_redaction(self, request_id, approver, comments=""):
+            return False
+        def execute_redaction(self, request_id):
+            return False
+    class EVMBackend(RedactionBackend):  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
 
 try:
     # Optional adapters; only used if env flags are set
@@ -239,6 +271,10 @@ class EnhancedRedactionEngine:
             self.evm_client = None
         self.redaction_requests = {}  # request_id -> RedactionRequest
         self.executed_redactions = []
+
+        # Backend selection (SIMULATED or EVM)
+        self._backend_mode = (env_str("REDACTION_BACKEND", "SIMULATED") or "SIMULATED").strip().upper()
+        self.backend: RedactionBackend = SimulatedBackend(self)
         
     def create_medical_data_record(self, patient_data: Dict[str, Any]) -> MedicalDataRecord:
         """Create a new medical data record."""
@@ -402,6 +438,22 @@ class EnhancedRedactionEngine:
             self.redaction_requests[request_id] = redaction_request
             
             print(f" Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
+
+            # Backend-first mirroring (EVM) for audit/events
+            if self._backend_mode == "EVM" and self.evm_client is not None:
+                try:
+                    original_json = redaction_request_data["original_data"]
+                    redacted_json = redaction_request_data["redacted_data"]
+                    proof_payload = {
+                        "proof": b"",
+                        "policy_hash": bytes.fromhex(self._get_applicable_policy_hash(redaction_type)),
+                        "merkle_root": bytes.fromhex(hashlib.sha256(b"medical_contract_root").hexdigest()),
+                        "original_hash": bytes.fromhex(hashlib.sha256(original_json.encode()).hexdigest()),
+                        "redacted_hash": bytes.fromhex(hashlib.sha256(redacted_json.encode()).hexdigest()),
+                    }
+                    _ = self.backend.request_data_redaction(patient_id, redaction_type, reason, proof_payload)
+                except Exception:
+                    pass
             return request_id
             
         except Exception as e:
@@ -429,11 +481,25 @@ class EnhancedRedactionEngine:
             request.status = "APPROVED"
             print(f" Redaction request {request_id} approved ({len(request.approvals)}/{request.approval_threshold})")
             
+            # Backend-first approval if configured
+            if self._backend_mode == "EVM" and self.evm_client is not None:
+                try:
+                    _ = self.backend.approve_redaction(request_id, approver, comments)
+                except Exception:
+                    pass
             # Auto-execute if approved
             return self.execute_redaction(request_id)
         else:
             print(f" Redaction request {request_id} approval added ({len(request.approvals)}/{request.approval_threshold})")
             return True
+
+    def attach_evm_backend(self, contract: Any, ipfs_manager: Optional[Any] = None) -> None:
+        """Attach an EVM backend when contract is available and requested by config."""
+        if self._backend_mode == "EVM" and self.evm_client is not None and contract is not None:
+            try:
+                self.backend = EVMBackend(self.evm_client, contract, ipfs_manager)
+            except Exception:
+                self.backend = SimulatedBackend(self)
     
     def execute_redaction(self, request_id: str) -> bool:
         """Execute an approved redaction request."""

@@ -66,6 +66,15 @@ class MedChainDemo:
             if loaded is not None:
                 self.evm_manager = loaded
                 self.evm_enabled = True
+                # Attach EVM backend to engine if requested
+                try:
+                    if env_str("REDACTION_BACKEND", "SIMULATED").strip().upper() == "EVM":
+                        # Attach only if engine exposes method
+                        attach = getattr(self.redaction_engine, "attach_evm_backend", None)
+                        if callable(attach):
+                            attach(self.evm_manager, self.ipfs_manager)
+                except Exception:
+                    pass
             else:
                 # Best-effort deploy if artifacts present
                 deployed = self.evm.deploy("MedicalDataManager")
@@ -74,6 +83,13 @@ class MedChainDemo:
                     print(f" Deployed MedicalDataManager at {mgr_addr}")
                     self.evm_manager = mgr
                     self.evm_enabled = True
+                    try:
+                        if env_str("REDACTION_BACKEND", "SIMULATED").strip().upper() == "EVM":
+                            attach = getattr(self.redaction_engine, "attach_evm_backend", None)
+                            if callable(attach):
+                                attach(self.evm_manager, self.ipfs_manager)
+                    except Exception:
+                        pass
         
         # Demo state
         self.demo_datasets = []

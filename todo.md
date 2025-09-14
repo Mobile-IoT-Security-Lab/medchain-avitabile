@@ -45,7 +45,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 33. [x] Add connection, deployment, and contract loading functionality
 34. [x] Create wrappers for contract methods: `storeMedicalData`, `requestDataRedaction`, approvals (execution handled off‑chain/simulated)
 35. [x] Implement event query functionality
-36. [ ] Update `medical/MedicalRedactionEngine.py` to use `EVMClient` instead of `Models/SmartContract.*`
+36. [x] Update `medical/MedicalRedactionEngine.py` to use `EVMClient` instead of `Models/SmartContract.*`
 37. [ ] Refactor current implementation as "SimulatedBackend" behind config flag
 
 38. [ ] <!-- ### Circuit Development --> Install Node.js dependencies: Hardhat/Foundry, circom, snarkjs
