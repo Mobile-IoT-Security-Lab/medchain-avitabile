@@ -97,5 +97,71 @@ describe("MedicalDataManager", function () {
     const reqId2 = await mdm.nextRequestId();
     expect(Number(reqId2)).to.equal(1);
   });
-});
 
+  it("reverts requestDataRedaction when caller not authorized", async function () {
+    const { mdm, outsider } = await deployAll();
+    await expect(
+      mdm.connect(outsider).requestDataRedaction("PAT_Z", "DELETE", "gdpr")
+    ).to.be.revertedWith("Not authorized");
+  });
+
+  it("reverts WithProof when requireProofs=true and verifier unset", async function () {
+    const { mdm } = await deployAll();
+    await mdm.setRequireProofs(true);
+    const zero = ethers.ZeroHash;
+    await expect(
+      mdm.requestDataRedactionWithProof("PAT_Z", "DELETE", "gdpr", "0x", zero, zero, zero, zero)
+    ).to.be.revertedWith("Verifier not set");
+  });
+
+  it("reverts WithProof when verifier returns false", async function () {
+    const { mdm } = await deployAll();
+    const FalseV = await ethers.getContractFactory("AlwaysFalseVerifier");
+    const fv = await FalseV.deploy();
+    await fv.waitForDeployment();
+    await mdm.setRequireProofs(true);
+    await mdm.setVerifier(await fv.getAddress());
+    const zero = ethers.ZeroHash;
+    await expect(
+      mdm.requestDataRedactionWithProof("PAT_A", "DELETE", "gdpr", "0x", zero, zero, zero, zero)
+    ).to.be.revertedWith("Invalid proof");
+  });
+
+  it("allows WithProof when requireProofs=false and verifier unset (skips verification)", async function () {
+    const { mdm } = await deployAll();
+    await mdm.setRequireProofs(false);
+    const zero = ethers.ZeroHash;
+    await mdm.requestDataRedactionWithProof("PAT_B", "MODIFY", "policy", "0x", zero, zero, zero, zero);
+    const id = await mdm.nextRequestId();
+    expect(Number(id)).to.equal(1);
+  });
+
+  it("succeeds WithProof when requireProofs=true and verifier returns true", async function () {
+    const { mdm } = await deployAll();
+    const Verifier = await ethers.getContractFactory("RedactionVerifier");
+    const verifier = await Verifier.deploy();
+    await verifier.waitForDeployment();
+    await mdm.setRequireProofs(true);
+    await mdm.setVerifier(await verifier.getAddress());
+    const zero = ethers.ZeroHash;
+    await mdm.requestDataRedactionWithProof("PAT_OK", "ANONYMIZE", "policy", "0x", zero, zero, zero, zero);
+    const id = await mdm.nextRequestId();
+    expect(Number(id)).to.equal(1);
+  });
+
+  it("revoking authorization prevents further actions", async function () {
+    const { mdm, owner, other } = await deployAll();
+    await mdm.connect(owner).setAuthorized(other.address, true);
+    await mdm.connect(other).storeMedicalData("PAT_R", "QmR", ethers.id("cipherR"));
+    // revoke
+    await mdm.connect(owner).setAuthorized(other.address, false);
+    await expect(
+      mdm.connect(other).storeMedicalData("PAT_R2", "QmR2", ethers.id("cipherR2"))
+    ).to.be.revertedWith("Not authorized");
+  });
+
+  it("reverts approveRedaction for non-existent request id", async function () {
+    const { mdm } = await deployAll();
+    await expect(mdm.approveRedaction(12345)).to.be.revertedWith("Request not found");
+  });
+});
