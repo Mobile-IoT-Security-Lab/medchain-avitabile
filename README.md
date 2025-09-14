@@ -1,6 +1,6 @@
 # MedChain Project
 
-[![Tests](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml) ![Coverage](badges/coverage.svg)
+[![Tests](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml) [![Contracts](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml) ![Coverage](badges/coverage.svg)
 
 This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation to implement a proof-of-concept for the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains". In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
 

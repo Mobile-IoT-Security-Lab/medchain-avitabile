@@ -29,6 +29,10 @@ jobs:
         working-directory: contracts
         run: |
           npx hardhat compile
+      - name: Test
+        working-directory: contracts
+        run: |
+          npx hardhat test
       - name: Deploy to in-process hardhat network
         working-directory: contracts
         run: |
