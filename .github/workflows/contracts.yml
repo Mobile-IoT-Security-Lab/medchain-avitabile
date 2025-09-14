@@ -2,12 +2,12 @@ name: Contracts
 
 on:
   push:
-    paths:
-      - 'contracts/**'
-      - '.github/workflows/contracts.yml'
+    branches:
+      - '**'
   pull_request:
-    paths:
-      - 'contracts/**'
+    branches:
+      - '**'
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:

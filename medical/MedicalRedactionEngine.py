@@ -853,6 +853,12 @@ def test_my_medical_redaction():
     print(" My medical redaction system test completed!")
 
 
+# Backward-compatible alias for existing tests
+def test_enhanced_medical_redaction():
+    """Compatibility wrapper to preserve original test entrypoint name."""
+    return test_my_medical_redaction()
+
+
 if __name__ == "__main__":
     test_my_medical_redaction()  # TODO: check if I completely and correctly check and test all this file (MedicalRedactionEngine.py)
     # TODO: Add this test to the tests suite
