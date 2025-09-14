@@ -49,11 +49,11 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 37. [x] Refactor current implementation as "SimulatedBackend" behind config flag
 
 38. [x] <!-- ### Circuit Development --> Install Node.js dependencies: Hardhat/Foundry, circom, snarkjs
-39. [ ] Implement `redaction.circom` circuit proving...
-40. [ ] ...H(original) computation
-41. [ ] ...H(redacted) computation
-42. [ ] ...Policy hash matching
-43. [ ] ...Optional Merkle membership proof
+39. [x] Implement `redaction.circom` circuit proving...
+40. [x] ...H(original) computation
+41. [x] ...H(redacted) computation
+42. [x] ...Policy hash matching
+43. [x] ...Optional Merkle membership proof
 44. [ ] Compile circuit with circom
 45. [ ] Run Groth16 trusted setup ceremony
 46. [ ] Export Solidity verifier: `snarkjs zkey export solidityverifier` → `contracts/RedactionVerifier.sol`
@@ -61,7 +61,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 48. [ ] Add witness building functionality
 49. [ ] Implement proof and public signal generation
 50. [ ] Format calldata for Solidity `verifyProof(...)` method
-51. [ ] Replace `ZK/SNARKs.py` usage in `EnhancedRedactionEngine` with new adapter
+51. [ ] Replace `ZK/SNARKs.py` usage in `MyRedactionEngine` with new adapter
 52. [ ] Keep existing class as mock fallback for testing
 
 53. [x] <!-- ### On-chain Verification Integration --> Update `MedicalDataManager.sol` to require proof verification before redaction operations

@@ -80,7 +80,7 @@ How It’s Implemented Here (Simulated Contracts Over a Bitcoin‑Like Chain)
   - `Models/Bitcoin/BlockCommit.py`: Integrates contract deploy/call handling during block processing.
   - `Main.py`: When smart contracts are enabled, deploys example contracts (audit/privacy) at startup for experiments.
 - Domain logic and redaction orchestration:
-  - `Enhanced/MedicalRedactionEngine.py`: Medical data contract state, redaction requests, approvals, and execution paths; links with SNARK‑like proofs and consistency checks.
+  - `My/MedicalRedactionEngine.py`: Medical data contract state, redaction requests, approvals, and execution paths; links with SNARK‑like proofs and consistency checks.
   - `demo_medchain.py`: End‑to‑end flows (dataset creation, store/query, GDPR erasure, anonymization) demonstrating policy‑governed redactions.
 - Configuration switches:
   - `InputsConfig.py`: `hasSmartContracts`, `hasPermissions`, `REDACTION_POLICIES`, and transaction mix including `CONTRACT_DEPLOY` / `CONTRACT_CALL` / `REDACTION_REQUEST` for scenario tuning.
@@ -101,7 +101,7 @@ Important Nuance
 
 - Zero‑knowledge proofs (SNARK‑like) integration
   - `ZK/SNARKs.py` defines proof structure, circuit scaffolding, replay protection, and verification; used to validate redactions without leaking sensitive data.
-  - Consumed by `Enhanced/MedicalRedactionEngine.py` and exercised in `demo_medchain.py`.
+  - Consumed by `My/MedicalRedactionEngine.py` and exercised in `demo_medchain.py`.
 
 - Proof‑of‑consistency after redaction
   - `ZK/ProofOfConsistency.py` checks block integrity, Merkle paths, hash chain, transaction ordering, and smart‑contract state transitions post‑redaction.
@@ -112,7 +112,7 @@ Important Nuance
   - Files: `Models/SmartContract.PermissionManager`, `InputsConfig.py` (`hasPermissions`, `NODE_ROLES`, `minRedactionApprovals`, `REDACTION_POLICIES`).
 
 - Medical use case and off‑chain linkage
-  - `Enhanced/MedicalRedactionEngine.py` models medical records, consent, and redaction operations under policy.
+  - `My/MedicalRedactionEngine.py` models medical records, consent, and redaction operations under policy.
   - `IPFS/MedicalDataIPFS.py` simulates censored data storage and linkage to on‑chain state.
 
 - Configurable, measurable experiments

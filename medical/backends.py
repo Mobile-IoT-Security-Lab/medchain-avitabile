@@ -1,6 +1,6 @@
 """Redaction backend interface and implementations.
 
-Provides a pluggable layer so the EnhancedRedactionEngine can operate
+Provides a pluggable layer so the MyRedactionEngine can operate
 against either the simulated in-memory contract or an EVM-backed adapter.
 """
 from __future__ import annotations
@@ -129,4 +129,3 @@ class EVMBackend(RedactionBackend):
     def get_redaction_history(self, patient_id: Optional[str] = None) -> list[Dict[str, Any]]:
         # Events should be queried by higher-level code if needed.
         return []
-
