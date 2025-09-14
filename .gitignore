@@ -6,3 +6,18 @@ papers/
 
 node_modules/
 **/node_modules/
+
+# Circuits build artifacts
+circuits/build/
+*.r1cs
+*.zkey
+*.sym
+*.wasm
+*.wtns
+
+# Solidity coverage outputs
+contracts/coverage/
+contracts/coverage.json
+
+# Local tool binaries
+tools/bin/

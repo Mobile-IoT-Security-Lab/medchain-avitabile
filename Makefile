@@ -1,6 +1,7 @@
 .PHONY: help ipfs-test ipfs-check ipfs-docker-up \
 	keystore-file-list keystore-file-rotate keystore-env-list keystore-env-rotate \
-	contracts-compile contracts-node contracts-deploy contracts-deploy-local contracts-addresses
+	contracts-compile contracts-node contracts-deploy contracts-deploy-local contracts-addresses \
+	circuits-compile circuits-setup circuits-prove circuits-export-verifier circuits-clean circuits-all
 
 IPFS_API_ADDR ?= /ip4/127.0.0.1/tcp/5001/http
 
@@ -18,6 +19,12 @@ help:
 	@echo "  contracts-deploy     Deploy to in-process Hardhat network (writes addresses)"
 	@echo "  contracts-deploy-local Deploy to localhost Hardhat/Anvil (requires node)"
 	@echo "  contracts-addresses  Print consolidated deployed addresses"
+	@echo "  circuits-compile     Compile Circom circuits to R1CS/WASM"
+	@echo "  circuits-setup       Groth16 setup (requires PTAU=path/to.ptau)"
+	@echo "  circuits-prove       Generate witness/proof with optional INPUT=..."
+	@echo "  circuits-export-verifier  Export Solidity verifier to contracts/src/RedactionVerifier_groth16.sol"
+	@echo "  circuits-clean       Remove circuits/build artifacts"
+	@echo "  circuits-all         Compile, setup, prove, and export verifier"
 
 ipfs-check:
 	@echo "Checking IPFS API at $(IPFS_API_ADDR) ..."
@@ -76,3 +83,29 @@ contracts-deploy-local:
 
 contracts-addresses:
 	@cd $(CONTRACTS_DIR) && test -f deployed_addresses.json && cat deployed_addresses.json || echo "No deployed_addresses.json found"
+
+
+# -------------------------
+# Circuits (Circom + snarkjs)
+# -------------------------
+
+CIRCUITS_DIR ?= circuits
+PTAU ?=
+INPUT ?=
+
+circuits-compile:
+	@bash $(CIRCUITS_DIR)/scripts/compile.sh
+
+circuits-setup:
+	@PTAU=$(PTAU) bash $(CIRCUITS_DIR)/scripts/setup.sh
+
+circuits-prove:
+	@bash $(CIRCUITS_DIR)/scripts/prove.sh $(INPUT)
+
+circuits-export-verifier:
+	@bash $(CIRCUITS_DIR)/scripts/export-verifier.sh
+
+circuits-clean:
+	@bash $(CIRCUITS_DIR)/scripts/clean.sh
+
+circuits-all: circuits-compile circuits-setup circuits-prove circuits-export-verifier
