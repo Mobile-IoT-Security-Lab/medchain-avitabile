@@ -1,5 +1,5 @@
 """
-Enhanced Smart Contract Integration for Data Redaction
+My Smart Contract Integration for Data Redaction
 ====================================================
 
 This module enhances the smart contract system with SNARK proofs and consistency verification
@@ -64,7 +64,7 @@ except Exception:  # pragma: no cover - optional import
 
 @dataclass
 class RedactionRequest:
-    """Enhanced redaction request with SNARK and consistency proofs."""
+    """My redaction request with SNARK and consistency proofs."""
     request_id: str
     target_contract: str
     target_function: str
@@ -238,8 +238,8 @@ class MedicalDataContract(SmartContract):
         """
 
 
-class EnhancedRedactionEngine:
-    """Enhanced redaction engine with SNARK proofs and consistency verification."""
+class MyRedactionEngine:
+    """My redaction engine with SNARK proofs and consistency verification."""
     
     def __init__(self):
         # Feature toggles
@@ -732,14 +732,14 @@ class EnhancedRedactionEngine:
 
 
 # Testing and demonstration
-def test_enhanced_medical_redaction():
-    """Test the enhanced medical data redaction system."""
+def test_my_medical_redaction():
+    """Test the my medical data redaction system."""
     
-    print("\n Testing Enhanced Medical Data Redaction System")
+    print("\n Testing My Medical Data Redaction System")
     print("=" * 60)
     
     # Initialize redaction engine
-    engine = EnhancedRedactionEngine()
+    engine = MyRedactionEngine()
     
     # Create sample medical records
     sample_patients = [
@@ -850,9 +850,9 @@ def test_enhanced_medical_redaction():
         print(f"    Approvers: {len(record['approvers'])}")
         print()
     
-    print(" Enhanced medical redaction system test completed!")
+    print(" My medical redaction system test completed!")
 
 
 if __name__ == "__main__":
-    test_enhanced_medical_redaction()  # TODO: check if I completely and correctly check and test all this file (MedicalRedactionEngine.py)
+    test_my_medical_redaction()  # TODO: check if I completely and correctly check and test all this file (MedicalRedactionEngine.py)
     # TODO: Add this test to the tests suite
