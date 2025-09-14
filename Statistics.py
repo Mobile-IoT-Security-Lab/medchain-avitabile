@@ -2,6 +2,7 @@ from InputsConfig import InputsConfig as p
 from Models.Consensus import Consensus as c
 import pandas as pd
 import time
+import os
 
 
 class Statistics:
@@ -198,6 +199,13 @@ class Statistics:
 
     ########################################################### Print simulation results to Excel ###########################################################################################
     def print_to_excel(fname):
+        # Ensure output directory for CSV artifacts exists
+        # Some environments run without a pre-created 'Results' folder
+        try:
+            os.makedirs('Results', exist_ok=True)
+        except Exception:
+            # If directory creation fails, continue; subsequent writes may raise a clearer error
+            pass
 
         df1 = pd.DataFrame(
             {'Block Time': [p.Binterval], 'Block Propagation Delay': [p.Bdelay], 'No. Miners': [len(p.NODES)],
@@ -292,7 +300,15 @@ class Statistics:
         else:
             df4.to_excel(writer, sheet_name='Chain')
             df2.to_csv('Results/time.csv', sep=',', mode='a+', index=False, header=False)
-        writer.save()
+        # Close the Excel writer to flush to disk (pandas>=2 removed .save())
+        try:
+            writer.close()
+        except Exception:
+            # Fallback for older pandas that may still have .save()
+            try:
+                writer.save()  # type: ignore[attr-defined]
+            except Exception:
+                pass
 
 
     ########################################################### Reset all global variables used to calculate the simulation results ###########################################################################################

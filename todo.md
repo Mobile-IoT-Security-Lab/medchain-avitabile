@@ -20,10 +20,10 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 12. [x] <!-- ### IPFS Encryption and Security --> Implement AES-GCM encryption for PHI before IPFS upload
 13. [x] Design off-chain key management system (KMS or wallet-encrypted blob)
 14. [x] Store only IPFS CID + ciphertext hash on-chain
-15. [ ] Implement "redaction by erasure": key rotation + content unpinning
-16. [ ] Update `IPFSMedicalDataManager` to accept any client interface <!-- ### IPFS Integration -->
-17. [ ] Inject `RealIPFSClient` when `USE_REAL_IPFS=1`
-18. [ ] Maintain backward compatibility with `FakeIPFSClient` for tests
+15. [x] Implement "redaction by erasure": key rotation + content unpinning
+16. [x] Update `IPFSMedicalDataManager` to accept any client interface <!-- ### IPFS Integration -->
+17. [x] Inject `RealIPFSClient` when `USE_REAL_IPFS=1`
+18. [x] Maintain backward compatibility with `FakeIPFSClient` for tests
 
 19. [ ] <!-- ### Smart Contract Development --> Initialize Hardhat or Foundry project in `contracts/` directory
 20. [ ] Create `contracts/MedicalDataManager.sol` from pseudo-code in `MedicalDataContract._get_medical_contract_code()`
