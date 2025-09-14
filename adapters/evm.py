@@ -100,6 +100,12 @@ class EVMClient:
         fn = contract.functions.setVerifier(verifier_address)
         return self._build_and_send(fn)
 
+    def setRequireProofs(self, contract, value: bool) -> Optional[str]:
+        if not self._connected:
+            return None
+        fn = contract.functions.setRequireProofs(bool(value))
+        return self._build_and_send(fn)
+
     def requestDataRedactionWithProof(
         self,
         contract,
@@ -117,6 +123,12 @@ class EVMClient:
         fn = contract.functions.requestDataRedactionWithProof(
             patient_id, redaction_type, reason, proof, policy_hash, merkle_root, original_hash, redacted_hash
         )
+        return self._build_and_send(fn)
+
+    def approveRedaction(self, contract, request_id: int) -> Optional[str]:
+        if not self._connected:
+            return None
+        fn = contract.functions.approveRedaction(int(request_id))
         return self._build_and_send(fn)
 
     # Events

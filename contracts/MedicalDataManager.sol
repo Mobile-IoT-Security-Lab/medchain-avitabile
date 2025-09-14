@@ -49,6 +49,7 @@ contract MedicalDataManager {
 
     uint256 public nextRequestId; // auto-increment id for redaction requests
     address public verifier; // optional verifier; zero address disables proof checks
+    bool public requireProofs; // when true and verifier is set, disallow proof-less requests
 
     modifier onlyAuthorized() {
         require(authorizedUsers[msg.sender], "Not authorized");
@@ -62,6 +63,12 @@ contract MedicalDataManager {
     function setVerifier(address verifierAddr) external {
         // NOTE: for demo only; in production add access control
         verifier = verifierAddr;
+    }
+
+    function setRequireProofs(bool value) external {
+        // NOTE: for demo only; in production add access control
+        require(authorizedUsers[msg.sender], "Not authorized");
+        requireProofs = value;
     }
 
     function setAuthorized(address user, bool enabled) external {
@@ -87,6 +94,8 @@ contract MedicalDataManager {
         string calldata redactionType,
         string calldata reason
     ) external onlyAuthorized {
+        // If global proof requirement is enabled and a verifier is configured, reject proof-less requests
+        require(!(requireProofs && verifier != address(0)), "Proof required");
         uint256 reqId = ++nextRequestId;
         redactionRequests[reqId] = RedactionRequestRec({
             patientId: patientId,
@@ -110,6 +119,9 @@ contract MedicalDataManager {
         bytes32 originalHash,
         bytes32 redactedHash
     ) external onlyAuthorized {
+        if (requireProofs) {
+            require(verifier != address(0), "Verifier not set");
+        }
         if (verifier != address(0)) {
             bool ok = IRedactionVerifier(verifier).verifyProof(
                 proof, policyHash, merkleRoot, originalHash, redactedHash
