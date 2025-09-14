@@ -438,22 +438,6 @@ class EnhancedRedactionEngine:
             self.redaction_requests[request_id] = redaction_request
             
             print(f" Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
-
-            # Backend-first mirroring (EVM) for audit/events
-            if self._backend_mode == "EVM" and self.evm_client is not None:
-                try:
-                    original_json = redaction_request_data["original_data"]
-                    redacted_json = redaction_request_data["redacted_data"]
-                    proof_payload = {
-                        "proof": b"",
-                        "policy_hash": bytes.fromhex(self._get_applicable_policy_hash(redaction_type)),
-                        "merkle_root": bytes.fromhex(hashlib.sha256(b"medical_contract_root").hexdigest()),
-                        "original_hash": bytes.fromhex(hashlib.sha256(original_json.encode()).hexdigest()),
-                        "redacted_hash": bytes.fromhex(hashlib.sha256(redacted_json.encode()).hexdigest()),
-                    }
-                    _ = self.backend.request_data_redaction(patient_id, redaction_type, reason, proof_payload)
-                except Exception:
-                    pass
             return request_id
             
         except Exception as e:
@@ -488,7 +472,14 @@ class EnhancedRedactionEngine:
                 except Exception:
                     pass
             # Auto-execute if approved
-            return self.execute_redaction(request_id)
+            ok = self.execute_redaction(request_id)
+            # Mirror approval to backend, if any
+            if self._use_real_evm and self.evm_client is not None:
+                try:
+                    _ = self.backend.approve_redaction(request_id, approver, comments)
+                except Exception:
+                    pass
+            return ok
         else:
             print(f" Redaction request {request_id} approval added ({len(request.approvals)}/{request.approval_threshold})")
             return True
