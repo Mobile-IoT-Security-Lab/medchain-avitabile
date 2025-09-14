@@ -43,3 +43,5 @@ jobs:
           name: contract-artifacts
           path: |
             contracts/artifacts
+            contracts/deployments
+            contracts/deployed_addresses.json

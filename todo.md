@@ -64,8 +64,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 51. [ ] Replace `ZK/SNARKs.py` usage in `EnhancedRedactionEngine` with new adapter
 52. [ ] Keep existing class as mock fallback for testing
 
-53. [ ] <!-- ### On-chain Verification Integration --> Update `MedicalDataManager.sol` to require proof verification before redaction operations
-54. [ ] Implement proper error handling for invalid proofs
+53. [x] <!-- ### On-chain Verification Integration --> Update `MedicalDataManager.sol` to require proof verification before redaction operations
+54. [x] Implement proper error handling for invalid proofs
 55. [ ] Add events for successful/failed proof verifications
 
 56. [ ] <!-- ### Unit Tests (Simulation Mode) --> Ensure all existing unit tests continue to pass with simulation backends

@@ -155,6 +155,45 @@ class EVMClient:
         with open(path, "r") as f:
             return json.load(f)
 
+    # Deployed addresses helpers
+    def _contracts_root(self) -> str:
+        # Resolve repo root relative to this file
+        here = os.path.dirname(os.path.abspath(__file__))
+        return os.path.normpath(os.path.join(here, os.pardir, "contracts"))
+
+    def _load_deployed_address(self, contract_name: str) -> Optional[str]:
+        # Try consolidated file first
+        root = self._contracts_root()
+        consolidated = os.path.join(root, "deployed_addresses.json")
+        try:
+            if os.path.exists(consolidated):
+                with open(consolidated, "r") as f:
+                    data = json.load(f)
+                entry = data.get(contract_name)
+                if isinstance(entry, dict) and entry.get("address"):
+                    return entry.get("address")
+        except Exception:
+            pass
+        # Try per-chain deployments directory
+        deployments_dir = os.path.join(root, "deployments")
+        if not os.path.isdir(deployments_dir):
+            return None
+        try:
+            for chainId in os.listdir(deployments_dir):
+                cdir = os.path.join(deployments_dir, chainId)
+                if not os.path.isdir(cdir):
+                    continue
+                fpath = os.path.join(cdir, f"{contract_name}.json")
+                if os.path.exists(fpath):
+                    with open(fpath, "r") as f:
+                        data = json.load(f)
+                    addr = data.get("address")
+                    if addr:
+                        return addr
+        except Exception:
+            return None
+        return None
+
     def deploy(self, contract_name: str, args: Optional[list] = None) -> Optional[tuple[str, Any]]:
         if not self._connected or Web3 is None:
             return None
@@ -182,13 +221,16 @@ class EVMClient:
         contract = self._w3.eth.contract(address=address, abi=abi)
         return address, contract
 
-    def load_contract(self, contract_name: str, address: str) -> Optional[Any]:
+    def load_contract(self, contract_name: str, address: Optional[str] = None) -> Optional[Any]:
         if not self._connected or Web3 is None:
             return None
         art = self._load_artifact(contract_name)
         if not art:
             return None
-        return self._w3.eth.contract(address=address, abi=art.get("abi"))
+        addr = address or self._load_deployed_address(contract_name)
+        if not addr:
+            return None
+        return self._w3.eth.contract(address=addr, abi=art.get("abi"))
 
 def get_evm_client() -> Optional[EVMClient]:
     client = EVMClient()

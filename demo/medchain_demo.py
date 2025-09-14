@@ -56,13 +56,16 @@ class MedChainDemo:
         self.evm_manager = None
         self.evm_enabled = False
         if self.evm is not None:
-            # Try load existing address or leave disabled if artifacts/address missing
+            # Try load existing address from env or deployments
             addr = env_str("MEDICAL_CONTRACT_ADDRESS")
+            loaded = None
             if addr:
                 loaded = self.evm.load_contract("MedicalDataManager", addr)
-                if loaded is not None:
-                    self.evm_manager = loaded
-                    self.evm_enabled = True
+            else:
+                loaded = self.evm.load_contract("MedicalDataManager")
+            if loaded is not None:
+                self.evm_manager = loaded
+                self.evm_enabled = True
             else:
                 # Best-effort deploy if artifacts present
                 deployed = self.evm.deploy("MedicalDataManager")
