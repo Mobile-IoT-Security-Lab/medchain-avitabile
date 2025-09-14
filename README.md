@@ -126,6 +126,18 @@ Comprehensive demonstration of all implemented features:
 - Distributed storage with redaction
 - Smart contract state management
 
+Backend Toggle (EVM vs. Simulated)
+
+- The medical redaction engine supports a pluggable backend for redaction requests/approvals:
+  - `REDACTION_BACKEND=SIMULATED` (default): all logic runs in Python; EVM is used only if the demo explicitly calls it.
+  - `REDACTION_BACKEND=EVM`: the engine mirrors requests and approvals to the EVM via the adapter for audit/events.
+- To run with EVM backend (requires local devnet and compiled artifacts):
+  1) Start a local node: `make contracts-node` (or run your own Hardhat/Anvil node on `localhost:8545`).
+  2) In a second shell, deploy and write addresses: `make contracts-deploy-local`.
+  3) Run the demo with env:
+     - `USE_REAL_EVM=1 REDACTION_BACKEND=EVM python -m demo.medchain_demo`
+  4) The demo will auto-load the MedicalDataManager address from `contracts/deployments/<chainId>/` or `contracts/deployed_addresses.json`.
+
 ### Technical Improvements
 
 The implementation includes several technical advances:
