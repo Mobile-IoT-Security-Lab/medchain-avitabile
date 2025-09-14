@@ -21,9 +21,10 @@ jobs:
         working-directory: contracts
         run: |
           if [ -f package-lock.json ]; then
-            npm ci
+            # Try clean install using lockfile; fall back if lock is out of sync
+            npm ci --no-audit --no-fund || npm install --no-audit --no-fund
           else
-            npm install
+            npm install --no-audit --no-fund
           fi
       - name: Compile (clean and force)
         working-directory: contracts
