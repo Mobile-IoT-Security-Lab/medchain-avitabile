@@ -79,10 +79,13 @@ class EVMClient:
         except Exception:
             return None
 
-    def storeMedicalData(self, contract, patient_id: str, ipfs_hash: str) -> Optional[str]:
+    def storeMedicalData(self, contract, patient_id: str, ipfs_hash: str, ciphertext_hash: bytes) -> Optional[str]:
         if not self._connected:
             return None
-        fn = contract.functions.storeMedicalData(patient_id, ipfs_hash)
+        # ciphertext_hash must be 32 bytes
+        if not isinstance(ciphertext_hash, (bytes, bytearray)) or len(ciphertext_hash) != 32:
+            return None
+        fn = contract.functions.storeMedicalData(patient_id, ipfs_hash, ciphertext_hash)
         return self._build_and_send(fn)
 
     def requestDataRedaction(self, contract, patient_id: str, redaction_type: str, reason: str) -> Optional[str]:

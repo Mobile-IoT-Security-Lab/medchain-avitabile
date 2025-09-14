@@ -25,7 +25,8 @@ class TestEvmIntegration(unittest.TestCase):
             self.skipTest("Artifacts not found; compile contracts first")
         addr, manager = deployed
         # Call store
-        txh = self.client.storeMedicalData(manager, "PAT_INT_001", "QmCID123")
+        # Provide a dummy ciphertext hash (32 bytes)
+        txh = self.client.storeMedicalData(manager, "PAT_INT_001", "QmCID123", b"\x00" * 32)
         self.assertTrue(txh)
         # Call redaction
         txh2 = self.client.requestDataRedaction(manager, "PAT_INT_001", "DELETE", "test")
@@ -39,4 +40,3 @@ class TestEvmIntegration(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

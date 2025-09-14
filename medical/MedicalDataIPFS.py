@@ -288,6 +288,8 @@ class IPFSMedicalDataManager:
             
             # Upload to IPFS
             ipfs_hash = self.ipfs_client.add(payload, pin=True)
+            # Compute stable ciphertext hash over stored payload bytes
+            cipher_hash_bytes = hashlib.sha256(payload.encode()).digest()
             
             # Update dataset record
             dataset.ipfs_hash = ipfs_hash
@@ -303,7 +305,8 @@ class IPFSMedicalDataManager:
                 "version": dataset.version,
                 "patient_count": len(dataset.patient_records),
                 "encrypted": encrypt,
-                "encryption": encryption_mode
+                "encryption": encryption_mode,
+                "ciphertext_hash_hex": hashlib.sha256(payload.encode()).hexdigest()
             }
             
             # Build patient mappings
@@ -316,6 +319,7 @@ class IPFSMedicalDataManager:
             print(f" Uploaded dataset {dataset.dataset_id} to IPFS: {ipfs_hash}")
             print(f"   Patients: {len(dataset.patient_records)}")
             print(f"   Size: {len(payload)} bytes")
+            print(f"   Ciphertext SHA-256: {hashlib.sha256(payload.encode()).hexdigest()}")
             
             return ipfs_hash
             

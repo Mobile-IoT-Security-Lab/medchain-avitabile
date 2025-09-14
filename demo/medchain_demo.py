@@ -148,7 +148,21 @@ class MedChainDemo:
                 pid = p["patient_id"]
                 ipfs_hash = self.demo_datasets[0].ipfs_hash or ""
                 if ipfs_hash:
-                    txh = self.evm.storeMedicalData(self.evm_manager, pid, ipfs_hash)
+                    # Resolve ciphertext hash from dataset registry (hex to bytes32)
+                    try:
+                        ds = self.demo_datasets[0]
+                        meta = self.ipfs_manager.dataset_registry.get(ds.dataset_id, {})
+                        ct_hex = meta.get("ciphertext_hash_hex") or ""
+                        if ct_hex:
+                            ct_b = bytes.fromhex(ct_hex)
+                        else:
+                            # Fallback: compute over stored envelope payload fetched via IPFS
+                            content = self.ipfs_client.get(ipfs_hash) or ""
+                            import hashlib
+                            ct_b = bytes.fromhex(hashlib.sha256(content.encode()).hexdigest())
+                        txh = self.evm.storeMedicalData(self.evm_manager, pid, ipfs_hash, ct_b)
+                    except Exception as e:
+                        txh = None
                     if txh:
                         print(f"  On-chain storeMedicalData tx: {txh}")
         print(f" Stored {len(self.demo_patients)} patient records (simulated); EVM pointers set: {self.evm_enabled}")

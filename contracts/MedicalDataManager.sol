@@ -15,7 +15,7 @@ interface IRedactionVerifier {
 }
 
 contract MedicalDataManager {
-    event DataStored(string indexed patientId, string ipfsHash, uint256 timestamp);
+    event DataStored(string indexed patientId, string ipfsHash, bytes32 ciphertextHash, uint256 timestamp);
     event RedactionRequested(
         string indexed patientId,
         string redactionType,
@@ -26,6 +26,7 @@ contract MedicalDataManager {
 
     struct MedicalRecordPtr {
         string ipfsHash;        // CID of encrypted/censored data
+        bytes32 ciphertextHash; // SHA-256 over stored payload (e.g., AES-GCM envelope)
         uint256 lastUpdated;    // last update timestamp
     }
 
@@ -55,13 +56,15 @@ contract MedicalDataManager {
 
     function storeMedicalData(
         string calldata patientId,
-        string calldata ipfsHash
+        string calldata ipfsHash,
+        bytes32 ciphertextHash
     ) external onlyAuthorized {
         medicalRecords[patientId] = MedicalRecordPtr({
             ipfsHash: ipfsHash,
+            ciphertextHash: ciphertextHash,
             lastUpdated: block.timestamp
         });
-        emit DataStored(patientId, ipfsHash, block.timestamp);
+        emit DataStored(patientId, ipfsHash, ciphertextHash, block.timestamp);
     }
 
     function requestDataRedaction(
