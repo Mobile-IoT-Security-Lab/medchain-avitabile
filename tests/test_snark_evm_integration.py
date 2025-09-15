@@ -23,8 +23,8 @@ from adapters.evm import EVMClient
 from adapters.config import env_bool
 
 # Import SNARK and proof components
-from ZK.SNARKs import ZKProof, SNARKManager
-from ZK.ProofOfConsistency import ProofOfConsistency
+from ZK.SNARKs import ZKProof, RedactionSNARKManager
+from ZK.ProofOfConsistency import ConsistencyProof, ConsistencyProofGenerator
 
 # Import medical components
 from medical.MedicalRedactionEngine import MyRedactionEngine
@@ -198,7 +198,7 @@ class TestSNARKEVMIntegration:
         redacted_blocks = self._simulate_redaction_on_blocks(original_blocks)
         
         # Generate proof of consistency
-        consistency_prover = ProofOfConsistency()
+        consistency_prover = ConsistencyProofGenerator()
         consistency_proof = consistency_prover.generate_consistency_proof(
             original_state=original_blocks,
             redacted_state=redacted_blocks,

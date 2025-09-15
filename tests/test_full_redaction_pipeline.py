@@ -27,8 +27,8 @@ from adapters.config import env_bool
 # Import core components
 from medical.MedicalDataIPFS import IPFSMedicalDataManager
 from medical.MedicalRedactionEngine import MyRedactionEngine, MedicalDataRecord
-from ZK.SNARKs import SNARKManager
-from ZK.ProofOfConsistency import ProofOfConsistency
+from ZK.SNARKs import RedactionSNARKManager
+from ZK.ProofOfConsistency import ConsistencyProof, ConsistencyProofGenerator
 
 # Import models
 from Models.Block import Block
@@ -53,8 +53,8 @@ class TestFullRedactionPipeline:
         # Initialize managers
         self.medical_manager = IPFSMedicalDataManager(ipfs_client=self.ipfs_client)
         self.redaction_engine = MyRedactionEngine()
-        self.snark_manager = SNARKManager()
-        self.consistency_prover = ProofOfConsistency()
+        self.snark_manager = RedactionSNARKManager()
+        self.consistency_prover = ConsistencyProofGenerator()
         
         # Test patient data
         self.patient_data = {
