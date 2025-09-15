@@ -133,24 +133,20 @@ class TestEVMAdapterInterface(unittest.TestCase):
         """Test EVM client behavior when disabled."""
         with patch('adapters.evm.Web3'):
             client = self.evm_class()
-            
+
             # Should handle disabled mode gracefully
-            result = client.is_connected()
-            self.assertIsInstance(result, bool)
+            self.assertFalse(client._connected)
     
     def test_evm_interface_methods(self):
         """Test EVM client has required interface methods."""
-        with patch('adapters.evm.Web3'), \
-             patch.object(self.evm_class, 'is_connected', return_value=True):
-            
+        with patch('adapters.evm.Web3'):
             client = self.evm_class()
             
-            # Check required methods exist
-            self.assertTrue(hasattr(client, 'deploy'))
-            self.assertTrue(hasattr(client, 'storeMedicalData'))
-            self.assertTrue(hasattr(client, 'requestDataRedaction'))
-            self.assertTrue(hasattr(client, 'get_events'))
-            self.assertTrue(callable(client.deploy))
+            # All required methods should exist
+            required_methods = ['connect', 'deploy', 'storeMedicalData', 'requestDataRedaction', 'get_events']
+            for method in required_methods:
+                self.assertTrue(hasattr(client, method), f"Missing method: {method}")
+                self.assertTrue(callable(getattr(client, method)), f"Method not callable: {method}")
 
 
 class TestIPFSAdapterInterface(unittest.TestCase):

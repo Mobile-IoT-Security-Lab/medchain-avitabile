@@ -1,0 +1,30 @@
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "unit: marks tests as unit tests",
+    "slow: marks tests as slow running",
+    "requires_ipfs: marks tests that require IPFS daemon running",
+    "requires_evm: marks tests that require EVM node running",
+    "requires_snark: marks tests that require SNARK tools (circom, snarkjs)",
+    "e2e: marks tests as end-to-end tests"
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--color=yes"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
+
+[tool.pytest.integration]
+# Integration test specific settings
+minversion = "7.0"
+timeout = 300  # 5 minutes max per test
