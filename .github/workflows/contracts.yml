@@ -45,14 +45,16 @@ jobs:
           sudo chmod +x /usr/local/bin/circom
           
       - name: Build circuits and generate test proofs
+        env:
+          PTAU: ../tools/powersOfTau28_hez_final_14.ptau
         run: |
           cd circuits
-          # Ensure Powers of Tau file exists
+          # Ensure Powers of Tau file exists (need larger file for 6865*2 constraints)
           mkdir -p ../tools
-          if [ ! -f "../tools/powersOfTau28_hez_final_12.ptau" ]; then
-            echo "Downloading Powers of Tau file..."
-            curl -L -o "../tools/powersOfTau28_hez_final_12.ptau" \
-              "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_12.ptau"
+          if [ ! -f "../tools/powersOfTau28_hez_final_14.ptau" ]; then
+            echo "Downloading Powers of Tau file (2^14 = 16384 constraints)..."
+            curl -L -o "../tools/powersOfTau28_hez_final_14.ptau" \
+              "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau"
           fi
           # Make scripts executable
           chmod +x scripts/*.sh
