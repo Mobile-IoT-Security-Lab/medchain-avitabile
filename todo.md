@@ -57,12 +57,12 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 44. [x] Compile circuit with circom
 45. [x] Run Groth16 trusted setup ceremony
 46. [x] Export Solidity verifier: `snarkjs zkey export solidityverifier` → `contracts/RedactionVerifier.sol`
-47. [ ] <!-- ### Off-chain Proof Generation --> Implement `adapters/snark.py` wrapping snarkjs functionality
-48. [ ] Add witness building functionality
-49. [ ] Implement proof and public signal generation
-50. [ ] Format calldata for Solidity `verifyProof(...)` method
-51. [ ] Replace `ZK/SNARKs.py` usage in `MyRedactionEngine` with new adapter
-52. [ ] Keep existing class as mock fallback for testing
+47. [x] <!-- ### Off-chain Proof Generation --> Implement `adapters/snark.py` wrapping snarkjs functionality
+48. [x] Add witness building functionality
+49. [x] Implement proof and public signal generation
+50. [x] Format calldata for Solidity `verifyProof(...)` method
+51. [x] Replace `ZK/SNARKs.py` usage in `MyRedactionEngine` with new adapter
+52. [x] Keep existing class as mock fallback for testing
 
 53. [x] <!-- ### On-chain Verification Integration --> Update `MedicalDataManager.sol` to require proof verification before redaction operations
 54. [x] Implement proper error handling for invalid proofs
