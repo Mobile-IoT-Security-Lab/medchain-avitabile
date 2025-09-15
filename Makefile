@@ -1,4 +1,5 @@
-.PHONY: help ipfs-test ipfs-check ipfs-docker-up \
+.PHONY: help setup setup-npm setup-python \
+	ipfs-test ipfs-check ipfs-docker-up \
 	keystore-file-list keystore-file-rotate keystore-env-list keystore-env-rotate \
 	contracts-compile contracts-node contracts-deploy contracts-deploy-local contracts-addresses \
 	circuits-compile circuits-setup circuits-prove circuits-export-verifier circuits-clean circuits-all
@@ -7,6 +8,9 @@ IPFS_API_ADDR ?= /ip4/127.0.0.1/tcp/5001/http
 
 help:
 	@echo "Available targets:"
+	@echo "  setup        Complete project setup (npm + python)"
+	@echo "  setup-npm    Install Node.js dependencies"
+	@echo "  setup-python Install Python dependencies"
 	@echo "  ipfs-test    Run real IPFS integration test (requires local daemon)"
 	@echo "  ipfs-check   Query IPFS API version to verify connectivity"
 	@echo "  ipfs-docker-up  Start local IPFS daemon via Docker Compose script"
@@ -25,6 +29,21 @@ help:
 	@echo "  circuits-export-verifier  Export Solidity verifier to contracts/src/RedactionVerifier_groth16.sol"
 	@echo "  circuits-clean       Remove circuits/build artifacts"
 	@echo "  circuits-all         Compile, setup, prove, and export verifier"
+
+# -------------------------
+# Setup targets
+# -------------------------
+
+setup: setup-npm setup-python
+	@echo "Project setup complete!"
+
+setup-npm:
+	@echo "Setting up Node.js dependencies..."
+	@npm run setup
+
+setup-python:
+	@echo "Setting up Python dependencies..."
+	@pip install -r requirements.txt
 
 ipfs-check:
 	@echo "Checking IPFS API at $(IPFS_API_ADDR) ..."

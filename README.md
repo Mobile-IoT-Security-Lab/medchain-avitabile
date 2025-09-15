@@ -171,6 +171,247 @@ Comprehensive test suite covering all components:
 
 ## Getting Started
 
+### Prerequisites
+
+**System Requirements:**
+
+- **Python**: 3.8+ (for blockchain simulation and medical engine)
+- **Node.js**: 16.0+ (for smart contracts and SNARK circuits)
+- **npm**: 8.0+ (for dependency management)
+
+### Quick Start
+
+**New to MedChain?** See [`QUICKSTART.md`](QUICKSTART.md) for a fast setup guide.
+
+**Need Node.js details?** Check [`docs/NODEJS_REQUIREMENTS.md`](docs/NODEJS_REQUIREMENTS.md) for comprehensive Node.js setup instructions.
+
+### One-Command Setup
+
+```bash
+git clone <your-repo-url>
+cd medchain-avitabile
+make setup
+```
+
+## Installation
+
+### 1. Python Dependencies
+
+```bash
+# Clone the repository
+git clone [repository-url]
+cd medchain-avitabile
+
+# Install Python dependencies
+pip install -r requirements.txt
+```
+
+### 2. Node.js Dependencies
+
+```bash
+# Install global dependencies (required for real SNARK proofs)
+npm install -g snarkjs@^0.7.5
+
+# Install circom (circuit compiler) - Download from GitHub releases
+# For Linux x64:
+wget -O /tmp/circom https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64
+sudo mv /tmp/circom /usr/local/bin/circom
+sudo chmod +x /usr/local/bin/circom
+
+# Or install via cargo (requires Rust):
+# cargo install circom
+
+# Install project dependencies
+npm install
+
+# Install contract dependencies
+cd contracts && npm install && cd ..
+```
+
+### 3. Build Circuits (Optional - for real SNARK proofs)
+
+```bash
+# Build all circuits and generate proving keys
+npm run build-circuits
+
+# Or manually:
+cd circuits
+chmod +x scripts/*.sh
+./scripts/compile.sh    # Compile .circom to .wasm and .r1cs
+./scripts/setup.sh      # Generate proving keys (requires Powers of Tau)
+./scripts/prove.sh      # Generate test proof
+./scripts/export-verifier.sh  # Export Solidity verifier
+```
+
+### 4. Compile Smart Contracts
+
+```bash
+# Build all smart contracts
+npm run build-contracts
+
+# Or manually:
+cd contracts
+npm run compile
+```
+
+## Usage
+
+### Basic Simulation (No Node.js required)
+
+```bash
+# Run basic blockchain simulation with simulated SNARKs
+python Main.py
+
+# Fast preview mode
+TESTING_MODE=1 DRY_RUN=1 python Main.py
+```
+
+### Full Demo with Real SNARKs
+
+```bash
+# Run with real SNARK proof generation (requires snarkjs)
+USE_REAL_SNARK=1 python -m demo.medchain_demo
+
+# Run medical redaction demo
+python -m demo.medical_redaction_demo
+```
+
+### NPM Scripts Reference
+
+The project includes several npm scripts for common tasks:
+
+```bash
+# Setup and Installation
+npm run setup                # Complete setup (global deps + install)
+npm run install-global      # Install global dependencies only
+
+# Circuit Development
+npm run build-circuits       # Compile circuits and generate keys
+npm run prove-circuits      # Generate test proofs
+npm run export-verifier     # Export Solidity verifier
+
+# Smart Contract Development  
+npm run build-contracts     # Compile Solidity contracts
+npm run test-contracts      # Run contract tests
+npm run deploy-contracts    # Deploy to local network
+
+# Development Workflow
+npm run dev                 # Build circuits + contracts
+npm run test               # Run all tests (contracts + Python)
+
+# Demos
+npm run demo               # Main medical demo
+npm run demo-medical       # Medical redaction demo
+npm run demo-ipfs         # IPFS integration demo
+npm run demo-snark        # SNARK proof demo
+```
+
+### Environment Configuration
+
+The project supports various environment variables for configuration:
+
+#### SNARK Configuration
+
+```bash
+# Enable real SNARK proofs (requires snarkjs and compiled circuits)
+USE_REAL_SNARK=1
+
+# Circuit directory (default: circuits)
+CIRCUITS_DIR=circuits
+
+# Pre-built proof paths (for testing)
+GROTH16_PROOF_JSON=circuits/build/proof.json
+GROTH16_PUBLIC_JSON=circuits/build/public.json
+```
+
+#### EVM Configuration
+
+```bash
+# Enable real EVM integration (requires local blockchain)
+USE_REAL_EVM=1
+
+# Blockchain connection
+WEB3_PROVIDER_URI=http://localhost:8545
+EVM_CHAIN_ID=31337
+
+# Contract addresses (auto-populated by deployment)
+MEDICAL_CONTRACT_ADDRESS=0x...
+VERIFIER_CONTRACT_ADDRESS=0x...
+```
+
+#### IPFS Configuration
+
+```bash
+# Enable real IPFS (requires IPFS node)
+USE_REAL_IPFS=1
+
+# IPFS connection
+IPFS_API_URL=http://localhost:5001
+IPFS_GATEWAY_URL=http://localhost:8080
+
+# Encryption key for medical data (base64-encoded 16/24/32 bytes)
+IPFS_ENC_KEY=base64encodedkey...
+```
+
+#### Testing Configuration
+
+```bash
+# Enable testing mode (smaller datasets, faster execution)
+TESTING_MODE=1
+
+# Dry run mode (no actual execution)
+DRY_RUN=1
+
+# Backend selection
+REDACTION_BACKEND=SIMULATED  # or EVM
+```
+
+### Dependency Management
+
+#### Required Global Dependencies
+
+| Tool | Version | Purpose | Installation |
+|------|---------|---------|--------------|
+| **snarkjs** | ^0.7.5 | SNARK proof generation | `npm install -g snarkjs` |
+| **circom** | latest | Circuit compilation | Download from [releases](https://github.com/iden3/circom/releases) |
+
+#### Development Dependencies
+
+The project uses npm workspaces to manage dependencies:
+
+- **Root package.json**: Global scripts and snarkjs
+- **contracts/package.json**: Hardhat, Solidity tools, contract testing
+
+#### Manual Installation (Alternative)
+
+If automatic installation fails, you can install dependencies manually:
+
+```bash
+# 1. Install snarkjs globally
+npm install -g snarkjs@0.7.5
+
+# 2. Install circom (choose one method):
+
+# Method A: Download binary (Linux x64)
+wget https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 -O circom
+sudo mv circom /usr/local/bin/circom
+sudo chmod +x /usr/local/bin/circom
+
+# Method B: Build from source (requires Rust)
+git clone https://github.com/iden3/circom.git
+cd circom
+cargo build --release
+sudo cp target/release/circom /usr/local/bin/
+
+# Method C: Install via package manager (Ubuntu/Debian)
+# Note: May not be latest version
+sudo apt-get install circom
+
+# 3. Verify installation
+snarkjs --version  # Should show v0.7.5
+circom --version   # Should show version info
+```
+
 ### MedChain Implementation
 
 ```bash

@@ -1,3 +1,12 @@
+# MedChain Python Dependencies
+# 
+# For complete setup including Node.js dependencies, see:
+# - docs/NODEJS_REQUIREMENTS.md
+# - package.json (npm dependencies)
+#
+# Quick setup: npm run setup && pip install -r requirements.txt
+
+# Core simulation and blockchain
 openpyxl
 xlsxwriter
 pandas
@@ -7,10 +16,21 @@ seaborn
 requests
 cryptography
 pytest
+
+# Python compatibility
 # hashlib-compat is not a PyPI package; stdlib hashlib suffices
 # dataclasses is built-in on Python >=3.7; only install for older
 dataclasses; python_version < "3.7"
 typing-extensions
-ipfshttpclient==0.8.0a2
-python-dotenv
-web3>=6
+
+# Adapters for real backends (optional)
+ipfshttpclient==0.8.0a2  # Real IPFS integration (USE_REAL_IPFS=1)
+python-dotenv            # Environment variable management
+web3>=6                  # Real EVM integration (USE_REAL_EVM=1)
+
+# Additional Node.js dependencies (install via npm):
+# - snarkjs@^0.7.5 (global): Real SNARK proof generation (USE_REAL_SNARK=1)
+# - circom (global): Circuit compilation
+# - hardhat: Smart contract development and testing
+# 
+# Install with: npm run setup

@@ -1,0 +1,49 @@
+{
+  "name": "medchain-avitabile",
+  "version": "1.0.0",
+  "description": "MedChain: Redactable Blockchain with Smart Contracts and Medical Use Case",
+  "private": true,
+  "workspaces": [
+    "contracts"
+  ],
+  "scripts": {
+    "install-global": "npm install -g snarkjs circom",
+    "setup": "npm run install-global && npm install && cd contracts && npm install",
+    "build-circuits": "cd circuits && chmod +x scripts/*.sh && ./scripts/compile.sh && ./scripts/setup.sh",
+    "prove-circuits": "cd circuits && ./scripts/prove.sh",
+    "export-verifier": "cd circuits && ./scripts/export-verifier.sh",
+    "build-contracts": "cd contracts && npm run compile",
+    "test-contracts": "cd contracts && npm run test",
+    "deploy-contracts": "cd contracts && npm run deploy",
+    "dev": "npm run build-circuits && npm run build-contracts",
+    "test": "npm run test-contracts && python -m pytest tests/",
+    "demo": "python -m demo.medchain_demo",
+    "demo-medical": "python -m demo.medical_redaction_demo",
+    "demo-ipfs": "python -m demo.ipfs_demo",
+    "demo-snark": "python ZK/SNARKs.py"
+  },
+  "devDependencies": {
+    "snarkjs": "^0.7.5"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "blockchain",
+    "redactable",
+    "smart-contracts",
+    "snark",
+    "zero-knowledge",
+    "medical",
+    "gdpr",
+    "privacy",
+    "circom"
+  ],
+  "author": "Mobile IoT Security Lab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile"
+  }
+}
