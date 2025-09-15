@@ -18,7 +18,6 @@ cryptography
 pytest
 
 # Test execution compatibility
-pytest-vscode           # VS Code test runner compatibility
 pytest-json-report      # Enhanced test reporting
 pytest-metadata         # Test metadata collection
 

@@ -78,9 +78,9 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 62. [x] Create E2E test flow: IPFS upload → redaction request → on-chain verification → pointer update
 63. [x] Add environment validation (skip tests if required services unavailable)
 
-64. [ ] <!-- ### Cross-Component Testing --> Test IPFS ↔ EVM integration (CID storage and retrieval)
-65. [ ] Test SNARK ↔ EVM integration (proof generation and verification)
-66. [ ] Test full redaction pipeline across all three components
+64. [x] <!-- ### Cross-Component Testing --> Test IPFS ↔ EVM integration (CID storage and retrieval)
+65. [x] Test SNARK ↔ EVM integration (proof generation and verification)
+66. [x] Test full redaction pipeline across all three components
 
 67. [ ] <!-- ### Documentation Updates --> Update README with real backend setup instructions
 68. [ ] Document environment variable configuration
