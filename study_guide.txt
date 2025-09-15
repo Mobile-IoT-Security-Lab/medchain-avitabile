@@ -5,21 +5,6 @@ based redaction governance, zero-knowledge SNARK/consistency proof stubs, and a 
 - Real Solidity contracts + Hardhat are included for on-chain event logging (optional); IPFS + AES-GCM encryption
 supported via adapters.
 
-Core Entry Points
-
-- Medical/IPFS: medical/MedicalRedactionEngine.py, medical/MedicalDataIPFS.py.
-- Demos: demo/medchain_demo.py end-to-end; others under demo/.
-- Contracts: contracts/src/*.sol with Hardhat config/artifacts.
-
-How To Run
-
-- Install: pip install -r requirements.txt
-- Quick preview: TESTING_MODE=1 DRY_RUN=1 python Main.py
-- Full sim: python Main.py
-- Full demo: python -m demo.medchain_demo
-- Component demos: python ZK/SNARKs.py, python ZK/ProofOfConsistency.py, python -m demo.ipfs_demo, python -m
-demo.redactable_blockchain_demo
-- Tests: pytest -q tests (or target: pytest -q tests/test_smart_contracts.py -k policy)
 
 Config Must-Knows
 
