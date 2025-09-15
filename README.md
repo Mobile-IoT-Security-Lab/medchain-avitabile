@@ -1,6 +1,6 @@
 # MedChain Project
 
-[![Tests](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml) [![Contracts](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml) ![Python Coverage](badges/python-coverage.svg) ![Solidity Coverage](badges/solidity-coverage.svg)
+[![Tests](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/tests.yml) ![Python Coverage](badges/python-coverage.svg) [![Contracts](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml/badge.svg?branch=main)](https://github.com/Mobile-IoT-Security-Lab/medchain-avitabile/actions/workflows/contracts.yml) ![Solidity Coverage](badges/solidity-coverage.svg)
 
 This is a project for the Decentralized Systems course at the University of Genoa. Originally forked from the Redactable Blockchain Benchmarks repository, this project adds the support for smart contracts in the Ateniese implementation to implement a proof-of-concept for the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains". In particular, the MedChain project uses a medical use case to demonstrate the capabilities of redactable blockchains with smart contracts, focusing on patient data management and privacy compliance.
 
@@ -181,7 +181,7 @@ Comprehensive test suite covering all components:
 
 ### Quick Start
 
-**New to MedChain?** See [`QUICKSTART.md`](QUICKSTART.md) for a fast setup guide.
+**New to MedChain?** See [`docs/QUICKSTART.md`](docs/QUICKSTART.md) for a fast setup guide.
 
 **Need Node.js details?** Check [`docs/NODEJS_REQUIREMENTS.md`](docs/NODEJS_REQUIREMENTS.md) for comprehensive Node.js setup instructions.
 

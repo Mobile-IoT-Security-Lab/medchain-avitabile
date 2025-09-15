@@ -35,6 +35,8 @@ contract MedicalDataManager {
         uint256 timestamp
     );
     event RedactionApproved(uint256 indexed requestId, address indexed approver, uint256 approvals, uint256 timestamp);
+    event ProofVerificationSucceeded(uint256 indexed requestId, string verifierType, uint256 timestamp);
+    event ProofVerificationFailed(uint256 indexed requestId, string verifierType, string reason, uint256 timestamp);
 
     struct MedicalRecordPtr {
         string ipfsHash;        // CID of encrypted/censored data
@@ -146,6 +148,11 @@ contract MedicalDataManager {
             bool ok = IRedactionVerifier(verifier).verifyProof(
                 proof, policyHash, merkleRoot, originalHash, redactedHash
             );
+            if (ok) {
+                emit ProofVerificationSucceeded(nextRequestId + 1, "Legacy", block.timestamp);
+            } else {
+                emit ProofVerificationFailed(nextRequestId + 1, "Legacy", "Invalid proof", block.timestamp);
+            }
             require(ok, "Invalid proof");
         }
         uint256 reqId = ++nextRequestId;
@@ -176,6 +183,11 @@ contract MedicalDataManager {
         if (verifier != address(0)) {
             require(verifierType == VerifierType.Groth16, "verifier type mismatch");
             bool ok = IGroth16Verifier(verifier).verifyProof(pA, pB, pC, pubSignals);
+            if (ok) {
+                emit ProofVerificationSucceeded(nextRequestId + 1, "Groth16", block.timestamp);
+            } else {
+                emit ProofVerificationFailed(nextRequestId + 1, "Groth16", "Invalid proof", block.timestamp);
+            }
             require(ok, "Invalid proof");
         }
         uint256 reqId = ++nextRequestId;

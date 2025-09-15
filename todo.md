@@ -66,11 +66,11 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 
 53. [x] <!-- ### On-chain Verification Integration --> Update `MedicalDataManager.sol` to require proof verification before redaction operations
 54. [x] Implement proper error handling for invalid proofs
-55. [ ] Add events for successful/failed proof verifications
+55. [x] Add events for successful/failed proof verifications
 
-56. [ ] <!-- ### Unit Tests (Simulation Mode) --> Ensure all existing unit tests continue to pass with simulation backends
-57. [ ] Add tests for new adapter interfaces
-58. [ ] Test configuration switching between real and simulated backends
+56. [x] <!-- ### Unit Tests (Simulation Mode) --> Ensure all existing unit tests continue to pass with simulation backends
+57. [x] Add tests for new adapter interfaces
+58. [x] Test configuration switching between real and simulated backends
 
 59. [ ] <!-- ### Integration Tests --> Create `pytest -m integration` test suite
 60. [ ] Add devnet startup/teardown functionality
