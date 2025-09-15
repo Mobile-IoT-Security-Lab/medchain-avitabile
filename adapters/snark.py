@@ -230,6 +230,47 @@ class SnarkClient:
             if witness_path and witness_path.exists():
                 witness_path.unlink(missing_ok=True)
 
+    def format_proof_for_solidity(self, proof: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Format proof for Solidity smart contract verification.
+        
+        Returns proof components in a format suitable for smart contract calls.
+        """
+        if not proof:
+            return None
+            
+        try:
+            # Check if proof is already in Solidity format (mock proof format)
+            if "a" in proof and "b" in proof and "c" in proof:
+                # Already in Solidity format, just ensure publicSignals exists
+                formatted_proof = proof.copy()
+                if "publicSignals" not in formatted_proof:
+                    formatted_proof["publicSignals"] = []
+                return formatted_proof
+            
+            # Extract proof components from snarkjs format
+            pi_a = proof.get("pi_a", [])
+            pi_b = proof.get("pi_b", [])
+            pi_c = proof.get("pi_c", [])
+            
+            if not (isinstance(pi_a, list) and isinstance(pi_b, list) and isinstance(pi_c, list)):
+                return None
+                
+            # Format for Solidity verifier with expected field names
+            formatted_proof = {
+                "a": [int(pi_a[0]), int(pi_a[1])],  # Drop third coordinate (always 1)
+                "b": [
+                    [int(pi_b[0][1]), int(pi_b[0][0])],  # Swap G2 limbs
+                    [int(pi_b[1][1]), int(pi_b[1][0])]
+                ],
+                "c": [int(pi_c[0]), int(pi_c[1])],
+                "publicSignals": []  # Will be filled by caller if needed
+            }
+            
+            return formatted_proof
+            
+        except (ValueError, KeyError, IndexError, TypeError):
+            return None
+
 
 # Backward compatibility aliases
 RealSnarkClient = SnarkClient
