@@ -53,8 +53,37 @@ jobs:
           mkdir -p ../tools
           if [ ! -f "../tools/powersOfTau28_hez_final_14.ptau" ]; then
             echo "Downloading Powers of Tau file (2^14 = 16384 constraints)..."
-            curl -L -o "../tools/powersOfTau28_hez_final_14.ptau" \
-              "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau"
+            # Try multiple sources for the PTAU file
+            if ! curl -L -f -o "../tools/powersOfTau28_hez_final_14.ptau" \
+              "https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_14.ptau"; then
+              echo "Primary download failed, trying alternative source..."
+              if ! curl -L -f -o "../tools/powersOfTau28_hez_final_14.ptau" \
+                "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau"; then
+                echo "Alternative download failed, trying GitHub releases..."
+                curl -L -f -o "../tools/powersOfTau28_hez_final_14.ptau" \
+                  "https://github.com/iden3/snarkjs/releases/download/v0.4.10/powersOfTau28_hez_final_14.ptau" || \
+                {
+                  echo "All downloads failed. Using existing local file if available..."
+                  if [ -f "../tools/pot14_final.ptau" ]; then
+                    echo "Using existing pot14_final.ptau"
+                    cp "../tools/pot14_final.ptau" "../tools/powersOfTau28_hez_final_14.ptau"
+                  else
+                    echo "No suitable PTAU file found. Exiting."
+                    exit 1
+                  fi
+                }
+              fi
+            fi
+            # Verify the file was downloaded correctly
+            if [ -f "../tools/powersOfTau28_hez_final_14.ptau" ]; then
+              file_size=$(stat -c%s "../tools/powersOfTau28_hez_final_14.ptau")
+              echo "Downloaded PTAU file size: $file_size bytes"
+              if [ "$file_size" -lt 1000000 ]; then
+                echo "Downloaded file is too small, likely an error page. Removing and exiting."
+                rm -f "../tools/powersOfTau28_hez_final_14.ptau"
+                exit 1
+              fi
+            fi
           fi
           # Make scripts executable
           chmod +x scripts/*.sh
