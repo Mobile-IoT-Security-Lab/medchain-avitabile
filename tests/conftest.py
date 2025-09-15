@@ -27,6 +27,16 @@ from typing import Optional, Dict, Any, List
 from contextlib import contextmanager
 import pytest
 
+# Handle VS Code pytest plugin gracefully
+def pytest_configure(config):
+    """Configure pytest and handle optional plugins."""
+    # This allows VS Code pytest plugin to work when available
+    pass
+
+def pytest_sessionstart(session):
+    """Session start hook for custom setup."""
+    pass
+
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))

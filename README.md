@@ -159,6 +159,25 @@ Comprehensive test suite covering all components:
 - **Security Tests**: Cryptographic proof verification
 - **Compliance Tests**: GDPR and HIPAA compliance validation
 
+#### VS Code Test Integration
+
+The project includes full VS Code pytest integration with convenient test runners:
+
+```bash
+# Quick test runner (recommended)
+./run_tests.py tests/test_adapter_interfaces.py -v
+
+# Comprehensive test suite (matches VS Code execution)
+./run_comprehensive_tests.sh
+
+# Setup development environment with VS Code support
+./setup_dev.sh
+```
+
+**VS Code Users**: Tests run seamlessly in VS Code's Python Test Explorer without additional configuration.
+
+For detailed testing documentation, see [`docs/VSCODE_TEST_FIX.md`](docs/VSCODE_TEST_FIX.md).
+
 ## My Implementation Features
 
 - **Smart Contract Support** (Models/SmartContract.py): Full lifecycle management with deployment, execution, and state management for audit, privacy compliance, and general-purpose contracts

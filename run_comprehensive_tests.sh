@@ -1,0 +1,119 @@
+#!/bin/bash
+# VS Code Test Runner Wrapper
+# This script runs the exact same tests that VS Code was trying to run
+
+echo "Running comprehensive test suite with VS Code compatibility..."
+
+/home/enriicola/Desktop/medchain-avitabile/.venv/bin/python -m pytest \
+    -p vscode_pytest \
+    --rootdir=/home/enriicola/Desktop/medchain-avitabile \
+    tests/test_adapter_interfaces.py::TestSnarkAdapterInterface::test_snark_calldata_formatting \
+    tests/test_adapter_interfaces.py::TestSnarkAdapterInterface::test_snark_client_configuration_flags \
+    tests/test_adapter_interfaces.py::TestSnarkAdapterInterface::test_snark_client_disabled_mode \
+    tests/test_adapter_interfaces.py::TestSnarkAdapterInterface::test_snark_client_initialization \
+    tests/test_adapter_interfaces.py::TestSnarkAdapterInterface::test_snark_witness_generation_interface \
+    tests/test_adapter_interfaces.py::TestEVMAdapterInterface::test_evm_client_disabled_mode \
+    tests/test_adapter_interfaces.py::TestEVMAdapterInterface::test_evm_client_initialization \
+    tests/test_adapter_interfaces.py::TestEVMAdapterInterface::test_evm_interface_methods \
+    tests/test_adapter_interfaces.py::TestIPFSAdapterInterface::test_ipfs_client_factory \
+    tests/test_adapter_interfaces.py::TestIPFSAdapterInterface::test_ipfs_interface_methods \
+    tests/test_adapter_interfaces.py::TestIPFSAdapterInterface::test_ipfs_real_client_interface \
+    tests/test_adapter_interfaces.py::TestIPFSAdapterInterface::test_ipfs_simulation_mode \
+    tests/test_adapter_interfaces.py::TestAdapterIntegration::test_hybrid_snark_manager_integration \
+    tests/test_adapter_interfaces.py::TestAdapterIntegration::test_medical_redaction_engine_adapter_integration \
+    tests/test_avitabile_censored_ipfs_pipeline.py::TestAvitabileCensoredPipelineDemo::test_run \
+    tests/test_avitabile_consistency_demo.py::TestAvitabileConsistencyDemo::test_run \
+    tests/test_avitabile_redaction_demo.py::TestAvitabileRedactionDemo::test_run \
+    tests/test_backend_switching.py::TestBackendSwitching::test_adapter_graceful_degradation \
+    tests/test_backend_switching.py::TestBackendSwitching::test_configuration_persistence \
+    tests/test_backend_switching.py::TestBackendSwitching::test_evm_backend_switching \
+    tests/test_backend_switching.py::TestBackendSwitching::test_invalid_configuration_handling \
+    tests/test_backend_switching.py::TestBackendSwitching::test_ipfs_backend_switching \
+    tests/test_backend_switching.py::TestBackendSwitching::test_redaction_backend_switching \
+    tests/test_backend_switching.py::TestBackendSwitching::test_snark_backend_switching \
+    tests/test_backend_switching.py::TestHybridManager::test_hybrid_snark_manager_fallback \
+    tests/test_backend_switching.py::TestHybridManager::test_hybrid_snark_manager_real_mode \
+    tests/test_backend_switching.py::TestHybridManager::test_hybrid_snark_manager_simulation_mode \
+    tests/test_backend_switching.py::TestConfigurationValidation::test_environment_variable_types \
+    tests/test_consistency_system.py::test_consistency_system \
+    tests/test_consistency_system.py::TestConsistencySystem::test_consistency_system \
+    tests/test_evm_integration.py::TestEvmIntegration::test_deploy_and_events \
+    tests/test_improved_features.py::test_permission_system \
+    tests/test_improved_features.py::test_smart_contract_deployment \
+    tests/test_improved_features.py::test_redaction_workflow \
+    tests/test_improved_features.py::test_my_transactions \
+    tests/test_improved_features.py::test_my_block \
+    tests/test_improved_features.py::test_redaction_policies \
+    tests/test_integration.py::TestServiceRequirements::test_check_service_requirements \
+    tests/test_integration.py::TestDevnetInfrastructure::test_service_manager_initialization \
+    tests/test_integration.py::TestDevnetInfrastructure::test_port_finding \
+    tests/test_integration.py::TestDevnetInfrastructure::test_hardhat_node_lifecycle \
+    tests/test_integration.py::TestDevnetInfrastructure::test_ipfs_daemon_lifecycle \
+    tests/test_integration.py::TestContractDeployment::test_contract_deployment_process \
+    tests/test_integration.py::TestContractDeployment::test_evm_client_contract_loading \
+    tests/test_integration.py::TestIPFSIntegration::test_ipfs_client_real_connection \
+    tests/test_integration.py::TestIPFSIntegration::test_medical_data_ipfs_integration \
+    tests/test_integration.py::TestEndToEndWorkflow::test_e2e_medical_data_lifecycle \
+    tests/test_integration.py::TestEndToEndWorkflow::test_complete_e2e_redaction_workflow \
+    tests/test_integration.py::TestEndToEndWorkflow::test_e2e_workflow_with_proof_verification \
+    tests/test_integration.py::TestEndToEndWorkflow::test_environment_validation_and_skipping \
+    tests/test_integration.py::TestEnvironmentValidation::test_service_requirement_validation \
+    tests/test_integration.py::TestEnvironmentValidation::test_integration_test_skipping_behavior \
+    tests/test_integration.py::TestEnvironmentValidation::test_environment_variable_validation \
+    tests/test_integration.py::TestEnvironmentValidation::test_graceful_fallback_mechanisms \
+    tests/test_integration.py::TestEnvironmentValidation::test_service_health_monitoring \
+    tests/test_integration.py::TestErrorHandlingAndResilience::test_graceful_degradation_no_services \
+    tests/test_integration.py::TestErrorHandlingAndResilience::test_service_failure_recovery \
+    tests/test_ipfs_encryption.py::TestIPFSAESGCM::test_decrypt_fails_without_key \
+    tests/test_ipfs_encryption.py::TestIPFSAESGCM::test_encrypt_then_download_roundtrip \
+    tests/test_ipfs_medical_data_system.py::test_ipfs_medical_data_system \
+    tests/test_ipfs_medical_data_system.py::TestIPFSMedicalDataSystem::test_ipfs_medical_data_system \
+    tests/test_key_providers.py::TestEnvKeyProvider::test_env_provider_roundtrip \
+    tests/test_key_providers.py::TestFileKeyProvider::test_file_provider_create_and_use \
+    tests/test_key_providers.py::TestFileKeyProvider::test_file_provider_multi_key_decrypt_old \
+    tests/test_light_transactions.py::TestLightTransactions::test_create_and_execute_transactions \
+    tests/test_medical_redaction_engine.py::test_my_medical_redaction \
+    tests/test_medical_redaction_engine.py::TestMedicalRedactionEngine::test_my_medical_redaction \
+    tests/test_medical_redaction_quiet.py::TestMedicalRedactionQuiet::test_delete_and_anonymize \
+    tests/test_network_node_basics.py::TestNetworkNodeBasics::test_block_and_tx_prop_delays \
+    tests/test_network_node_basics.py::TestNetworkNodeBasics::test_node_genesis_and_reset \
+    tests/test_permission_manager.py::TestPermissionManager::test_assign_and_check_permissions \
+    tests/test_permission_manager.py::TestPermissionManager::test_get_role_level \
+    tests/test_real_ipfs_integration.py::TestRealIPFSIntegration::test_add_and_get_roundtrip \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_delete_tx_multisig_path \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_execute_approved_redaction_anonymize \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_execute_approved_redaction_modify \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_redact_tx_multisig_path \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_redaction_voting_approves_and_executes_delete \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_redaction_voting_pending_state \
+    tests/test_redact_tx_minimal.py::TestRedactTxMinimal::test_redaction_voting_rejects_when_quorum_unreachable \
+    tests/test_redactable_blockchain_demo.py::TestRedactableBlockchainDemo::test_run_demo \
+    tests/test_smart_contracts.py::TestContractExecutionEngine::test_deploy_and_execute_success \
+    tests/test_smart_contracts.py::TestContractExecutionEngine::test_execute_fails_for_unknown_or_out_of_gas \
+    tests/test_smart_contracts.py::TestRedactionPolicies::test_medical_contract_policies \
+    tests/test_smart_contracts.py::TestRedactionPolicies::test_policy_driven_thresholds \
+    tests/test_smart_contracts.py::TestPermissionManagerContractSpecific::test_contract_specific_permissions \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_availability_checks \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_calldata_formatting_edge_cases \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_custom_circuits_directory \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_path_configuration \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_proof_generation_success \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_proof_verification_interface \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_prove_redaction_integration \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_snarkjs_command_execution \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_snarkjs_command_failure \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_snarkjs_not_found \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_witness_generation_disabled \
+    tests/test_snark_adapter.py::TestSnarkClientDetailed::test_witness_generation_success \
+    tests/test_snark_adapter.py::TestSnarkAdapterMocking::test_import_failure_handling \
+    tests/test_snark_system.py::test_snark_system \
+    tests/test_snark_system.py::TestSNARKSystem::test_snark_system \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_exgcd \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_quick_power \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_secret_share_function_runs \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_secret_splitting_and_recovery \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_shamir_sharing \
+    tests/test_utils_crypto_ch.py::TestCryptoUtilsCH::test_str2int_stability \
+    -v
+
+echo "Test execution completed!"

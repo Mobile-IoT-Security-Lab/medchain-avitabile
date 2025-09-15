@@ -23,6 +23,8 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning"
 ]
+# Handle optional VS Code pytest plugin
+pythonpath = ["."]
 
 [tool.pytest.integration]
 # Integration test specific settings

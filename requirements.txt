@@ -17,6 +17,11 @@ requests
 cryptography
 pytest
 
+# Test execution compatibility
+pytest-vscode           # VS Code test runner compatibility
+pytest-json-report      # Enhanced test reporting
+pytest-metadata         # Test metadata collection
+
 # Python compatibility
 # hashlib-compat is not a PyPI package; stdlib hashlib suffices
 # dataclasses is built-in on Python >=3.7; only install for older

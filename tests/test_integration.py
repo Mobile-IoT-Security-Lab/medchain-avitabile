@@ -84,7 +84,7 @@ class TestDevnetInfrastructure:
     
     def test_service_manager_initialization(self):
         """Test ServiceManager can be initialized."""
-        from conftest import ServiceManager
+        from .conftest import ServiceManager
         manager = ServiceManager()
         assert manager.hardhat_process is None
         assert manager.ipfs_process is None
@@ -92,7 +92,7 @@ class TestDevnetInfrastructure:
     
     def test_port_finding(self):
         """Test free port finding functionality."""
-        from conftest import ServiceManager
+        from .conftest import ServiceManager
         manager = ServiceManager()
         port = manager.find_free_port(9000)  # Use high port to avoid conflicts
         assert isinstance(port, int)
