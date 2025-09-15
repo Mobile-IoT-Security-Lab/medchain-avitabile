@@ -132,7 +132,7 @@ class FakeIPFSClient:
         # Unpin if pinned
         self.unpin(ipfs_hash)
         
-        print(f"️  Removed from IPFS: {ipfs_hash}")
+        print(f"  Removed from IPFS: {ipfs_hash}")
         return True
     
     def ls(self) -> List[str]:
@@ -482,7 +482,7 @@ class IPFSMedicalDataManager:
                         if redaction_type == "DELETE":
                             # Remove patient record completely
                             dataset.patient_records.pop(i)
-                            print(f"️  Deleted patient {patient_id} from dataset {dataset.dataset_id}")
+                            print(f"  Deleted patient {patient_id} from dataset {dataset.dataset_id}")
                             
                         elif redaction_type == "ANONYMIZE":
                             # Anonymize sensitive fields
@@ -499,7 +499,7 @@ class IPFSMedicalDataManager:
                                 record["diagnosis"] = "[MODIFIED]"
                             if "treatment" in reason.lower():
                                 record["treatment"] = "[MODIFIED]"
-                            print(f"️  Modified patient {patient_id} in dataset {dataset.dataset_id}")
+                            print(f"  Modified patient {patient_id} in dataset {dataset.dataset_id}")
                         
                         break
                 
@@ -678,7 +678,7 @@ def test_ipfs_medical_data_system():
             print(f"  Redacted patient name: {redacted_name}")
     
     # Test complete deletion
-    print("\n️  Testing complete data deletion...")
+    print("\n  Testing complete data deletion...")
     delete_patient_id = dataset.patient_records[2]["patient_id"]
     
     data_manager.redact_patient_data(

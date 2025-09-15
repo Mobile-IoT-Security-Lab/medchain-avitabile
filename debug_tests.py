@@ -56,13 +56,13 @@ def main():
             lines = result.stdout.split('\n')
             collected_line = [l for l in lines if 'collected' in l and 'items' in l]
             if collected_line:
-                print(f"✓ {collected_line[0]}")
+                print(f" {collected_line[0]}")
             else:
-                print("✓ Tests discovered successfully")
+                print(" Tests discovered successfully")
         else:
-            print(f"✗ pytest failed: {result.stderr}")
+            print(f" pytest failed: {result.stderr}")
     except Exception as e:
-        print(f"✗ Error running pytest: {e}")
+        print(f" Error running pytest: {e}")
     
     print("\nVS Code Recommendations:")
     print("1. Ensure Python interpreter is set to ./.venv/bin/python")

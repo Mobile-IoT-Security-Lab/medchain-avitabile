@@ -59,7 +59,7 @@ class TestWorkingCrossComponentIntegration:
         cid = self.medical_manager.upload_dataset(dataset)
         assert cid is not None
         assert isinstance(cid, str)
-        print(f"✓ Dataset uploaded to IPFS: {cid}")
+        print(f" Dataset uploaded to IPFS: {cid}")
         
         # Step 3: Store CID reference (simulated EVM storage)
         patient_id = self.test_patient_data["patient_id"]
@@ -86,7 +86,7 @@ class TestWorkingCrossComponentIntegration:
         assert retrieved_patient["patient_id"] == patient_id
         assert retrieved_patient["diagnosis"] == "Sensitive medical condition"
         
-        print("✓ IPFS-EVM integration test passed")
+        print(" IPFS-EVM integration test passed")
     
     def test_snark_evm_basic_integration(self):
         """Test basic SNARK-EVM integration using working interfaces."""
@@ -113,7 +113,7 @@ class TestWorkingCrossComponentIntegration:
         )
         
         assert request_id is not None
-        print(f"✓ Redaction request created: {request_id}")
+        print(f" Redaction request created: {request_id}")
         
         # Step 3: Verify proof was generated (check internal state)
         request_details = self.redaction_engine.redaction_requests[request_id]
@@ -124,7 +124,7 @@ class TestWorkingCrossComponentIntegration:
         proof_valid = True  # In real implementation, this would verify the SNARK proof
         assert proof_valid is True
         
-        print("✓ SNARK-EVM integration test passed")
+        print(" SNARK-EVM integration test passed")
     
     def test_full_pipeline_simplified(self):
         """Test simplified full pipeline across all components."""
@@ -134,13 +134,13 @@ class TestWorkingCrossComponentIntegration:
         print("=" * 50)
         
         # Phase 1: Data Storage
-        print("\n📁 Phase 1: Data Storage")
+        print("\n Phase 1: Data Storage")
         
         # Create medical record
         medical_record = self.redaction_engine.create_medical_data_record(self.test_patient_data)
         stored = self.redaction_engine.store_medical_data(medical_record)
         assert stored is True
-        print("  ✓ Medical record stored")
+        print("   Medical record stored")
         
         # Store in IPFS
         dataset = MedicalDataset(
@@ -155,10 +155,10 @@ class TestWorkingCrossComponentIntegration:
         
         original_cid = self.medical_manager.upload_dataset(dataset)
         assert original_cid is not None
-        print(f"  ✓ Original data uploaded to IPFS: {original_cid}")
+        print(f"   Original data uploaded to IPFS: {original_cid}")
         
         # Phase 2: Redaction Process
-        print("\n🔒 Phase 2: Redaction Process")
+        print("\n Phase 2: Redaction Process")
         
         # Request redaction
         request_id = self.redaction_engine.request_data_redaction(
@@ -170,7 +170,7 @@ class TestWorkingCrossComponentIntegration:
         )
         
         assert request_id is not None
-        print(f"  ✓ Redaction request submitted: {request_id}")
+        print(f"   Redaction request submitted: {request_id}")
         
         # Approve redaction (need 2 approvals for DELETE)
         approval_result_1 = self.redaction_engine.approve_redaction(
@@ -180,7 +180,7 @@ class TestWorkingCrossComponentIntegration:
         )
         
         assert approval_result_1 is True
-        print("  ✓ First redaction approval")
+        print("   First redaction approval")
         
         approval_result_2 = self.redaction_engine.approve_redaction(
             request_id=request_id,
@@ -189,10 +189,10 @@ class TestWorkingCrossComponentIntegration:
         )
         
         assert approval_result_2 is True
-        print("  ✓ Second redaction approval and execution completed")
+        print("   Second redaction approval and execution completed")
         
         # Phase 3: Create redacted dataset
-        print("\n📤 Phase 3: Redacted Data Storage")
+        print("\n Phase 3: Redacted Data Storage")
         
         # Get redacted data
         redacted_patient_data = self.test_patient_data.copy()
@@ -213,28 +213,28 @@ class TestWorkingCrossComponentIntegration:
         redacted_cid = self.medical_manager.upload_dataset(redacted_dataset)
         assert redacted_cid is not None
         assert redacted_cid != original_cid  # Should be different
-        print(f"  ✓ Redacted data uploaded to IPFS: {redacted_cid}")
+        print(f"   Redacted data uploaded to IPFS: {redacted_cid}")
         
         # Phase 4: Verification
-        print("\n🔍 Phase 4: Verification")
+        print("\n Phase 4: Verification")
         
         # Verify original data
         original_dataset = self.medical_manager.download_dataset(original_cid)
         assert original_dataset.patient_records[0]["diagnosis"] == "Sensitive medical condition"
-        print("  ✓ Original data verified")
+        print("   Original data verified")
         
         # Verify redacted data
         final_redacted_dataset = self.medical_manager.download_dataset(redacted_cid)
         assert final_redacted_dataset.patient_records[0]["diagnosis"] == "REDACTED"
         assert final_redacted_dataset.patient_records[0]["treatment"] == "REDACTED"
-        print("  ✓ Redacted data verified")
+        print("   Redacted data verified")
         
         # Verify redaction request completion
         final_request = self.redaction_engine.redaction_requests[request_id]
         assert final_request.status == "EXECUTED"
-        print("  ✓ Redaction process completed")
+        print("   Redaction process completed")
         
-        print("\n🎉 FULL PIPELINE TEST COMPLETED SUCCESSFULLY")
+        print("\n FULL PIPELINE TEST COMPLETED SUCCESSFULLY")
         print("=" * 50)
     
     def test_error_handling_integration(self):
@@ -265,7 +265,7 @@ class TestWorkingCrossComponentIntegration:
             # Or raise appropriate error
             assert "patient" in str(e).lower() or "not found" in str(e).lower()
         
-        print("✓ Error handling test passed")
+        print(" Error handling test passed")
     
     def test_data_consistency_validation(self):
         """Test data consistency across components."""
@@ -308,7 +308,7 @@ class TestWorkingCrossComponentIntegration:
         
         assert original_hash == retrieved_hash
         
-        print("✓ Data consistency validation passed")
+        print(" Data consistency validation passed")
 
 
 if __name__ == "__main__":

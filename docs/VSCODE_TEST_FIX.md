@@ -15,7 +15,7 @@ ImportError: Error importing plugin "vscode_pytest": No module named 'vscode_pyt
 Added VS Code compatible pytest plugins to `requirements.txt`:
 
 - `pytest-vscode`: VS Code test runner compatibility
-- `pytest-json-report`: Enhanced test reporting
+- `pytest-json-report`: my test reporting
 - `pytest-metadata`: Test metadata collection
 
 ### 2. Created Local Plugin
@@ -25,7 +25,7 @@ Created a minimal `vscode_pytest.py` module in the project root that provides th
 ### 3. Updated Configuration
 
 - Updated `pyproject.toml` to include `pythonpath = ["."]` to ensure the local plugin is found
-- Enhanced `tests/conftest.py` with proper pytest hooks for VS Code compatibility
+- my `tests/conftest.py` with proper pytest hooks for VS Code compatibility
 
 ### 4. Created Helper Scripts
 

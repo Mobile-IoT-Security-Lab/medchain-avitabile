@@ -419,7 +419,7 @@ class PerformanceTestSuite:
                 issues.append("Transaction processing throughput may be insufficient")
         
         if issues:
-            print("️  Performance issues detected:")
+            print("  Performance issues detected:")
             for issue in issues:
                 print(f"  - {issue}")
         else:

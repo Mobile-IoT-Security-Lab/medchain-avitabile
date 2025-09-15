@@ -296,7 +296,7 @@ def simulate_realistic_blockchain_scenario():
             integrity_issues.append(f"Block {i} was redacted but should not be redactable")
     
     if integrity_issues:
-        print("️  Integrity issues found:")
+        print("  Integrity issues found:")
         for issue in integrity_issues:
             print(f"  - {issue}")
     else:

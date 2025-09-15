@@ -512,7 +512,7 @@ def run_comprehensive_tests():
     if result.wasSuccessful():
         print("\n ALL TESTS PASSED! The improved blockchain features are working correctly.")
     else:
-        print(f"\n️  {len(result.failures + result.errors)} test(s) failed. Please review the issues above.")
+        print(f"\n  {len(result.failures + result.errors)} test(s) failed. Please review the issues above.")
     
     return result.wasSuccessful()
 

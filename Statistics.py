@@ -182,19 +182,45 @@ class Statistics:
     def redact_result():
         i = 0
         profit_count, op_count = 0, p.redactRuns
+        
+        # my redaction results with before/after tracking
+        print(f"\n--- DETAILED REDACTION RESULTS ---")
+        
         while i < len(p.NODES):
             if p.redactRuns == 0:
                 profit_count = 0
             if len(p.NODES[i].redacted_tx) != 0 and p.redactRuns > 0:
+                print(f"\nNode {p.NODES[i].id} Redactions:")
                 for j in range(len(p.NODES[i].redacted_tx)):
-                    print(f'Deletion/Redaction: Block Depth => {p.NODES[i].redacted_tx[j][0]}, Transaction ID => {p.NODES[i].redacted_tx[j][1].id}')
+                    block_depth, tx, reward, time_ms, chain_length, tx_count = p.NODES[i].redacted_tx[j]
+                    
+                    # my output with more context
+                    print(f'  Redaction #{j+1}:')
+                    print(f'    Block Depth: {block_depth}')
+                    print(f'    Transaction ID: {tx.id}')
+                    print(f'    Redaction Reward: {reward:.6f}')
+                    print(f'    Processing Time: {time_ms:.2f} ms')
+                    print(f'    Blockchain Length: {chain_length}')
+                    print(f'    Transactions in Block: {tx_count}')
+                    
+                    # Check if block still exists and show hash preservation
+                    if block_depth < len(p.NODES[i].blockchain):
+                        redacted_block = p.NODES[i].blockchain[block_depth]
+                        print(f'    Block Hash After Redaction: {redacted_block.id}')
+                        if hasattr(redacted_block, 'original_hash'):
+                            print(f'    Hash Preserved: {redacted_block.id == redacted_block.original_hash}')
+                    
+                    # Traditional output for backwards compatibility
+                    print(f'    Summary: Block Depth => {block_depth}, Transaction ID => {tx.id}')
+                    
                     # Added Miner ID,Block Depth,Transaction ID,Redaction Profit,Performance Time (ms),Blockchain Length,# of Tx
-                    result = [p.NODES[i].id, p.NODES[i].redacted_tx[j][0], p.NODES[i].redacted_tx[j][1].id,
-                              p.NODES[i].redacted_tx[j][2], p.NODES[i].redacted_tx[j][3],
-                              p.NODES[i].redacted_tx[j][4], p.NODES[i].redacted_tx[j][5]]
-                    profit_count += p.NODES[i].redacted_tx[j][2]
+                    result = [p.NODES[i].id, block_depth, tx.id, reward, time_ms, chain_length, tx_count]
+                    profit_count += reward
                     Statistics.redactResults.append(result)
             i += 1
+        
+        print(f"\nTotal Redaction Profit: {profit_count:.6f}")
+        print(f"Total Redaction Operations: {op_count}")
         Statistics.allRedactRuns.append([profit_count, op_count])
 
     ########################################################### Print simulation results to Excel ###########################################################################################

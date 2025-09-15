@@ -86,9 +86,9 @@ python demo/avitabile_redaction_demo.py
 
 ## Key Features
 
-- ✅ Real SNARK proof generation with snarkjs
-- ✅ Hybrid simulation/real proof modes
-- ✅ IPFS content addressing
-- ✅ Smart contract integration
-- ✅ Medical data redaction
-- ✅ Comprehensive test suite
+-  Real SNARK proof generation with snarkjs
+-  Hybrid simulation/real proof modes
+-  IPFS content addressing
+-  Smart contract integration
+-  Medical data redaction
+-  Comprehensive test suite

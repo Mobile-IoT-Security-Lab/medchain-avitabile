@@ -119,9 +119,73 @@ def main():
 
         # test for chameleon hash forging
         if p.hasRedact:
+            print("\n" + "="*60)
+            print("  REDACTION OPERATIONS - BEFORE/AFTER ANALYSIS")
+            print("="*60)
+            
             Consensus.fork_resolution()
+            
+            # Capture blockchain state BEFORE redaction
+            print("\n--- BLOCKCHAIN STATE BEFORE REDACTION ---")
             Statistics.original_global_chain()
+            
+            # Print pre-redaction statistics
+            total_blocks_before = len([node.blockchain for node in p.NODES if node.hashPower > 0][0])
+            total_txs_before = sum(len(block.transactions) for block in Statistics.chain if hasattr(block, 'transactions'))
+            print(f"Total Blocks Before Redaction: {total_blocks_before}")
+            print(f"Total Transactions Before Redaction: {total_txs_before}")
+            
+            # Show sample blocks before redaction
+            sample_node = [node for node in p.NODES if node.hashPower > 0][0]
+            if len(sample_node.blockchain) > 3:
+                print(f"\nSample Block Before Redaction (Block {len(sample_node.blockchain)//2}):")
+                sample_block = sample_node.blockchain[len(sample_node.blockchain)//2]
+                print(f"  Block ID: {sample_block.id}")
+                print(f"  Transactions: {len(sample_block.transactions)}")
+                if hasattr(sample_block, 'r'):
+                    print(f"  Randomness (r): {sample_block.r}")
+                if sample_block.transactions:
+                    print(f"  Sample Transaction IDs: {[tx.id for tx in sample_block.transactions[:3]]}")
+            
+            # Perform redaction operations
+            print(f"\n--- PERFORMING {p.redactRuns} REDACTION OPERATIONS ---")
             BlockCommit.generate_redaction_event(p.redactRuns)
+            
+            # Capture blockchain state AFTER redaction
+            print("\n--- BLOCKCHAIN STATE AFTER REDACTION ---")
+            total_blocks_after = len(sample_node.blockchain)
+            total_txs_after = sum(len(block.transactions) for block in sample_node.blockchain)
+            print(f"Total Blocks After Redaction: {total_blocks_after}")
+            print(f"Total Transactions After Redaction: {total_txs_after}")
+            
+            # Show the same sample block after redaction
+            if len(sample_node.blockchain) > 3:
+                print(f"\nSample Block After Redaction (Block {len(sample_node.blockchain)//2}):")
+                sample_block_after = sample_node.blockchain[len(sample_node.blockchain)//2]
+                print(f"  Block ID: {sample_block_after.id}")
+                print(f"  Transactions: {len(sample_block_after.transactions)}")
+                if hasattr(sample_block_after, 'r'):
+                    print(f"  Randomness (r): {sample_block_after.r}")
+                if sample_block_after.transactions:
+                    print(f"  Sample Transaction IDs: {[tx.id for tx in sample_block_after.transactions[:3]]}")
+            
+            # Show redaction summary
+            print(f"\n--- REDACTION SUMMARY ---")
+            redacted_count = sum(len(node.redacted_tx) for node in p.NODES)
+            print(f"Total Redacted Transactions: {redacted_count}")
+            print(f"Transaction Count Change: {total_txs_before} -> {total_txs_after} (Delta: {total_txs_after - total_txs_before})")
+            
+            # Show specific redacted transactions
+            if redacted_count > 0:
+                print(f"\nRedacted Transaction Details:")
+                for node in p.NODES:
+                    if len(node.redacted_tx) > 0:
+                        for redaction in node.redacted_tx[-min(3, len(node.redacted_tx)):]:  # Show last 3 redactions
+                            block_depth, tx, reward, time_ms, chain_length, tx_count = redaction
+                            print(f"  Node {node.id}: Block {block_depth}, TX ID {tx.id}, Time: {time_ms:.2f}ms")
+            
+            print("="*60)
+        
         Consensus.fork_resolution()  # apply the longest chain to resolve the forks
         Incentives.distribute_rewards()  # distribute the rewards between the participating nodes
         t2 = time.time()

@@ -919,7 +919,7 @@ def test_my_medical_redaction():
 
 
 # Backward-compatible alias for existing tests
-def test_enhanced_medical_redaction():
+def test_my_medical_redaction_wrapper():
     """Compatibility wrapper to preserve original test entrypoint name."""
     return test_my_medical_redaction()
 
