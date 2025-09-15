@@ -17,11 +17,16 @@ verify that the block id (hash) remains stable while the contents change.
 
 from __future__ import annotations
 
+import sys
+import os
 import hashlib
 import json
 import random
 from dataclasses import dataclass, field
 from typing import List
+
+# Add project root to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from CH.ChameleonHash import q, PK, chameleonHash, forge
 
