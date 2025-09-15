@@ -237,11 +237,19 @@ class TestIPFSEVMIntegration:
     
     def test_data_consistency_validation(self):
         """Test data consistency validation between IPFS and EVM."""
-        # Upload data to IPFS
-        dataset = MedicalDataset(dataset_id="consistency_test_dataset", name="Test Dataset", description="Test dataset", patient_records=[], creation_timestamp=0, last_updated=0, version="1.0")
+        # Upload data to IPFS - include the test medical data
+        dataset = MedicalDataset(
+            dataset_id="consistency_test_dataset", 
+            name="Test Dataset", 
+            description="Test dataset", 
+            patient_records=[self.test_medical_data],  # Include the actual test data
+            creation_timestamp=0, 
+            last_updated=0, 
+            version="1.0"
+        )
         cid = self.medical_manager.upload_dataset(dataset)
         
-        # Calculate data hash
+        # Calculate data hash based on the actual data that was uploaded
         original_hash = hashlib.sha256(
             json.dumps(self.test_medical_data, sort_keys=True).encode()
         ).hexdigest()
@@ -265,7 +273,15 @@ class TestIPFSEVMIntegration:
         corrupted_data = self.test_medical_data.copy()
         corrupted_data["diagnosis"] = "CORRUPTED DATA"
         
-        corrupted_dataset = MedicalDataset(dataset_id="corrupted_test_dataset", name="Test Dataset", description="Test dataset", patient_records=[], creation_timestamp=0, last_updated=0, version="1.0")
+        corrupted_dataset = MedicalDataset(
+            dataset_id="corrupted_test_dataset", 
+            name="Test Dataset", 
+            description="Test dataset", 
+            patient_records=[corrupted_data],  # Include the corrupted data
+            creation_timestamp=0, 
+            last_updated=0, 
+            version="1.0"
+        )
         corrupted_cid = self.medical_manager.upload_dataset(corrupted_dataset)
         
         # Update EVM with new CID but old hash (simulate inconsistency)
@@ -317,7 +333,14 @@ class TestIPFSEVMIntegration:
                     data_hash=hashlib.sha256(json.dumps(record_data, sort_keys=True).encode()).hexdigest()
                 )
             else:
-                tx_hash = f"0x{''.join([hex(i)[2:] for _ in range(32)])}"
+                # Simulate EVM storage for testing
+                tx_hash = f"0x{''.join([hex(i % 16)[2:] for _ in range(64)])}"
+                self._simulate_evm_cid_storage(
+                    patient_id=record_data["patient_id"],
+                    cid=cid,
+                    data_hash=hashlib.sha256(json.dumps(record_data, sort_keys=True).encode()).hexdigest(),
+                    tx_hash=tx_hash
+                )
             tx_hashes.append(tx_hash)
         
         # Verify all records
@@ -332,16 +355,17 @@ class TestIPFSEVMIntegration:
             assert blockchain_record["ipfs_cid"] == cids[i]
             assert blockchain_record["tx_hash"] == tx_hashes[i]
     
-    def _simulate_evm_cid_storage(self, patient_id: str, cid: str, data_hash: Optional[str] = None) -> Dict[str, Any]:
+    def _simulate_evm_cid_storage(self, patient_id: str, cid: str, data_hash: Optional[str] = None, tx_hash: Optional[str] = None) -> Dict[str, Any]:
         """Simulate EVM CID storage for testing."""
         if not hasattr(self, '_evm_storage'):
             self._evm_storage = {}
         
         self._evm_storage[patient_id] = {
-            "cid": cid,
+            "ipfs_cid": cid,  # Use ipfs_cid key to match test expectations
+            "cid": cid,  # Keep cid for backward compatibility
             "data_hash": data_hash,
             "timestamp": "2025-09-15T10:00:00Z",
-            "tx_hash": f"0x{''.join(['a'] * 64)}"
+            "tx_hash": tx_hash if tx_hash else f"0x{''.join(['a'] * 64)}"
         }
         
         return {"success": True, "cid": cid, "patient_id": patient_id}
