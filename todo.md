@@ -55,8 +55,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 42. [x] ...Policy hash matching
 43. [x] ...Optional Merkle membership proof
 44. [x] Compile circuit with circom
-45. [ ] Run Groth16 trusted setup ceremony
-46. [ ] Export Solidity verifier: `snarkjs zkey export solidityverifier` → `contracts/RedactionVerifier.sol`
+45. [x] Run Groth16 trusted setup ceremony
+46. [x] Export Solidity verifier: `snarkjs zkey export solidityverifier` → `contracts/RedactionVerifier.sol`
 47. [ ] <!-- ### Off-chain Proof Generation --> Implement `adapters/snark.py` wrapping snarkjs functionality
 48. [ ] Add witness building functionality
 49. [ ] Implement proof and public signal generation

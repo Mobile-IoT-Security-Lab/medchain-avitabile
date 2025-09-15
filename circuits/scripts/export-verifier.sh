@@ -14,8 +14,7 @@ OUT_SOL="$CONTRACTS_DIR/src/RedactionVerifier_groth16.sol"
 echo "[circuits] Exporting Solidity verifier to $OUT_SOL ..."
 "$SNARKJS" zkey export solidityverifier "$ZKEY" "$OUT_SOL"
 
-echo "// Wrapper alias to keep previous naming convention" >> "$OUT_SOL"
-echo "contract RedactionVerifier is Verifier {}" >> "$OUT_SOL"
+echo "// Wrapper alias to avoid name clash with stub" >> "$OUT_SOL"
+echo "contract RedactionVerifierG16 is Groth16Verifier {}" >> "$OUT_SOL"
 
 echo "[circuits] Verifier contract exported. You can now compile contracts."
-

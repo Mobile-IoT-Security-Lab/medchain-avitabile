@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /// @title Minimal Medical Data Manager (scaffold)
 /// @notice Stores pointers (IPFS CIDs) and emits events for redaction requests.
-///         No PHI on-chain. SNARK verification is deferred to a verifier contract in future steps.
+///         No PHI on-chain. Supports optional proof verification via a pluggable verifier.
 interface IRedactionVerifier {
     function verifyProof(
         bytes calldata proof,
@@ -11,6 +11,16 @@ interface IRedactionVerifier {
         bytes32 merkleRoot,
         bytes32 originalHash,
         bytes32 redactedHash
+    ) external view returns (bool);
+}
+
+/// @notice Groth16 verifier interface exported by snarkjs
+interface IGroth16Verifier {
+    function verifyProof(
+        uint[2] calldata _pA,
+        uint[2][2] calldata _pB,
+        uint[2] calldata _pC,
+        uint[1] calldata _pubSignals
     ) external view returns (bool);
 }
 
@@ -51,6 +61,9 @@ contract MedicalDataManager {
     address public verifier; // optional verifier; zero address disables proof checks
     bool public requireProofs; // when true and verifier is set, disallow proof-less requests
 
+    enum VerifierType { None, Legacy, Groth16 }
+    VerifierType public verifierType; // select which verifier ABI to use
+
     modifier onlyAuthorized() {
         require(authorizedUsers[msg.sender], "Not authorized");
         _;
@@ -63,6 +76,12 @@ contract MedicalDataManager {
     function setVerifier(address verifierAddr) external {
         // NOTE: for demo only; in production add access control
         verifier = verifierAddr;
+    }
+
+    function setVerifierType(uint8 mode) external {
+        // NOTE: for demo only; in production add access control
+        require(mode <= uint8(VerifierType.Groth16), "invalid mode");
+        verifierType = VerifierType(mode);
     }
 
     function setRequireProofs(bool value) external {
@@ -123,9 +142,40 @@ contract MedicalDataManager {
             require(verifier != address(0), "Verifier not set");
         }
         if (verifier != address(0)) {
+            require(verifierType == VerifierType.Legacy, "verifier type mismatch");
             bool ok = IRedactionVerifier(verifier).verifyProof(
                 proof, policyHash, merkleRoot, originalHash, redactedHash
             );
+            require(ok, "Invalid proof");
+        }
+        uint256 reqId = ++nextRequestId;
+        redactionRequests[reqId] = RedactionRequestRec({
+            patientId: patientId,
+            redactionType: redactionType,
+            reason: reason,
+            requester: msg.sender,
+            timestamp: block.timestamp,
+            executed: false,
+            approvals: 0
+        });
+        emit RedactionRequested(reqId, patientId, redactionType, reason, msg.sender, block.timestamp);
+    }
+
+    function requestDataRedactionWithGroth16Proof(
+        string calldata patientId,
+        string calldata redactionType,
+        string calldata reason,
+        uint[2] calldata pA,
+        uint[2][2] calldata pB,
+        uint[2] calldata pC,
+        uint[1] calldata pubSignals
+    ) external onlyAuthorized {
+        if (requireProofs) {
+            require(verifier != address(0), "Verifier not set");
+        }
+        if (verifier != address(0)) {
+            require(verifierType == VerifierType.Groth16, "verifier type mismatch");
+            bool ok = IGroth16Verifier(verifier).verifyProof(pA, pB, pC, pubSignals);
             require(ok, "Invalid proof");
         }
         uint256 reqId = ++nextRequestId;
@@ -149,4 +199,3 @@ contract MedicalDataManager {
         emit RedactionApproved(requestId, msg.sender, redactionRequests[requestId].approvals, block.timestamp);
     }
 }
-

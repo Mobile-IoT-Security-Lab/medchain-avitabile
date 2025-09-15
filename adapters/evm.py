@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 from .config import env_bool, env_str
+import json, os
 
 try:  # optional dependency
     from web3 import Web3  # type: ignore
@@ -34,6 +35,7 @@ class EVMClient:
         self._w3 = None
         self._acct = None
         self._artifacts_dir = env_str("CONTRACT_ARTIFACTS_DIR", "contracts/artifacts")
+        self._use_real_snark = env_bool("USE_REAL_SNARK", False)
 
     def is_enabled(self) -> bool:
         return env_bool("USE_REAL_EVM", False)
@@ -125,6 +127,98 @@ class EVMClient:
         )
         return self._build_and_send(fn)
 
+    # -------- Groth16 support (snarkjs) --------
+    def _parse_groth16_calldata(self, proof_json_path: str, public_json_path: str):
+        with open(proof_json_path, "r") as f:
+            proof = json.load(f)
+        with open(public_json_path, "r") as f:
+            pub = json.load(f)
+
+        # snarkjs proof.json uses decimal strings
+        def to_int(x):
+            return int(x)
+
+        pi_a = proof.get("pi_a", [])
+        pi_b = proof.get("pi_b", [])
+        pi_c = proof.get("pi_c", [])
+        if not (isinstance(pi_a, list) and isinstance(pi_b, list) and isinstance(pi_c, list)):
+            raise ValueError("Invalid proof.json structure")
+        # Take first two limbs (drop the last 1)
+        pA = [to_int(pi_a[0]), to_int(pi_a[1])]
+        # For G2, snarkjs proof.json stores Fp2 limbs as [[bx0, bx1],[by0, by1],[1,0]]
+        # Solidity calldata expects swapped limbs: [[bx1, bx0],[by1, by0]]
+        pB = [
+            [to_int(pi_b[0][1]), to_int(pi_b[0][0])],
+            [to_int(pi_b[1][1]), to_int(pi_b[1][0])],
+        ]
+        pC = [to_int(pi_c[0]), to_int(pi_c[1])]
+        # Public signals array
+        if not isinstance(pub, list) or len(pub) < 1:
+            raise ValueError("Invalid public.json structure")
+        pubSignals = [to_int(pub[0])]
+        return pA, pB, pC, pubSignals
+
+    def requestDataRedactionWithGroth16Proof(
+        self,
+        contract,
+        patient_id: str,
+        redaction_type: str,
+        reason: str,
+        pA: list[int],
+        pB: list[list[int]],
+        pC: list[int],
+        pubSignals: list[int],
+    ) -> Optional[str]:
+        if not self._connected:
+            return None
+        fn = contract.functions.requestDataRedactionWithGroth16Proof(
+            patient_id, redaction_type, reason, pA, pB, pC, pubSignals
+        )
+        return self._build_and_send(fn)
+
+    def requestDataRedactionFromSnarkjs(
+        self,
+        contract,
+        patient_id: str,
+        redaction_type: str,
+        reason: str,
+        proof_json_path: Optional[str] = None,
+        public_json_path: Optional[str] = None,
+    ) -> Optional[str]:
+        if not self._connected:
+            return None
+        proof_path = proof_json_path or env_str("GROTH16_PROOF_JSON", "circuits/build/proof.json")
+        public_path = public_json_path or env_str("GROTH16_PUBLIC_JSON", "circuits/build/public.json")
+        if not (proof_path and public_path and os.path.exists(proof_path) and os.path.exists(public_path)):
+            return None
+        try:
+            pA, pB, pC, pubSignals = self._parse_groth16_calldata(proof_path, public_path)
+        except Exception:
+            return None
+        return self.requestDataRedactionWithGroth16Proof(
+            contract, patient_id, redaction_type, reason, pA, pB, pC, pubSignals
+        )
+
+    def requestDataRedactionAuto(
+        self,
+        contract,
+        patient_id: str,
+        redaction_type: str,
+        reason: str,
+        proof_json_path: Optional[str] = None,
+        public_json_path: Optional[str] = None,
+    ) -> Optional[str]:
+        if not self._connected:
+            return None
+        if self._use_real_snark:
+            tx = self.requestDataRedactionFromSnarkjs(
+                contract, patient_id, redaction_type, reason, proof_json_path, public_json_path
+            )
+            if tx:
+                return tx
+        # Fallback to request without proof
+        return self.requestDataRedaction(contract, patient_id, redaction_type, reason)
+
     def approveRedaction(self, contract, request_id: int) -> Optional[str]:
         if not self._connected:
             return None
@@ -144,8 +238,10 @@ class EVMClient:
 
     # Artifacts and deployment
     def _artifact_path(self, contract_name: str) -> str:
-        # Hardhat artifact path convention
-        return f"{self._artifacts_dir}/contracts/{contract_name}.sol/{contract_name}.json"
+        # Hardhat artifact path convention (project uses sources under src/)
+        p1 = f"{self._artifacts_dir}/contracts/{contract_name}.sol/{contract_name}.json"
+        p2 = f"{self._artifacts_dir}/src/{contract_name}.sol/{contract_name}.json"
+        return p1 if os.path.exists(p1) else p2
 
     def _load_artifact(self, contract_name: str) -> Optional[dict]:
         import json, os

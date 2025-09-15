@@ -52,6 +52,8 @@ describe("MedicalDataManager", function () {
     // Enable proof requirement and set verifier
     await mdm.connect(owner).setRequireProofs(true);
     await mdm.connect(owner).setVerifier(await verifier.getAddress());
+    // Use legacy verifier interface for stub
+    await mdm.connect(owner).setVerifierType(1);
 
     // Request without proof must revert
     await expect(
@@ -121,6 +123,7 @@ describe("MedicalDataManager", function () {
     await fv.waitForDeployment();
     await mdm.setRequireProofs(true);
     await mdm.setVerifier(await fv.getAddress());
+    await mdm.setVerifierType(1);
     const zero = ethers.ZeroHash;
     await expect(
       mdm.requestDataRedactionWithProof("PAT_A", "DELETE", "gdpr", "0x", zero, zero, zero, zero)
@@ -143,6 +146,7 @@ describe("MedicalDataManager", function () {
     await verifier.waitForDeployment();
     await mdm.setRequireProofs(true);
     await mdm.setVerifier(await verifier.getAddress());
+    await mdm.setVerifierType(1);
     const zero = ethers.ZeroHash;
     await mdm.requestDataRedactionWithProof("PAT_OK", "ANONYMIZE", "policy", "0x", zero, zero, zero, zero);
     const id = await mdm.nextRequestId();

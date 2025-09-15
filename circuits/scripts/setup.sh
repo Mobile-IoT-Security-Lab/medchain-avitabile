@@ -23,11 +23,11 @@ fi
 echo "[circuits] Groth16 setup with $PTAU_FILE ..."
 "$SNARKJS" groth16 setup "$R1CS" "$PTAU_FILE" "$BUILD_DIR/redaction_0000.zkey"
 
-echo "[circuits] Contributing beacon entropy (non-deterministic)..."
-"$SNARKJS" zkey contribute "$BUILD_DIR/redaction_0000.zkey" "$BUILD_DIR/redaction_final.zkey" -e "medchain scaffold contribution" -q
+echo "[circuits] Finalizing zkey via beacon (non-interactive)..."
+BEACON_HEX="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+"$SNARKJS" zkey beacon "$BUILD_DIR/redaction_0000.zkey" "$BUILD_DIR/redaction_final.zkey" "$BEACON_HEX" 10
 
 echo "[circuits] Exporting verification key ..."
 "$SNARKJS" zkey export verificationkey "$BUILD_DIR/redaction_final.zkey" "$BUILD_DIR/verification_key.json"
 
 echo "[circuits] Setup complete. Artifacts in: $BUILD_DIR"
-

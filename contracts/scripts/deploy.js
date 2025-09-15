@@ -38,7 +38,8 @@ async function main() {
   await waitDeployedCompat(contract);
 
   // Optional: deploy verifier and set it
-  const VerifierFactory = await ethers.getContractFactory('RedactionVerifier');
+  // Use Groth16-generated verifier alias to avoid clash with stub
+  const VerifierFactory = await ethers.getContractFactory('RedactionVerifierG16');
   const verifier = await VerifierFactory.deploy();
   await waitDeployedCompat(verifier);
 
@@ -48,6 +49,12 @@ async function main() {
     await tx.wait();
   } catch (e) {
     console.warn('setVerifier failed (non-fatal):', e && e.message ? e.message : e);
+  }
+  try {
+    const tx2 = await contract.setVerifierType(2); // Groth16
+    await tx2.wait();
+  } catch (e) {
+    console.warn('setVerifierType failed (non-fatal):', e && e.message ? e.message : e);
   }
 
   // Network metadata

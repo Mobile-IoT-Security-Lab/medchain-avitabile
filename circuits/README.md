@@ -10,7 +10,8 @@ Prerequisites
 - snarkjs available either:
   - locally in `contracts/node_modules/.bin/snarkjs` (run `cd contracts && npm i`), or
   - globally installed in PATH
-- a Powers of Tau file, e.g. powersOfTau28_hez_final_12.ptau
+- a Powers of Tau file. For this circuit size (~6802 constraints), use power ≥ 14
+  (e.g. tools/pot14_final.ptau). Power 12 is insufficient (2^12 < 2×constraints).
 
 Files
 
@@ -31,8 +32,8 @@ Quickstart
 1) Compile the circuit
    ./scripts/compile.sh
 
-2) Run Groth16 setup (provide PTAU path if not placed in tools/)
-   PTAU=tools/powersOfTau28_hez_final_12.ptau ./scripts/setup.sh
+2) Run Groth16 setup (provide PTAU path; power ≥ 14 recommended)
+   PTAU=tools/pot14_final.ptau ./scripts/setup.sh
 
 3) Generate a proof (uses input/example.json)
    ./scripts/prove.sh
