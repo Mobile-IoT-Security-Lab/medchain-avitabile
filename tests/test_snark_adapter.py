@@ -43,14 +43,12 @@ class TestSnarkClientDetailed(unittest.TestCase):
         """Test circuit artifact availability checks."""
         client = self.SnarkClient()
         
-        # Test when files don't exist
-        with patch.object(client.wasm_path, 'exists', return_value=False):
+        # Test when files don't exist using patch
+        with patch('pathlib.Path.exists', return_value=False):
             self.assertFalse(client.is_available())
         
         # Test when all files exist
-        with patch.object(client.wasm_path, 'exists', return_value=True), \
-             patch.object(client.zkey_path, 'exists', return_value=True), \
-             patch.object(client.vkey_path, 'exists', return_value=True):
+        with patch('pathlib.Path.exists', return_value=True):
             self.assertTrue(client.is_available())
     
     @patch('subprocess.run')
@@ -140,8 +138,9 @@ class TestSnarkClientDetailed(unittest.TestCase):
         # Mock subprocess success
         mock_run.return_value = MagicMock(returncode=0)
         
-        # Mock file existence
-        with patch.object(Path, 'exists', return_value=True):
+        # Mock file existence and enable real mode
+        with patch('pathlib.Path.exists', return_value=True), \
+             patch.dict(os.environ, {"USE_REAL_SNARK": "1"}):
             client = self.SnarkClient()
             witness_path = Path("/tmp/witness.wtns")
             
@@ -223,9 +222,20 @@ class TestSnarkAdapterMocking(unittest.TestCase):
             manager = HybridSNARKManager(None)
             self.assertFalse(manager.use_real)
             
-            # Should fall back to simulation
-            proof = manager.create_redaction_proof({"redaction_type": "DELETE"})
+            # Should fall back to simulation with proper data structure
+            redaction_data = {
+                "redaction_type": "DELETE",
+                "request_id": "test_123",
+                "target_block": 10,
+                "target_tx": 2,
+                "requester": "test_user",
+                "merkle_root": "test_root",
+                "original_data": "test_original",
+                "redacted_data": "test_redacted"
+            }
+            proof = manager.create_redaction_proof(redaction_data)
             self.assertIsNotNone(proof)
+            self.assertEqual(proof.operation_type, "DELETE")
             
         except ImportError:
             self.skipTest("Medical redaction engine not available")
