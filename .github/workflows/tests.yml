@@ -34,12 +34,40 @@ jobs:
 
       - name: Run full test suite with coverage and timings
         run: |
-          pytest -q tests --cov=. --cov-report=term-missing --durations=10
+          pytest -q tests --cov=. --cov-report=term-missing --cov-report=xml:coverage.xml --durations=10
 
-      - name: Generate coverage badge
+      - name: Generate coverage badge (builtin)
         if: matrix.python-version == '3.10'
         run: |
           coverage-badge -o coverage.svg -f || true
+
+      - name: Generate python coverage badge (custom width)
+        if: matrix.python-version == '3.10'
+        run: |
+          node -e "
+          const fs = require('fs');
+          const xml = fs.readFileSync('coverage.xml','utf8');
+          const m = xml.match(/line-rate=\"([0-9]*\.?[0-9]+)\"/);
+          const rate = m ? parseFloat(m[1]) : 0;
+          const pct = Math.round(rate * 100);
+          const label = 'python coverage';
+          const val = pct + '%';
+          const charW = 7; const pad = 20;
+          const labelW = Math.max(80, Math.round(charW * label.length + pad));
+          const valW = Math.max(48, Math.round(charW * val.length + pad));
+          const width = labelW + valW;
+          const color = pct >= 90 ? '#4c1' : pct >= 75 ? '#97CA00' : pct >= 60 ? '#dfb317' : pct >= 40 ? '#fe7d37' : '#e05d44';
+          const svg = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+          <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"${width}\" height=\"20\">
+            <linearGradient id=\"b\" x2=\"0\" y2=\"100%\">\n              <stop offset=\"0\" stop-color=\"#bbb\" stop-opacity=\".1\"/>\n              <stop offset=\"1\" stop-opacity=\".1\"/>\n            </linearGradient>
+            <mask id=\"a\"><rect width=\"${width}\" height=\"20\" rx=\"3\" fill=\"#fff\"/></mask>
+            <g mask=\"url(#a)\">\n              <rect width=\"${labelW}\" height=\"20\" fill=\"#555\"/>\n              <rect x=\"${labelW}\" width=\"${valW}\" height=\"20\" fill=\"${color}\"/>\n              <rect width=\"${width}\" height=\"20\" fill=\"url(#b)\"/>\n            </g>
+            <g fill=\"#fff\" text-anchor=\"middle\" font-family=\"DejaVu Sans,Verdana,Geneva,sans-serif\" font-size=\"11\">\n              <text x=\"${labelW/2}\" y=\"14\">${label}</text>\n              <text x=\"${labelW + valW/2}\" y=\"14\">${val}</text>\n            </g>
+          </svg>`;
+          fs.mkdirSync('badges', {recursive: true});
+          fs.writeFileSync('badges/python-coverage.svg', svg);
+          console.log('Wrote badges/python-coverage.svg with', pct+'%');
+          "
 
       - name: Commit coverage badge to repo
         if: matrix.python-version == '3.10' && github.event_name == 'push'
@@ -50,8 +78,8 @@ jobs:
           cp -f coverage.svg badges/coverage.svg || true
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git add badges/coverage.svg
-          git diff --staged --quiet || git commit -m "Update coverage badge [skip ci]" || true
+          git add badges/coverage.svg badges/python-coverage.svg
+          git diff --staged --quiet || git commit -m "Update python coverage badge [skip ci]" || true
           git push || true
 
       - name: Upload coverage artifacts
