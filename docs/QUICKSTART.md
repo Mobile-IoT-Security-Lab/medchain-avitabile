@@ -63,8 +63,14 @@ make ipfs-docker-up
 make ipfs-test
 
 # Run demos
+# RECOMMENDED: My medical demo with clear before/after states
+python demo/my_medical_demo.py
+
+# Original demos
 python demo/medchain_demo.py
 python demo/avitabile_redaction_demo.py
+python demo/before_after_redaction_demo.py
+python demo/medical_redaction_demo.py
 ```
 
 ## Project Structure
@@ -86,9 +92,39 @@ python demo/avitabile_redaction_demo.py
 
 ## Key Features
 
--  Real SNARK proof generation with snarkjs
--  Hybrid simulation/real proof modes
--  IPFS content addressing
--  Smart contract integration
--  Medical data redaction
--  Comprehensive test suite
+- Real SNARK proof generation with snarkjs
+- Hybrid simulation/real proof modes
+- IPFS content addressing
+- Smart contract integration
+- Medical data redaction
+- Comprehensive test suite
+
+## My Medical Demo Highlights
+
+The **my_medical_demo.py** is specifically designed for academic presentations and clearly demonstrates all three redaction types from the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains":
+
+### DELETE Redaction (GDPR Article 17)
+
+- Shows complete patient data removal
+- Demonstrates "Right to be Forgotten" compliance
+- Clear before: full patient record → after: record not found
+
+### MODIFY Redaction (Medical Corrections)
+
+- Shows medical data correction workflow
+- Physician-initiated diagnosis correction
+- Clear before: incorrect diagnosis → after: corrected diagnosis
+
+### ANONYMIZE Redaction (HIPAA Research)
+
+- Shows research data anonymization
+- Multi-party ethics approval process  
+- Clear before: identifiable data → after: anonymized for research
+
+Each demonstration includes:
+
+- Detailed medical record before/after states
+- SNARK proof generation and verification
+- Multi-party approval workflows (IRB, Privacy Officer, etc.)
+- Compliance verification (GDPR, HIPAA)
+- Complete audit trail and blockchain state changes
