@@ -63,8 +63,9 @@ jobs:
           const color = pct >= 90 ? '#4c1' : pct >= 75 ? '#97CA00' : pct >= 60 ? '#dfb317' : pct >= 40 ? '#fe7d37' : '#e05d44';
           const label = 'solidity coverage';
           const val = pct + '%';
-          const labelW = 6 * label.length + 10; // rough
-          const valW = 6 * val.length + 10;     // rough
+          const charW = 7, pad = 20;
+          const labelW = Math.max(96, Math.round(charW * label.length + pad));
+          const valW = Math.max(56, Math.round(charW * val.length + pad));
           const width = labelW + valW;
           const svg = `<?xml version="1.0" encoding="UTF-8"?>
           <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="20">
