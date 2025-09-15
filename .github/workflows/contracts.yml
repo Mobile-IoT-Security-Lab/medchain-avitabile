@@ -32,6 +32,43 @@ jobs:
         run: |
           npx hardhat clean
           npx hardhat compile --force
+      
+      - name: Install circuits dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl build-essential
+          # Install snarkjs globally
+          npm install -g snarkjs
+          # Install circom
+          wget -O /tmp/circom-linux-amd64 https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64
+          sudo mv /tmp/circom-linux-amd64 /usr/local/bin/circom
+          sudo chmod +x /usr/local/bin/circom
+          
+      - name: Build circuits and generate test proofs
+        run: |
+          cd circuits
+          # Ensure Powers of Tau file exists
+          mkdir -p ../tools
+          if [ ! -f "../tools/powersOfTau28_hez_final_12.ptau" ]; then
+            echo "Downloading Powers of Tau file..."
+            curl -L -o "../tools/powersOfTau28_hez_final_12.ptau" \
+              "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_12.ptau"
+          fi
+          # Make scripts executable
+          chmod +x scripts/*.sh
+          # Run the circuit compilation and setup
+          if [ -f scripts/compile.sh ]; then
+            ./scripts/compile.sh
+          fi
+          if [ -f scripts/setup.sh ]; then
+            ./scripts/setup.sh
+          fi
+          # Generate proof for tests
+          if [ -f scripts/prove.sh ]; then
+            ./scripts/prove.sh
+          fi
+        continue-on-error: false
+      
       - name: Test
         working-directory: contracts
         run: |
