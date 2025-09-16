@@ -19,5 +19,9 @@ class Incentives:
     def transactions_fee(bc):
         fee = 0
         for tx in bc.transactions:
-            fee += tx.fee
+            # Safe fee calculation - handle transactions without fee attribute
+            if hasattr(tx, 'fee'):
+                fee += tx.fee
+            else:
+                fee += 0  # Default to 0 if no fee attribute
         return fee

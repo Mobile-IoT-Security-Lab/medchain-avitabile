@@ -126,7 +126,7 @@ def main():
     else:
         print(f"\n  {len(results) - successful} demonstration(s) failed.")
     
-    print_header("KEY FEATURES DEMONSTRATED")
+    print_header("FEATURES")
     print("1.  Explicit blockchain state before redaction operations")
     print("2.  Step-by-step redaction process visualization")
     print("3.  Comprehensive after-redaction state verification")
