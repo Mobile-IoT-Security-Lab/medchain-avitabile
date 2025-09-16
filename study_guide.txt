@@ -84,9 +84,3 @@ Gotchas
 - SNARKs/EVM/IPFS paths are pedagogical; do not assume production-grade crypto or chain semantics.
 - Chameleon-hash parameters are static for the demos.
 - Real EVM/IPFS require local nodes and environment flags; tests skip if not enabled.
-
-Want me to:
-
-- Add a STUDY_GUIDE.md to the repo you can print?
-- Run a small subset of tests now?
-- Deep-dive one path (e.g., redaction execution or IPFS AES-GCM flow) with code pointers?
