@@ -1,5 +1,11 @@
 # Todos and Directives
 
+## new directives after alignment meeting
+
+1. [ ] Prioritize the implementation of zero-knowledge proofs (ZKPs) for data redaction
+2. [ ] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
+3. [ ] deliverables
+
 ## Professor and Boss Directives
 
 We must implement the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" end‑to‑end. Starting from the Ateniese redactable blockchain benchmarks (<https://github.com/karimboubouh/Redactable_blockchain_benchmarks/tree/main/Redaction_Ateniese>), we add smart‑contract support and build a POC with a medical use case. First, demonstrate redactable blockchains with contracts, zero‑knowledge proofs (SNARKs), and proof‑of‑consistency. Then generate a synthetic medical dataset, build a censored version, upload only the censored version to IPFS (linked to the original). Provide a demo with CRUD (add/read/update/delete) and GDPR Right‑to‑be‑Forgotten via the Avitabile implementation.
