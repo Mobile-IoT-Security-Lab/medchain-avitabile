@@ -2,7 +2,7 @@
 
 ## new directives after alignment meeting
 
-1. [ ] Prioritize the implementation of zero-knowledge proofs (ZKPs) for data redaction
+1. [ ] Prioritize the implementation of zero-knowledge proofs (ZK Proofs) for data redaction
 2. [ ] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
 3. [ ] deliverables
 
