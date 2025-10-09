@@ -433,30 +433,8 @@ class MyRedactionEngine:
                 "signature": f"sig_{requester}_{request_id}"
             }
             
-            # Generate SNARK proof (real if enabled & available, else simulated)
-            zk_proof: Optional[ZKProof]
-            if self._use_real_snark and self.snark_client is not None:
-                real = self.snark_client.prove_redaction(
-                    {k: redaction_request_data[k] for k in [
-                        "redaction_type","target_block","target_tx","requester","requester_role",
-                        "merkle_root","policy_hash"
-                    ]},
-                    {k: redaction_request_data[k] for k in [
-                        "request_id","original_data","redacted_data"
-                    ]}
-                )
-                # For now, wrap minimal real-proof artifact into simulated ZKProof shell
-                if real:
-                    zk_proof = self.snark_manager.circuit.generate_proof(
-                        {"operation_type": redaction_request_data["redaction_type"],
-                         "merkle_root": redaction_request_data.get("merkle_root","")},
-                        {"operation_id": redaction_request_data["request_id"],
-                         "redactor_key": redaction_request_data["requester"]}
-                    )
-                else:
-                    zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
-            else:
-                zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
+            # Generate SNARK proof using the hybrid manager (real if enabled, else simulated)
+            zk_proof: Optional[ZKProof] = self.snark_manager.create_redaction_proof(redaction_request_data)
             
             if not zk_proof:
                 print(f" Failed to generate SNARK proof for redaction request")
@@ -503,6 +481,31 @@ class MyRedactionEngine:
             self.redaction_requests[request_id] = redaction_request
             
             print(f" Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
+
+            # If EVM backend is attached, mirror the request on-chain.
+            # When real SNARKs are enabled, pass snarkjs proof file paths so the EVM adapter
+            # can build Groth16 calldata (pA, pB, pC, pubSignals).
+            try:
+                if self._backend_mode == "EVM" and self.evm_client is not None:
+                    proof_payload = None
+                    if self._use_real_snark and self.snark_client is not None:
+                        # Default snarkjs output locations used by adapters/evm.py
+                        proof_json_path = os.path.join(str(self.snark_client.build_dir), "proof.json")
+                        public_json_path = os.path.join(str(self.snark_client.build_dir), "public.json")
+                        if os.path.exists(proof_json_path) and os.path.exists(public_json_path):
+                            proof_payload = {
+                                "proof_json_path": proof_json_path,
+                                "public_json_path": public_json_path,
+                            }
+                    _ = self.backend.request_data_redaction(
+                        patient_id=patient_id,
+                        redaction_type=redaction_type,
+                        reason=reason,
+                        proof_payload=proof_payload,
+                    )
+            except Exception:
+                # Best-effort; don’t block local simulation if on-chain mirroring fails
+                pass
             return request_id
             
         except Exception as e:

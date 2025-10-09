@@ -1,12 +1,13 @@
-Circuits and SNARK Pipeline
+# Circuits and SNARK Pipeline
 
 This directory implements todo items 39–43:
+
 - A working Circom circuit with real constraints for H(original), H(redacted), policy hash matching, and an optional Merkle inclusion proof (MiMC-based, demo-friendly).
 - Scripts to compile, run Groth16 setup/prove/verify with snarkjs, and export a Solidity verifier without changing existing stubs by default.
 
 Prerequisites
 
-- circom v2.x in PATH (https://docs.circom.io/getting-started/installation/)
+- circom v2.x in PATH (<https://docs.circom.io/getting-started/installation/>)
 - snarkjs available either:
   - locally in `contracts/node_modules/.bin/snarkjs` (run `cd contracts && npm i`), or
   - globally installed in PATH
