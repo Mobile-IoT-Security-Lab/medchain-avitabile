@@ -1,3 +1,4 @@
+// Bookmark1 for next meeting
 // Redaction proof circuit
 // Implements:
 //  - H(original) and H(redacted) via a MiMC-like hash over field elements
@@ -143,6 +144,13 @@ template RedactionCircuit() {
     signal input redactedHash0;
     signal input redactedHash1;
 
+    // Consistency proof public inputs (state hashes before/after redaction)
+    signal input preStateHash0;
+    signal input preStateHash1;
+    signal input postStateHash0;
+    signal input postStateHash1;
+    signal input consistencyCheckPassed; // 1 if consistency proof valid, 0 otherwise
+
     // Public policy flag: 1 means redaction permitted under the policy
     signal input policyAllowed;
 
@@ -157,6 +165,10 @@ template RedactionCircuit() {
     // Boolean checks
     policyAllowed * (policyAllowed - 1) === 0;
     enforceMerkle * (enforceMerkle - 1) === 0;
+    consistencyCheckPassed * (consistencyCheckPassed - 1) === 0;
+
+    // Require consistency check to pass (if consistency proof provided)
+    consistencyCheckPassed === 1;
 
     // Compute hashes
     component hOrig = MiMCHash(ORIG_LEN, ROUNDS);
@@ -205,6 +217,11 @@ template RedactionCircuit() {
                     +  originalHash1
                     +  redactedHash0
                     +  redactedHash1
+                    +  preStateHash0
+                    +  preStateHash1
+                    +  postStateHash0
+                    +  postStateHash1
+                    +  consistencyCheckPassed
                     +  policyAllowed;
 }
 

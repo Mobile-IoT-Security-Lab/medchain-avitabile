@@ -3,7 +3,6 @@ from InputsConfig import InputsConfig as p
 from Event import Queue
 from Statistics import Statistics
 import time
-import json
 import random
 import copy
 from Models.Bitcoin.BlockCommit import BlockCommit
