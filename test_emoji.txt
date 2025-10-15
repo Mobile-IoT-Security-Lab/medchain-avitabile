@@ -1,0 +1,20 @@
+Testing Emoji Removal Workflow 🚀
+
+This file contains various emojis to test the workflow:
+
+- Happy face: 😊
+- Rocket: 🚀
+- Check mark: ✅
+- Warning: ⚠️
+- Fire: 🔥
+- Heart: ❤️
+- Star: ⭐
+- Thumbs up: 👍
+- Party: 🎉
+- Code: 💻
+
+Some text with emojis inline: Hello 👋 World 🌍!
+
+Multiple emojis together: 🎨🎭🎪🎬🎤
+
+This should all be cleaned by the workflow!
