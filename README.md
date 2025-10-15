@@ -119,22 +119,22 @@ assert engine.verify_consistency(proof)
 
 \`\`\`
 medchain-avitabile/
-├── Main.py                          # Simulator entry point
-├── InputsConfig.py                  # Configuration
-├── Models/
-│   ├── Block.py                    # Block with chameleon hash
-│   ├── Transaction.py              # Transaction types
-│   ├── SmartContract.py            # Contract execution
-│   └── Bitcoin/BlockCommit.py      # Mining + redaction
-├── CH/ChameleonHash.py             # Trapdoor functions
-├── ZK/
-│   ├── SNARKs.py                   # Zero-knowledge proofs
-│   └── ProofOfConsistency.py       # Integrity verification
-├── medical/
-│   ├── MedicalRedactionEngine.py   # GDPR compliance
-│   └── MedicalDataIPFS.py          # Distributed storage
-├── demo/                           # Demo scripts
-└── tests/                          # Test suite
+ Main.py                          # Simulator entry point
+ InputsConfig.py                  # Configuration
+ Models/
+    Block.py                    # Block with chameleon hash
+    Transaction.py              # Transaction types
+    SmartContract.py            # Contract execution
+    Bitcoin/BlockCommit.py      # Mining + redaction
+ CH/ChameleonHash.py             # Trapdoor functions
+ ZK/
+    SNARKs.py                   # Zero-knowledge proofs
+    ProofOfConsistency.py       # Integrity verification
+ medical/
+    MedicalRedactionEngine.py   # GDPR compliance
+    MedicalDataIPFS.py          # Distributed storage
+ demo/                           # Demo scripts
+ tests/                          # Test suite
 \`\`\`
 
 ## Testing
