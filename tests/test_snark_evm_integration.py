@@ -1,5 +1,5 @@
 """
-Cross-Component Integration Tests: SNARK ↔ EVM
+Cross-Component Integration Tests: SNARK  EVM
 ===============================================
 
 Tests the integration between SNARK and EVM components:

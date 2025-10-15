@@ -47,20 +47,20 @@ def quickstart_demo():
     # Upload to IPFS
     print("Uploading to IPFS...")
     ipfs_hash = ipfs_mgr.upload_dataset(dataset)
-    print(f"  ✓ Uploaded to IPFS: {ipfs_hash}")
+    print(f"   Uploaded to IPFS: {ipfs_hash}")
     
     # Store one patient in smart contract
     print("\nStoring patient in smart contract...")
     patient = dataset.patient_records[0]
     record = engine.create_medical_data_record(patient)
     engine.store_medical_data(record)
-    print(f"  ✓ Stored patient: {patient['patient_name']}")
+    print(f"   Stored patient: {patient['patient_name']}")
     
     # Query data
     print("\nQuerying patient data...")
     retrieved = engine.query_medical_data(patient['patient_id'], "doctor_001")
     if retrieved:
-        print(f"  ✓ Found: {retrieved.patient_name}")
+        print(f"   Found: {retrieved.patient_name}")
         print(f"    Diagnosis: {retrieved.diagnosis}")
     
     # Request DELETE redaction (GDPR)
@@ -72,21 +72,21 @@ def quickstart_demo():
         requester="patient_001",
         requester_role="ADMIN"
     )
-    print(f"  ✓ Request created: {request_id}")
+    print(f"   Request created: {request_id}")
     
     # Approve (2 approvals needed)
     print("\nApproving redaction...")
     engine.approve_redaction(request_id, "admin_001")
     engine.approve_redaction(request_id, "regulator_001")
-    print("  ✓ Approved and executed")
+    print("   Approved and executed")
     
     # Verify deletion
     print("\nVerifying deletion...")
     deleted = engine.query_medical_data(patient['patient_id'], "doctor_001")
     if deleted is None:
-        print("  ✓ Patient data successfully deleted")
+        print("   Patient data successfully deleted")
     else:
-        print("  ✗ Patient data still exists (unexpected)")
+        print("   Patient data still exists (unexpected)")
     
     # Show history
     print("\nRedaction history:")
@@ -96,7 +96,7 @@ def quickstart_demo():
         print(f"    SNARK Proof: {entry['zk_proof_id']}")
     
     print("\n" + "="*60)
-    print(" Quickstart Demo Complete! ✓")
+    print(" Quickstart Demo Complete! ")
     print("="*60)
     print("\nNext steps:")
     print("  - Run full demo: python -m demo.medchain_demo")

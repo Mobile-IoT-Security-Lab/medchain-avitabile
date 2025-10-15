@@ -9,7 +9,7 @@ The integration test suite validates:
 - **Service Integration**: IPFS daemon, Hardhat devnet, EVM contracts
 - **End-to-End Workflows**: Complete redaction pipelines from data storage to proof verification
 - **Environment Validation**: Graceful degradation when services are unavailable
-- **Cross-Component Testing**: IPFS ↔ EVM integration, SNARK proof generation/verification
+- **Cross-Component Testing**: IPFS  EVM integration, SNARK proof generation/verification
 
 ## Running Integration Tests
 

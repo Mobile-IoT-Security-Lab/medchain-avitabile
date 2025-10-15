@@ -1,5 +1,5 @@
 """
-Cross-Component Integration Tests: IPFS ↔ EVM
+Cross-Component Integration Tests: IPFS  EVM
 ==============================================
 
 Tests the integration between IPFS and EVM components:

@@ -84,8 +84,8 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 62. [x] Create E2E test flow: IPFS upload → redaction request → on-chain verification → pointer update
 63. [x] Add environment validation (skip tests if required services unavailable)
 
-64. [x] <!-- ### Cross-Component Testing --> Test IPFS ↔ EVM integration (CID storage and retrieval)
-65. [x] Test SNARK ↔ EVM integration (proof generation and verification)
+64. [x] <!-- ### Cross-Component Testing --> Test IPFS  EVM integration (CID storage and retrieval)
+65. [x] Test SNARK  EVM integration (proof generation and verification)
 66. [x] Test full redaction pipeline across all three components
 
 67. [ ] <!-- ### Documentation Updates --> Update README with real backend setup instructions
@@ -117,14 +117,14 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 88. [ ] Build censored dataset (policy‑based PII removal/anonymization)
 89. [ ] Upload only the censored dataset to IPFS
 90. [ ] Persist original dataset entries on the simulated/benchmark permissionless blockchain with smart contracts
-91. [ ] Link original (on‑chain) and censored (IPFS) datasets by IDs (e.g., `dataset_id`/`record_id` ↔ `ipfs_hash`) maintained in contract state
+91. [ ] Link original (on‑chain) and censored (IPFS) datasets by IDs (e.g., `dataset_id`/`record_id`  `ipfs_hash`) maintained in contract state
 92. [ ] Enforce integrity links (hashes/commitments) between original and censored artifacts
 
 93. [ ] <!-- ### Demo and CRUD interface --> Expose explicit CRUD operations (add/read/update/delete) in the demo
 94. [x] Support Right to be Forgotten on‑chain (redaction request, approvals, chameleon‑hash update)
 95. [x] Support IPFS‑side redaction (re‑upload redacted version, rotate hash)
 96. [ ] Show SNARK proof generation/verification and consistency verification in demo steps
-97. [ ] Display and verify ID mapping (on‑chain `dataset_id`/`record_id` ↔ censored `ipfs_hash`) during demo flows
+97. [ ] Display and verify ID mapping (on‑chain `dataset_id`/`record_id`  censored `ipfs_hash`) during demo flows
 98. [ ] Enforce role‑based access (ADMIN/REGULATOR/PHYSICIAN/RESEARCHER) on CRUD/redactions
 
 99. [ ] <!-- ### Censored pipeline tests --> Censored pipeline tests (policy correctness, linkage integrity)
@@ -137,7 +137,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 105. [ ] Add compliance mapping to GDPR Art. 17 and HIPAA de‑identification
 106. [ ] Document ID‑based linkage: original on simulated permissionless smart‑contract blockchain; censored data on IPFS only
 107. [ ] Document architecture: base abstract modules vs. Bitcoin concrete implementations
-108. [ ] Add an architecture diagram showing data flow: original on‑chain ↔ censored IPFS
+108. [ ] Add an architecture diagram showing data flow: original on‑chain  censored IPFS
 
 109. [ ] <!-- ### Code quality and fixes --> Fix stray `self.executed_redactions.a` in `medical/MedicalRedactionEngine.py`
 110. [ ] Clarify `ContractExecutionEngine.execute_call` (optional state mutation or remove unused local)
