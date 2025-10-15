@@ -58,9 +58,9 @@ class EnhancedHybridSNARKManager:
         )
         
         if self.use_real:
-            print(f"✅ Enhanced SNARK manager initialized in REAL mode")
+            print(f" Enhanced SNARK manager initialized in REAL mode")
         else:
-            print(f"📝 Enhanced SNARK manager initialized in SIMULATION mode")
+            print(f" Enhanced SNARK manager initialized in SIMULATION mode")
     
     def _extract_medical_record_dict(self, redaction_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -111,7 +111,7 @@ class EnhancedHybridSNARKManager:
         """
         if self.use_real and self.snark_client and self.circuit_mapper:
             try:
-                print(f"🔐 Generating real SNARK proof...")
+                print(f" Generating real SNARK proof...")
                 
                 # Extract medical record
                 medical_record_dict = self._extract_medical_record_dict(redaction_data)
@@ -129,7 +129,7 @@ class EnhancedHybridSNARKManager:
                 
                 # Validate inputs
                 if not self.circuit_mapper.validate_circuit_inputs(circuit_inputs):
-                    print(f"⚠️  Circuit input validation failed")
+                    print(f"  Circuit input validation failed")
                     raise ValueError("Invalid circuit inputs")
                 
                 print(f"   Circuit inputs prepared and validated")
@@ -141,7 +141,7 @@ class EnhancedHybridSNARKManager:
                 )
                 
                 if result and result.get("verified"):
-                    print(f"✅ Real SNARK proof generated and verified")
+                    print(f" Real SNARK proof generated and verified")
                     
                     # Extract calldata
                     calldata = result.get("calldata", {})
@@ -161,15 +161,15 @@ class EnhancedHybridSNARKManager:
                     
                     return proof
                 else:
-                    print(f"⚠️  Real SNARK proof verification failed")
+                    print(f"  Real SNARK proof verification failed")
                     raise ValueError("Proof verification failed")
                     
             except Exception as e:
-                print(f"⚠️  Real SNARK proof generation failed: {e}")
+                print(f"  Real SNARK proof generation failed: {e}")
                 print(f"   Falling back to simulation mode")
         
         # Use simulation fallback
-        print(f"📝 Generating simulated SNARK proof...")
+        print(f" Generating simulated SNARK proof...")
         return self.simulation_manager.create_redaction_proof(redaction_data)
     
     def create_redaction_proof_with_consistency(
@@ -195,7 +195,7 @@ class EnhancedHybridSNARKManager:
         """
         if self.use_real and self.snark_client and self.circuit_mapper:
             try:
-                print(f"🔐 Generating real SNARK proof WITH consistency verification...")
+                print(f" Generating real SNARK proof WITH consistency verification...")
                 
                 # Extract medical record
                 medical_record_dict = self._extract_medical_record_dict(redaction_data)
@@ -214,7 +214,7 @@ class EnhancedHybridSNARKManager:
                 
                 # Validate inputs with consistency
                 if not self.circuit_mapper.validate_circuit_inputs_with_consistency(circuit_inputs):
-                    print(f"⚠️  Circuit input validation failed (with consistency)")
+                    print(f"  Circuit input validation failed (with consistency)")
                     raise ValueError("Invalid circuit inputs with consistency")
                 
                 print(f"   Circuit inputs prepared and validated (with consistency)")
@@ -226,7 +226,7 @@ class EnhancedHybridSNARKManager:
                 )
                 
                 if result and result.get("verified"):
-                    print(f"✅ Real SNARK proof with consistency generated and verified")
+                    print(f" Real SNARK proof with consistency generated and verified")
                     
                     # Extract calldata
                     calldata = result.get("calldata", {})
@@ -246,15 +246,15 @@ class EnhancedHybridSNARKManager:
                     
                     return proof
                 else:
-                    print(f"⚠️  Real SNARK proof verification failed")
+                    print(f"  Real SNARK proof verification failed")
                     raise ValueError("Proof verification failed")
                     
             except Exception as e:
-                print(f"⚠️  Real SNARK proof with consistency generation failed: {e}")
+                print(f"  Real SNARK proof with consistency generation failed: {e}")
                 print(f"   Falling back to simulation mode")
         
         # Use simulation fallback (without consistency integration)
-        print(f"📝 Generating simulated SNARK proof (consistency not integrated in simulation)...")
+        print(f" Generating simulated SNARK proof (consistency not integrated in simulation)...")
         return self.simulation_manager.create_redaction_proof(redaction_data)
     
     def verify_redaction_proof(self, proof: ZKProof, public_inputs: Dict[str, Any]) -> bool:
@@ -272,7 +272,7 @@ class EnhancedHybridSNARKManager:
         if proof.proof_id.startswith("real_groth16_"):
             # For real Groth16 proofs, verification was done during generation
             # The proof would not exist if verification failed
-            print(f"✅ Real SNARK proof {proof.proof_id} is valid (pre-verified)")
+            print(f" Real SNARK proof {proof.proof_id} is valid (pre-verified)")
             return True
         
         # Use simulation verification for simulated proofs
@@ -375,7 +375,7 @@ if __name__ == "__main__":
     # Generate proof
     proof = manager.create_redaction_proof(test_request)
     if proof:
-        print(f"\n✅ Proof generated successfully")
+        print(f"\n Proof generated successfully")
         metadata = manager.get_proof_metadata(proof)
         print(f"   Proof metadata:")
         for key, value in metadata.items():
@@ -388,8 +388,8 @@ if __name__ == "__main__":
             "policy_hash": "policy_anonymize"
         }
         is_valid = manager.verify_redaction_proof(proof, public_inputs)
-        print(f"\n   Verification result: {'✅ VALID' if is_valid else '❌ INVALID'}")
+        print(f"\n   Verification result: {' VALID' if is_valid else ' INVALID'}")
     else:
-        print(f"\n❌ Proof generation failed")
+        print(f"\n Proof generation failed")
     
     print("\n" + "="*60)

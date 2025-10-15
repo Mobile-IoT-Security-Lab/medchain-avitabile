@@ -238,57 +238,57 @@ class MedicalDataCircuitMapper:
             
             for key in required_public:
                 if key not in inputs.public_inputs:
-                    print(f"⚠️  Missing public input: {key}")
+                    print(f"  Missing public input: {key}")
                     return False
                 if not isinstance(inputs.public_inputs[key], int):
-                    print(f"⚠️  Public input {key} must be int, got {type(inputs.public_inputs[key])}")
+                    print(f"  Public input {key} must be int, got {type(inputs.public_inputs[key])}")
                     return False
             
             # Check private inputs
             if "originalData" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: originalData")
+                print(f"  Missing private input: originalData")
                 return False
             if len(inputs.private_inputs["originalData"]) != 4:
-                print(f"⚠️  originalData must have 4 elements")
+                print(f"  originalData must have 4 elements")
                 return False
             
             if "redactedData" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: redactedData")
+                print(f"  Missing private input: redactedData")
                 return False
             if len(inputs.private_inputs["redactedData"]) != 4:
-                print(f"⚠️  redactedData must have 4 elements")
+                print(f"  redactedData must have 4 elements")
                 return False
             
             if "policyData" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: policyData")
+                print(f"  Missing private input: policyData")
                 return False
             if len(inputs.private_inputs["policyData"]) != 2:
-                print(f"⚠️  policyData must have 2 elements")
+                print(f"  policyData must have 2 elements")
                 return False
             
             # Check Merkle inputs
             if "merklePathElements" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: merklePathElements")
+                print(f"  Missing private input: merklePathElements")
                 return False
             if len(inputs.private_inputs["merklePathElements"]) != 8:
-                print(f"⚠️  merklePathElements must have 8 elements")
+                print(f"  merklePathElements must have 8 elements")
                 return False
             
             if "merklePathIndices" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: merklePathIndices")
+                print(f"  Missing private input: merklePathIndices")
                 return False
             if len(inputs.private_inputs["merklePathIndices"]) != 8:
-                print(f"⚠️  merklePathIndices must have 8 elements")
+                print(f"  merklePathIndices must have 8 elements")
                 return False
             
             if "enforceMerkle" not in inputs.private_inputs:
-                print(f"⚠️  Missing private input: enforceMerkle")
+                print(f"  Missing private input: enforceMerkle")
                 return False
             
             return True
             
         except Exception as e:
-            print(f"⚠️  Validation error: {e}")
+            print(f"  Validation error: {e}")
             return False
 
     def _hash_state(self, state_dict: Dict[str, Any]) -> str:
@@ -360,13 +360,13 @@ class MedicalDataCircuitMapper:
                     "consistencyCheckPassed": 1 if consistency_proof.is_valid else 0
                 })
                 
-                print(f"✅ Consistency proof data added to circuit inputs")
+                print(f" Consistency proof data added to circuit inputs")
                 print(f"   Pre-state hash: {pre_state_hash[:16]}...")
                 print(f"   Post-state hash: {post_state_hash[:16]}...")
                 print(f"   Consistency valid: {consistency_proof.is_valid}")
                 
             except Exception as e:
-                print(f"⚠️  Failed to add consistency proof data: {e}")
+                print(f"  Failed to add consistency proof data: {e}")
                 # Add default values if extraction fails
                 inputs.public_inputs.update({
                     "preStateHash0": 0,
@@ -384,7 +384,7 @@ class MedicalDataCircuitMapper:
                 "postStateHash1": 0,
                 "consistencyCheckPassed": 0  # Skip consistency check
             })
-            print(f"📝 No consistency proof provided, using default values")
+            print(f" No consistency proof provided, using default values")
         
         return inputs
     
@@ -411,10 +411,10 @@ class MedicalDataCircuitMapper:
         
         for field in consistency_fields:
             if field not in inputs.public_inputs:
-                print(f"⚠️  Missing consistency field: {field}")
+                print(f"  Missing consistency field: {field}")
                 return False
             if not isinstance(inputs.public_inputs[field], int):
-                print(f"⚠️  Consistency field {field} must be int, got {type(inputs.public_inputs[field])}")
+                print(f"  Consistency field {field} must be int, got {type(inputs.public_inputs[field])}")
                 return False
         
         return True
@@ -438,8 +438,8 @@ if __name__ == "__main__":
     
     # Validate
     if mapper.validate_circuit_inputs(inputs):
-        print("✅ Circuit inputs are valid")
+        print(" Circuit inputs are valid")
         print(f"\nPublic inputs: {list(inputs.public_inputs.keys())}")
         print(f"Private inputs: {list(inputs.private_inputs.keys())}")
     else:
-        print("❌ Circuit inputs validation failed")
+        print(" Circuit inputs validation failed")

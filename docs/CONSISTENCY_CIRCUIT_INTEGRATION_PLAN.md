@@ -3,7 +3,7 @@
 
 ## Current Status Analysis
 
-### What's Already Implemented ✅
+### What's Already Implemented 
 
 1. **Consistency Proof Generation** (`ZK/ProofOfConsistency.py`)
    - `ConsistencyProofGenerator` creates proofs for state transitions
@@ -22,7 +22,7 @@
    - Stores consistency proof alongside SNARK proof
    - But: **Consistency proof not wired into circuit inputs**
 
-### What Needs to Be Done 🔄
+### What Needs to Be Done 
 
 #### **Task 2a: Wire consistency proofs into circuit public inputs**
 
@@ -401,10 +401,10 @@ cd ..
 
 Once complete, the system will have:
 
-✅ **Cryptographic proof of consistency** embedded in SNARK  
-✅ **On-chain verification** of both privacy (SNARK) and integrity (consistency)  
-✅ **Unified proof system** - single verification checks both properties  
-✅ **Enhanced auditability** - consistency state hashes stored on-chain  
-✅ **Production-ready** - complete Avitabile implementation
+ **Cryptographic proof of consistency** embedded in SNARK  
+ **On-chain verification** of both privacy (SNARK) and integrity (consistency)  
+ **Unified proof system** - single verification checks both properties  
+ **Enhanced auditability** - consistency state hashes stored on-chain  
+ **Production-ready** - complete Avitabile implementation
 
 This completes the "not a simulation" requirement for todo #2!

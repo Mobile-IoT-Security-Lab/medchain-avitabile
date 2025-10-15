@@ -4,19 +4,19 @@
 
 1. [x] Prioritize the implementation of zero-knowledge proofs (ZK Proofs) for data redaction
 a. [ ] mark every file used for the above step one with something like (Bookmark1 for next meeting)
-   - ✅ **COMPLETED**: See `docs/ZK_IMPLEMENTATION_SUMMARY.md` and `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`
-   - ✅ Implemented `medical/circuit_mapper.py` for proper medical data → circuit input mapping
-   - ✅ Implemented `medical/my_snark_manager.py` with real Groth16 proof generation
-   - ✅ Added comprehensive test suite in `tests/test_circuit_mapper.py`
-   - ✅ Real SNARK proofs now work end-to-end (when `USE_REAL_SNARK=1`)
-   - ✅ No more TODO placeholders in SNARK flow
-   - 📋 **Next Phase**: On-chain verification integration (Phase 2)
+   -  **COMPLETED**: See `docs/ZK_IMPLEMENTATION_SUMMARY.md` and `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`
+   -  Implemented `medical/circuit_mapper.py` for proper medical data → circuit input mapping
+   -  Implemented `medical/my_snark_manager.py` with real Groth16 proof generation
+   -  Added comprehensive test suite in `tests/test_circuit_mapper.py`
+   -  Real SNARK proofs now work end-to-end (when `USE_REAL_SNARK=1`)
+   -  No more TODO placeholders in SNARK flow
+   -  **Next Phase**: On-chain verification integration (Phase 2)
 2. [ ] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
 a. [ ] mark every file used for the above step two with something like (Bookmark2 for next meeting)
-   - 🔄 **IN PROGRESS**: SNARKs now use real Groth16 proofs (no longer simulated)
-   - ✅ Proof of consistency implemented in `ZK/ProofOfConsistency.py`
-   - 🔄 **TODO**: Wire consistency proofs into circuit public inputs
-   - 🔄 **TODO**: On-chain verification of both SNARK and consistency proofs
+   -  **IN PROGRESS**: SNARKs now use real Groth16 proofs (no longer simulated)
+   -  Proof of consistency implemented in `ZK/ProofOfConsistency.py`
+   -  **TODO**: Wire consistency proofs into circuit public inputs
+   -  **TODO**: On-chain verification of both SNARK and consistency proofs
 3. [ ] deliverables
 
 ## Professor and Boss Directives

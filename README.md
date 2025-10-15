@@ -212,25 +212,25 @@ USE_REAL_SNARK=1 pytest tests/test_avitabile_redaction_demo.py -v
 
 **Immediate Benefits:**
 
-- ✅ Real Groth16 SNARK proofs (no longer simulated)
-- ✅ Proper medical data to circuit input mapping
-- ✅ Validation before expensive proof generation
-- ✅ Flexible mode switching (real/simulation)
-- ✅ Production-ready architecture
+-  Real Groth16 SNARK proofs (no longer simulated)
+-  Proper medical data to circuit input mapping
+-  Validation before expensive proof generation
+-  Flexible mode switching (real/simulation)
+-  Production-ready architecture
 
 **Compliance Benefits:**
 
-- ✅ GDPR Article 17: Cryptographic proof of lawful redaction
-- ✅ Auditability: Complete proof metadata trail
-- ✅ Non-repudiation: Cryptographically binding proofs
-- ✅ Privacy: Zero-knowledge property protects sensitive data
+-  GDPR Article 17: Cryptographic proof of lawful redaction
+-  Auditability: Complete proof metadata trail
+-  Non-repudiation: Cryptographically binding proofs
+-  Privacy: Zero-knowledge property protects sensitive data
 
 **Technical Achievements:**
 
-- ✅ Resolved all TODO placeholders in SNARK flow
-- ✅ 95%+ test coverage for new components
-- ✅ Complete documentation (see `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`)
-- ✅ Backward compatible with existing system
+-  Resolved all TODO placeholders in SNARK flow
+-  95%+ test coverage for new components
+-  Complete documentation (see `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`)
+-  Backward compatible with existing system
 
 ### Next Steps (Phase 2)
 

@@ -9,54 +9,54 @@ The codebase already has a **substantial ZK proof infrastructure** in place, but
 
 **Current Status:**
 
-- ✅ Circom circuit implemented (`circuits/redaction.circom`)
-- ✅ SNARK adapter with snarkjs integration (`adapters/snark.py`)
-- ✅ Hybrid SNARK manager that switches between real and simulated proofs
-- ✅ Integration with medical redaction engine
-- ✅ Test infrastructure for both modes
-- ⚠️ **Gap: Real SNARK proofs not fully integrated end-to-end**
-- ⚠️ **Gap: Circuit inputs need proper data mapping**
-- ⚠️ **Gap: On-chain verification not fully connected**
+-  Circom circuit implemented (`circuits/redaction.circom`)
+-  SNARK adapter with snarkjs integration (`adapters/snark.py`)
+-  Hybrid SNARK manager that switches between real and simulated proofs
+-  Integration with medical redaction engine
+-  Test infrastructure for both modes
+-  **Gap: Real SNARK proofs not fully integrated end-to-end**
+-  **Gap: Circuit inputs need proper data mapping**
+-  **Gap: On-chain verification not fully connected**
 
 ## Architecture Overview
 
 ### Current ZK Proof Flow
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Medical Redaction Request                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│              HybridSNARKManager                              │
-│  ┌────────────────────┐      ┌────────────────────┐        │
-│  │  Real SNARKs       │      │  Simulated SNARKs  │        │
-│  │  (circom/snarkjs)  │ OR   │  (ZK/SNARKs.py)    │        │
-│  └────────────────────┘      └────────────────────┘        │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    ZKProof Object                            │
-│  - proof_id, commitment, nullifier                          │
-│  - verifier_challenge, prover_response                      │
-│  - merkle_root, timestamp, operation_type                   │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│          Verification (SNARKVerifier)                        │
-│  - Nullifier replay check                                   │
-│  - Timestamp validation                                     │
-│  - Challenge-response verification                          │
-│  - Merkle consistency check                                 │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│          Redaction Execution (if verified)                   │
-└─────────────────────────────────────────────────────────────┘
+
+                    Medical Redaction Request                 
+
+                       
+                       
+
+              HybridSNARKManager                              
+                
+    Real SNARKs               Simulated SNARKs          
+    (circom/snarkjs)   OR     (ZK/SNARKs.py)            
+                
+
+                       
+                       
+
+                    ZKProof Object                            
+  - proof_id, commitment, nullifier                          
+  - verifier_challenge, prover_response                      
+  - merkle_root, timestamp, operation_type                   
+
+                       
+                       
+
+          Verification (SNARKVerifier)                        
+  - Nullifier replay check                                   
+  - Timestamp validation                                     
+  - Challenge-response verification                          
+  - Merkle consistency check                                 
+
+                       
+                       
+
+          Redaction Execution (if verified)                   
+
 ```
 
 ## Key Components Analysis
@@ -109,9 +109,9 @@ Private inputs:
 
 **Current Status:**
 
-- ✅ All basic operations implemented
-- ✅ Error handling and availability checks
-- ⚠️ Not actively used in medical redaction flow
+-  All basic operations implemented
+-  Error handling and availability checks
+-  Not actively used in medical redaction flow
 
 ### 3. Hybrid SNARK Manager (`medical/MedicalRedactionEngine.py`)
 
@@ -316,7 +316,7 @@ class HybridSNARKManager:
                     )
 
             except Exception as e:
-                print(f"⚠️  Real SNARK proof generation failed: {e}")
+                print(f"  Real SNARK proof generation failed: {e}")
                 print(f"   Falling back to simulation mode")
 
         # Use simulation fallback
@@ -380,7 +380,7 @@ class TestRealSNARKIntegration:
         assert request.zk_proof is not None
         assert request.zk_proof.proof_id.startswith("real_groth16_")
 
-        print(f"✅ Real SNARK proof generated: {request.zk_proof.proof_id}")
+        print(f" Real SNARK proof generated: {request.zk_proof.proof_id}")
 
     def test_real_snark_end_to_end(self):
         """Test complete redaction workflow with real SNARKs."""
@@ -417,7 +417,7 @@ class TestRealSNARKIntegration:
         result = engine.query_medical_data("SNARK_E2E_001", "auditor")
         assert result is None
 
-        print(f"✅ Real SNARK end-to-end test passed")
+        print(f" Real SNARK end-to-end test passed")
 ```
 
 ### Phase 2: On-Chain Verification (Medium Priority)
@@ -485,17 +485,17 @@ Wire `ConsistencyProofGenerator` output into SNARK public inputs.
 
 ### Unit Tests
 
-- ✅ Existing: Simulation mode tests
-- ✅ Existing: Adapter interface tests
-- 🔄 **Add:** Circuit mapper tests
-- 🔄 **Add:** Real vs simulation mode comparison
+-  Existing: Simulation mode tests
+-  Existing: Adapter interface tests
+-  **Add:** Circuit mapper tests
+-  **Add:** Real vs simulation mode comparison
 
 ### Integration Tests
 
-- ✅ Existing: SNARK-EVM basic integration
-- 🔄 **Add:** Real circuit end-to-end tests
-- 🔄 **Add:** On-chain verification tests
-- 🔄 **Add:** Performance benchmarks
+-  Existing: SNARK-EVM basic integration
+-  **Add:** Real circuit end-to-end tests
+-  **Add:** On-chain verification tests
+-  **Add:** Performance benchmarks
 
 ### Test Execution
 
@@ -617,10 +617,10 @@ Before enabling `USE_REAL_SNARK=1`:
 
 ## Success Metrics
 
-- ✅ **Phase 1 Complete:** Real SNARK proofs generate successfully in medical redaction flow
-- ✅ **Phase 2 Complete:** On-chain verification passes for valid proofs
-- ✅ **Phase 3 Complete:** Zero replay attacks, nullifier tracking working
-- ✅ **Production Ready:** <2s proof generation, <100k gas verification, circuit audited
+-  **Phase 1 Complete:** Real SNARK proofs generate successfully in medical redaction flow
+-  **Phase 2 Complete:** On-chain verification passes for valid proofs
+-  **Phase 3 Complete:** Zero replay attacks, nullifier tracking working
+-  **Production Ready:** <2s proof generation, <100k gas verification, circuit audited
 
 ## References
 
