@@ -50,8 +50,8 @@ def forgeSplit(SKlist, m1, rlist, m2, q, i):  # find r', i is the index
 if __name__ == "__main__":
     print('SCHEME 1: Centralized Setting')
 
-    msg1 = 'i sent first message'  # 1
-    msg2 = 'second message'  # 2
+    msg1 = 'i sent first message'  # 消息1
+    msg2 = 'second message'  # 消息2
     newmsg1 = str2int(msg1)
     newmsg2 = str2int(msg2)
     rand1 = random.randint(1, q)  # r
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     SKlist, PKlist = KeyGen(p, q, g, 3)
     rlist = getr(3, q)
 
-    msg1 = 'i sent first message'  # 1
-    msg2 = 'second message'  # 2
+    msg1 = 'i sent first message'  # 消息1
+    msg2 = 'second message'  # 消息2
 
     print('q=', q)
     print('p=', p)
