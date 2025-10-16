@@ -14,7 +14,7 @@ This demo script showcases:
 5. GDPR "Right to be Forgotten" implementation
 6. Complete redaction workflow
 
-Author: MedChain Project Team
+Author: Enrico Pezzano
 License: MIT
 """
 

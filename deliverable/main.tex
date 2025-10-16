@@ -1,0 +1,42 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\geometry{margin=1in}
+\setlist{leftmargin=*}
+
+\title{MedChain Avitabile Deliverable}
+\author{Enrico Pezzano}
+\date{October 2025}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Provide a concise summary of the project, its goals, and key outcomes. Highlight the most important implementation achievements and documentation artifacts.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/introduction.tex}
+\input{sections/documentation_overview.tex}
+\input{sections/implementation_details.tex}
+\input{sections/results_and_evaluation.tex}
+\input{sections/project_management.tex}
+\input{sections/future_work.tex}
+\input{sections/appendix.tex}
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

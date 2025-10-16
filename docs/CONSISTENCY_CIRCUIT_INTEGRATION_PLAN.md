@@ -3,7 +3,7 @@
 
 ## Current Status Analysis
 
-### What's Already Implemented 
+### What's Already Implemented
 
 1. **Consistency Proof Generation** (`ZK/ProofOfConsistency.py`)
    - `ConsistencyProofGenerator` creates proofs for state transitions
@@ -22,7 +22,7 @@
    - Stores consistency proof alongside SNARK proof
    - But: **Consistency proof not wired into circuit inputs**
 
-### What Needs to Be Done 
+### What Needs to Be Done
 
 #### **Task 2a: Wire consistency proofs into circuit public inputs**
 
