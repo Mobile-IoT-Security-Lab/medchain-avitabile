@@ -2,16 +2,13 @@
 
 ## Executive Summary
 
-The codebase already has a **substantial ZK proof infrastructure** in place, but it operates in two modes:
-
-1. **Simulation mode** (default) - using `ZK/SNARKs.py` with cryptographic commitments
-2. **Real mode** (when `USE_REAL_SNARK=1`) - using circom circuits and snarkjs via `adapters/snark.py`
+The codebase now enforces the **real Groth16 proof pipeline** end-to-end, built on top of circom circuits and the snarkjs CLI. The previous mock/simulation path has been removed; every redaction flow requires valid circuit artifacts.
 
 **Current Status:**
 
 - Circom circuit implemented (`circuits/redaction.circom`)
 - SNARK adapter with snarkjs integration (`adapters/snark.py`)
-- Hybrid SNARK manager that switches between real and simulated proofs
+- Hybrid SNARK manager that always uses real proofs
 - Integration with medical redaction engine
 - Test infrastructure for both modes
 - **Gap: Real SNARK proofs not fully integrated end-to-end**
@@ -26,17 +23,14 @@ The codebase already has a **substantial ZK proof infrastructure** in place, but
 
                     Medical Redaction Request                 
 
-                       
-                       
+
 
               HybridSNARKManager                              
                 
-    Real SNARKs               Simulated SNARKs          
-    (circom/snarkjs)   OR     (ZK/SNARKs.py)            
+    Real SNARKs (circom/snarkjs)                           
                 
 
-                       
-                       
+
 
                     ZKProof Object                            
   - proof_id, commitment, nullifier                          
@@ -333,17 +327,17 @@ Integration tests for real SNARK proof generation and verification.
 These tests require:
 - circom and snarkjs installed
 - Circuit compiled (circuits/build/)
-- USE_REAL_SNARK=1 environment variable
 """
 
 import pytest
 import os
+from pathlib import Path
 from medical.MedicalRedactionEngine import MyRedactionEngine, MedicalDataRecord
 from adapters.config import env_bool
 
 @pytest.mark.integration
-@pytest.mark.skipif(not env_bool("USE_REAL_SNARK", False),
-                   reason="Real SNARK mode not enabled")
+@pytest.mark.skipif(not Path("circuits/build/redaction_final.zkey").exists(),
+                   reason="Real SNARK artifacts missing")
 class TestRealSNARKIntegration:
 
     def test_real_snark_proof_generation(self):
@@ -504,10 +498,10 @@ Wire `ConsistencyProofGenerator` output into SNARK public inputs.
 pytest tests/test_snark_system.py
 
 # Real SNARK mode (requires circom/snarkjs)
-USE_REAL_SNARK=1 pytest tests/test_real_snark_integration.py -v
+pytest tests/test_real_snark_integration.py -v
 
 # Full integration (requires local blockchain + IPFS)
-USE_REAL_SNARK=1 USE_REAL_EVM=1 pytest tests/test_onchain_snark_verification.py -v
+USE_REAL_EVM=1 pytest tests/test_onchain_snark_verification.py -v
 ```
 
 ## Configuration Guide
@@ -515,9 +509,6 @@ USE_REAL_SNARK=1 USE_REAL_EVM=1 pytest tests/test_onchain_snark_verification.py 
 ### .env File Setup
 
 ```bash
-# Enable real SNARK proofs
-USE_REAL_SNARK=1
-
 # Circuit directory (default: circuits)
 CIRCUITS_DIR=circuits
 
@@ -531,7 +522,7 @@ WEB3_PROVIDER_URI=http://127.0.0.1:8545
 
 ### Prerequisites Check
 
-Before enabling `USE_REAL_SNARK=1`:
+Before running real SNARK integration tests:
 
 1. **Compile circuit:**
 

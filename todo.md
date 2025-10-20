@@ -8,7 +8,7 @@ a. [ ] mark every file used for the above step one with something like (Bookmark
    - Implemented `medical/circuit_mapper.py` for proper medical data → circuit input mapping
    - Implemented `medical/my_snark_manager.py` with real Groth16 proof generation
    - Added comprehensive test suite in `tests/test_circuit_mapper.py`
-   - Real SNARK proofs now work end-to-end (when `USE_REAL_SNARK=1`)
+   - Real SNARK proofs now work end-to-end
    - No more TODO placeholders in SNARK flow
    - **Next Phase**: On-chain verification integration (Phase 2)
 2. [ ] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
@@ -28,7 +28,7 @@ We must implement the paper "Data Redaction in Smart-Contract-Enabled Permission
 0. [x] core structure changes
 1. [x] Create `adapters/` directory structure
 2. [x] Implement `adapters/config.py` with environment variable handling
-3. [x] Add configuration flags: `USE_REAL_EVM`, `USE_REAL_SNARK`, `USE_REAL_IPFS` (default to simulation)
+3. [x] Add configuration flags: `USE_REAL_EVM`, `USE_REAL_IPFS` (SNARKs always real)
 4. [x] Create `.env` template file with all required environment variables
 5. [x] Update requirements: add `web3>=6`, `ipfshttpclient==0.8.0a2`, `cryptography`, `python-dotenv`
 6. [x] IPFS Implementation (Phase 1 - Lowest Friction)

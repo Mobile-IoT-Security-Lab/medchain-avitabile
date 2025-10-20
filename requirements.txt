@@ -33,7 +33,7 @@ python-dotenv            # Environment variable management
 web3>=6                  # Real EVM integration (USE_REAL_EVM=1)
 
 # Additional Node.js dependencies (install via npm):
-# - snarkjs@^0.7.5 (global): Real SNARK proof generation (USE_REAL_SNARK=1)
+# - snarkjs@^0.7.5 (global): Required for Groth16 proof generation
 # - circom (global): Circuit compilation
 # - hardhat: Smart contract development and testing
 # 

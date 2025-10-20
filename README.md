@@ -90,7 +90,6 @@ hasPermissions = True
 TESTING_MODE=1              # Fast mode
 USE_REAL_IPFS=1            # Real IPFS daemon
 USE_REAL_EVM=1             # Real blockchain  
-USE_REAL_SNARK=1           # Real SNARKs
 IPFS_ENC_KEY=KEY_HERE      # AES-256 encryption key (base64)
 \`\`\`
 
@@ -150,12 +149,12 @@ if mapper.validate_circuit_inputs(inputs):
 
 #### 2. Enhanced Hybrid SNARK Manager (`medical/my_snark_manager.py`)
 
-Intelligent SNARK manager with automatic mode switching:
+SNARK manager dedicated to real Groth16 proof generation:
 
-- Real Groth16 proof generation when `USE_REAL_SNARK=1`
-- Seamless fallback to simulation mode
-- Integrated circuit mapper
-- Detailed logging and diagnostics
+- Uses snarkjs with the prepared circuit inputs from the mapper
+- Requires compiled artifacts (`redaction.wasm`, `redaction_final.zkey`, `verification_key.json`)
+- Integrates medical circuit mapper for deterministic witness construction
+- Emits detailed logging and diagnostics
 
 ```python
 from medical.my_snark_manager import EnhancedHybridSNARKManager
@@ -174,14 +173,11 @@ print(f"Operating in {mode_info['mode']} mode")
 # Test circuit mapper
 pytest tests/test_circuit_mapper.py -v
 
-# Test with simulation mode (default)
+# Run full pipeline tests (requires compiled circuit artifacts)
 pytest tests/test_avitabile_redaction_demo.py -v
-
-# Test with real SNARKs (requires circuit compilation)
-USE_REAL_SNARK=1 pytest tests/test_avitabile_redaction_demo.py -v
 ```
 
-### Setup for Real SNARK Mode
+### Preparing SNARK Artifacts
 
 1. **Compile the circuit:**
 
@@ -195,13 +191,7 @@ USE_REAL_SNARK=1 pytest tests/test_avitabile_redaction_demo.py -v
    PTAU=../tools/pot14_final.ptau ./scripts/setup.sh
    ```
 
-3. **Enable in environment:**
-
-   ```bash
-   echo "USE_REAL_SNARK=1" >> .env
-   ```
-
-4. **Verify setup:**
+3. **Verify setup:**
 
    ```bash
    ls circuits/build/
@@ -315,7 +305,7 @@ pytest --cov=. --cov-report=html        # With coverage
 
 **Research prototype with simulated components:**
 
-- SNARKs: Proof-of-concept (unless \`USE_REAL_SNARK=1\`)
+- SNARKs: Real Groth16 proofs (requires compiled circom artifacts)
 - Smart Contracts: In-memory simulation (unless \`USE_REAL_EVM=1\`)
 - IPFS: Simulated client (unless \`USE_REAL_IPFS=1\`)
 - Chameleon Hash: Fixed demo parameters
