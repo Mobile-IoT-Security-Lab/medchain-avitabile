@@ -33,11 +33,18 @@ class TestSnarkClientDetailed(unittest.TestCase):
         self.assertTrue(str(client.zkey_path).endswith('.zkey'))
         self.assertTrue(str(client.vkey_path).endswith('.json'))
     
-    @patch.dict(os.environ, {"CIRCUITS_DIR": "custom_circuits"})
     def test_custom_circuits_directory(self):
         """Test custom circuits directory configuration."""
-        client = self.SnarkClient()
-        self.assertTrue(str(client.circuits_dir).endswith('custom_circuits'))
+        with tempfile.TemporaryDirectory() as tmp:
+            custom_dir = Path(tmp)
+            custom_build = custom_dir / "build"
+            (custom_build / "redaction_js").mkdir(parents=True, exist_ok=True)
+            (custom_build / "redaction_js" / "redaction.wasm").touch()
+            (custom_build / "redaction_final.zkey").touch()
+            (custom_build / "verification_key.json").touch()
+            with patch.dict(os.environ, {"CIRCUITS_DIR": str(custom_dir)}):
+                client = self.SnarkClient()
+                self.assertEqual(client.circuits_dir, custom_dir)
     
     def test_availability_checks(self):
         """Test circuit artifact availability checks."""
@@ -104,8 +111,7 @@ class TestSnarkClientDetailed(unittest.TestCase):
         mock_run.return_value = MagicMock(returncode=0)
         
         # Mock file operations
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "1"}), \
-             patch.object(Path, 'exists', return_value=True), \
+        with patch.object(Path, 'exists', return_value=True), \
              patch.object(Path, 'unlink'):
             
             client = self.SnarkClient()
@@ -115,12 +121,12 @@ class TestSnarkClientDetailed(unittest.TestCase):
             self.assertIsNotNone(result)
             self.assertIsInstance(result, Path)
     
-    @patch.dict(os.environ, {"USE_REAL_SNARK": "0"})
-    def test_witness_generation_disabled(self):
-        """Test witness generation when disabled."""
+    def test_witness_generation_missing_artifacts(self):
+        """Witness generation should raise when artifacts are unavailable."""
         client = self.SnarkClient()
-        result = client.generate_witness({"pub": 1}, {"priv": 2})
-        self.assertIsNone(result)
+        client.is_available = lambda: False
+        with self.assertRaises(RuntimeError):
+            client.generate_witness({"pub": 1}, {"priv": 2})
     
     @patch('builtins.open', new_callable=mock_open)
     @patch('subprocess.run')
@@ -138,9 +144,8 @@ class TestSnarkClientDetailed(unittest.TestCase):
         # Mock subprocess success
         mock_run.return_value = MagicMock(returncode=0)
         
-        # Mock file existence and enable real mode
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch.dict(os.environ, {"USE_REAL_SNARK": "1"}):
+        # Mock file existence
+        with patch('pathlib.Path.exists', return_value=True):
             client = self.SnarkClient()
             witness_path = Path("/tmp/witness.wtns")
             
@@ -151,16 +156,21 @@ class TestSnarkClientDetailed(unittest.TestCase):
             self.assertEqual(proof, mock_proof)
             self.assertEqual(public_signals, mock_public)
     
-    def test_proof_verification_interface(self):
+    @patch('tempfile.NamedTemporaryFile')
+    def test_proof_verification_interface(self, mock_temp):
         """Test proof verification interface."""
         client = self.SnarkClient()
+        
+        mock_temp.return_value.__enter__.return_value.name = "/tmp/temp.json"
+        mock_temp.return_value.__exit__.return_value = False
         
         mock_proof = {"pi_a": ["1", "2"], "pi_b": [["3", "4"], ["5", "6"]], "pi_c": ["7", "8"]}
         mock_public = ["9", "10"]
         
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "0"}):
+        client.is_available = lambda: True
+        with patch.object(client, '_run_snarkjs', return_value=MagicMock(stdout="OK!")):
             result = client.verify_proof(mock_proof, mock_public)
-            self.assertFalse(result)  # Should be False when disabled
+            self.assertTrue(result)
     
     def test_calldata_formatting_edge_cases(self):
         """Test calldata formatting with edge cases."""
@@ -188,13 +198,8 @@ class TestSnarkClientDetailed(unittest.TestCase):
         """Test complete redaction proof generation."""
         client = self.SnarkClient()
         
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "0"}):
-            result = client.prove_redaction({"pub": 1}, {"priv": 2})
-            self.assertIsNone(result)  # Should be None when disabled
-        
         # Test with mocked successful generation
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "1"}), \
-             patch.object(client, 'generate_witness', return_value=Path("/tmp/witness.wtns")), \
+        with patch.object(client, 'generate_witness', return_value=Path("/tmp/witness.wtns")), \
              patch.object(client, 'prove', return_value=({}, [])), \
              patch.object(client, 'verify_proof', return_value=True), \
              patch.object(client, 'format_calldata', return_value=([], [], [], [])):
@@ -207,39 +212,24 @@ class TestSnarkClientDetailed(unittest.TestCase):
             self.assertIn("calldata", result)
             self.assertIn("verified", result)
             self.assertTrue(result["verified"])
+        
+        # Test failure path due to missing artifacts
+        def raise_missing(*_args, **_kwargs):
+            raise RuntimeError("missing artifacts")
+        client.generate_witness = raise_missing
+        with self.assertRaises(RuntimeError):
+            client.prove_redaction({"pub": 1}, {"priv": 2})
 
 
 class TestSnarkAdapterMocking(unittest.TestCase):
-    """Test SNARK adapter mocking and simulation fallback."""
+    """Test SNARK adapter mocking and failure modes."""
     
     def test_import_failure_handling(self):
-        """Test graceful handling when adapters can't be imported."""
-        # This would be tested in the medical engine where imports are optional
+        """HybridSNARKManager should raise when no real client is provided."""
         try:
             from medical.MedicalRedactionEngine import HybridSNARKManager
-            
-            # Should work with None client
-            manager = HybridSNARKManager(None)
-            self.assertFalse(manager.use_real)
-            
-            # Should fall back to simulation with proper data structure
-            redaction_data = {
-                "redaction_type": "DELETE",
-                "request_id": "test_123",
-                "target_block": 10,
-                "target_tx": 2,
-                "requester": "test_user",
-                "merkle_root": "test_root",
-                "original_data": "test_original",
-                "redacted_data": "test_redacted"
-            }
-            proof = manager.create_redaction_proof(redaction_data)
-            self.assertIsNotNone(proof)
-            self.assertEqual(proof.operation_type, "DELETE")
-            
         except ImportError:
             self.skipTest("Medical redaction engine not available")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        
+        with self.assertRaises(ValueError):
+            HybridSNARKManager(None)

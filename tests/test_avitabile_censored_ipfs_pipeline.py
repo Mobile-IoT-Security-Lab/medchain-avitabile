@@ -8,6 +8,9 @@ from demo.avitabile_censored_ipfs_pipeline import run_avitabile_censored_ipfs_pi
 
 class TestAvitabileCensoredPipelineDemo(unittest.TestCase):
     def test_run(self):
+        from shutil import which
+        if which("snarkjs") is None:
+            self.skipTest("snarkjs CLI not available; real proof generation required")
         demo = run_avitabile_censored_ipfs_pipeline_demo()
         # Basic assertions: linkage exists for some patients
         self.assertGreater(len(demo.links), 0)

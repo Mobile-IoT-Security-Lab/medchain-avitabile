@@ -4,6 +4,7 @@
 Tests that the system correctly switches between real and simulated modes
 based on environment variables and configuration flags.
 """
+import json
 import os
 import unittest
 from unittest.mock import patch, MagicMock
@@ -14,7 +15,7 @@ class TestBackendSwitching(unittest.TestCase):
     
     def setUp(self):
         # Clear any existing environment variables
-        self.env_vars = ["USE_REAL_SNARK", "USE_REAL_EVM", "USE_REAL_IPFS", "REDACTION_BACKEND"]
+        self.env_vars = ["USE_REAL_EVM", "USE_REAL_IPFS", "REDACTION_BACKEND"]
         self.original_env = {}
         for var in self.env_vars:
             self.original_env[var] = os.environ.get(var)
@@ -29,35 +30,33 @@ class TestBackendSwitching(unittest.TestCase):
             elif var in os.environ:
                 del os.environ[var]
     
-    def test_snark_backend_switching(self):
-        """Test SNARK backend switches correctly."""
+    def test_snark_backend_is_always_real(self):
+        """SNARK backend should always use the real client."""
         try:
-            from medical.MedicalRedactionEngine import MyRedactionEngine, HybridSNARKManager
+            from medical.MedicalRedactionEngine import MyRedactionEngine
         except ImportError:
             self.skipTest("Medical redaction engine not available")
         
-        # Test simulation mode (default)
-        with patch.dict(os.environ, {}, clear=False):
+        with patch('adapters.snark.SnarkClient') as MockSnarkClient:
+            mock_client = MagicMock()
+            mock_client.is_available.return_value = True
+            MockSnarkClient.return_value = mock_client
+            
             engine = MyRedactionEngine()
-            self.assertFalse(engine._use_real_snark)
-            self.assertFalse(engine.snark_manager.use_real)
+            self.assertIsNotNone(engine.snark_client)
+            MockSnarkClient.assert_called_once()
+    
+    def test_snark_backend_errors_without_artifacts(self):
+        """Engine should raise a clear error when SNARK artifacts are missing."""
+        try:
+            from medical.MedicalRedactionEngine import MyRedactionEngine
+        except ImportError:
+            self.skipTest("Medical redaction engine not available")
         
-        # Test real mode enabled
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "1"}, clear=False):
-            with patch('adapters.snark.SnarkClient') as MockSnarkClient:
-                mock_client = MagicMock()
-                mock_client.is_enabled.return_value = True
-                MockSnarkClient.return_value = mock_client
-                
-                engine = MyRedactionEngine()
-                self.assertTrue(engine._use_real_snark)
-                self.assertIsNotNone(engine.snark_client)
-        
-        # Test real mode disabled by flag
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "0"}, clear=False):
-            engine = MyRedactionEngine()
-            self.assertFalse(engine._use_real_snark)
-            self.assertIsNone(engine.snark_client)
+        with patch('adapters.snark.SnarkClient', side_effect=FileNotFoundError("missing artifacts")):
+            with self.assertRaises(RuntimeError) as ctx:
+                MyRedactionEngine()
+            self.assertIn("Real SNARK proofs are required", str(ctx.exception))
     
     def test_evm_backend_switching(self):
         """Test EVM backend switches correctly."""
@@ -135,7 +134,6 @@ class TestBackendSwitching(unittest.TestCase):
         
         # Create engine with specific config
         with patch.dict(os.environ, {
-            "USE_REAL_SNARK": "1",
             "USE_REAL_EVM": "1", 
             "REDACTION_BACKEND": "EVM"
         }, clear=False):
@@ -148,18 +146,15 @@ class TestBackendSwitching(unittest.TestCase):
                 engine = MyRedactionEngine()
                 
                 # Configuration should be captured at init
-                self.assertTrue(engine._use_real_snark)
                 self.assertTrue(engine._use_real_evm)
                 self.assertEqual(engine._backend_mode, "EVM")
         
         # Changing environment after init shouldn't affect existing instance
         with patch.dict(os.environ, {
-            "USE_REAL_SNARK": "0",
             "USE_REAL_EVM": "0",
             "REDACTION_BACKEND": "SIMULATED"
         }, clear=False):
             # Engine should retain original config
-            self.assertTrue(engine._use_real_snark)
             self.assertTrue(engine._use_real_evm)
             self.assertEqual(engine._backend_mode, "EVM")
     
@@ -172,11 +167,9 @@ class TestBackendSwitching(unittest.TestCase):
         
         # Test invalid boolean values (should default to False)
         with patch.dict(os.environ, {
-            "USE_REAL_SNARK": "invalid",
             "USE_REAL_EVM": "maybe"
         }, clear=False):
             engine = MyRedactionEngine()
-            self.assertFalse(engine._use_real_snark)
             self.assertFalse(engine._use_real_evm)
         
         # Test invalid backend (should default to SIMULATED)
@@ -191,16 +184,6 @@ class TestBackendSwitching(unittest.TestCase):
         except ImportError:
             self.skipTest("Medical redaction engine not available")
         
-        # Test SNARK adapter fallback when import fails
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "1"}, clear=False):
-            with patch('adapters.snark.SnarkClient', side_effect=ImportError("Module not found")):
-                engine = MyRedactionEngine()
-                
-                # Should fall back to simulation
-                self.assertFalse(engine._use_real_snark)
-                self.assertIsNone(engine.snark_client)
-                self.assertFalse(engine.snark_manager.use_real)
-        
         # Test EVM adapter fallback when connection fails
         with patch.dict(os.environ, {"USE_REAL_EVM": "1"}, clear=False):
             # Patch the EVMClient constructor to fail
@@ -214,89 +197,75 @@ class TestBackendSwitching(unittest.TestCase):
 
 
 class TestHybridManager(unittest.TestCase):
-    """Test hybrid manager behavior with different configurations."""
+    """Test HybridSNARKManager real-mode behavior."""
     
-    def test_hybrid_snark_manager_real_mode(self):
-        """Test HybridSNARKManager in real mode."""
+    def test_hybrid_snark_manager_requires_client(self):
+        """HybridSNARKManager should enforce a real snark client."""
         try:
             from medical.MedicalRedactionEngine import HybridSNARKManager
         except ImportError:
             self.skipTest("Medical redaction engine not available")
         
-        # Test with real client
+        with self.assertRaises(ValueError):
+            HybridSNARKManager(None)
+    
+    def test_hybrid_snark_manager_generates_proof(self):
+        """HybridSNARKManager should delegate to snark client."""
+        try:
+            from medical.MedicalRedactionEngine import HybridSNARKManager
+        except ImportError:
+            self.skipTest("Medical redaction engine not available")
+        
         mock_client = MagicMock()
-        mock_client.is_enabled.return_value = True
+        mock_client.is_available.return_value = True
         mock_client.prove_redaction.return_value = {
             "verified": True,
-            "calldata": {"pubSignals": [123]}
+            "calldata": {"pubSignals": [123]},
+            "proof": {"pi_a": ["1", "2", "1"], "pi_b": [["1", "0"], ["1", "0"]], "pi_c": ["1", "2"]}
         }
+        mock_client.verify_proof.return_value = True
         
         manager = HybridSNARKManager(mock_client)
-        self.assertTrue(manager.use_real)
-        
-        # Should use real client
-        proof = manager.create_redaction_proof({"redaction_type": "DELETE"})
+        redaction_data = {
+            "redaction_type": "DELETE",
+            "request_id": "test_123",
+            "target_block": 10,
+            "target_tx": 2,
+            "requester": "test_user",
+            "merkle_root": "test_root",
+            "original_data": "test_original",
+            "redacted_data": "test_redacted"
+        }
+        proof = manager.create_redaction_proof(redaction_data)
         self.assertIsNotNone(proof)
         self.assertTrue(proof.proof_id.startswith("real_"))
+        mock_client.prove_redaction.assert_called_once()
     
-    def test_hybrid_snark_manager_simulation_mode(self):
-        """Test HybridSNARKManager in simulation mode."""
+    def test_hybrid_snark_manager_verify_proof(self):
+        """HybridSNARKManager.verify_redaction_proof should use the client verifier."""
         try:
             from medical.MedicalRedactionEngine import HybridSNARKManager
+            from ZK.SNARKs import ZKProof
         except ImportError:
             self.skipTest("Medical redaction engine not available")
         
-        # Test with no client (simulation)
-        manager = HybridSNARKManager(None)
-        self.assertFalse(manager.use_real)
-        
-        # Should use simulation with proper data structure
-        redaction_data = {
-            "redaction_type": "DELETE",
-            "request_id": "test_123",
-            "target_block": 10,
-            "target_tx": 2,
-            "requester": "test_user",
-            "merkle_root": "test_root",
-            "original_data": "test_original",
-            "redacted_data": "test_redacted"
-        }
-        proof = manager.create_redaction_proof(redaction_data)
-        self.assertIsNotNone(proof)
-        self.assertEqual(proof.operation_type, "DELETE")
-        self.assertFalse(proof.proof_id.startswith("real_"))
-    
-    def test_hybrid_snark_manager_fallback(self):
-        """Test HybridSNARKManager fallback from real to simulation."""
-        try:
-            from medical.MedicalRedactionEngine import HybridSNARKManager
-        except ImportError:
-            self.skipTest("Medical redaction engine not available")
-        
-        # Test with failing real client
         mock_client = MagicMock()
-        mock_client.is_enabled.return_value = True
-        mock_client.prove_redaction.side_effect = Exception("Proof generation failed")
+        mock_client.is_available.return_value = True
+        mock_client.verify_proof.return_value = True
         
         manager = HybridSNARKManager(mock_client)
-        self.assertTrue(manager.use_real)
-        
-        # Should fall back to simulation when real fails with proper data structure
-        redaction_data = {
-            "redaction_type": "DELETE",
-            "request_id": "test_123",
-            "target_block": 10,
-            "target_tx": 2,
-            "requester": "test_user",
-            "merkle_root": "test_root",
-            "original_data": "test_original",
-            "redacted_data": "test_redacted"
-        }
-        proof = manager.create_redaction_proof(redaction_data)
-        self.assertIsNotNone(proof)
-        self.assertEqual(proof.operation_type, "DELETE")
-        # Proof should be from simulation (not prefixed with "real_")
-        self.assertFalse(proof.proof_id.startswith("real_"))
+        proof = ZKProof(
+            proof_id="real_123",
+            operation_type="DELETE",
+            commitment="1",
+            nullifier="1",
+            merkle_root="0",
+            timestamp=0,
+            verifier_challenge=json.dumps({"pi_a": [], "pi_b": [], "pi_c": []}),
+            prover_response=json.dumps([0])
+        )
+        self.assertTrue(manager.verify_redaction_proof(proof, {}))
+        mock_client.verify_proof.assert_called_once()
 
 
 class TestConfigurationValidation(unittest.TestCase):

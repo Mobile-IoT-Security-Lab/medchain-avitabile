@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .config import env_bool, env_str
+from .config import env_str
 
 
 class SnarkClient:
@@ -26,10 +26,15 @@ class SnarkClient:
         self.wasm_path = self.build_dir / "redaction_js" / "redaction.wasm"
         self.zkey_path = self.build_dir / "redaction_final.zkey"
         self.vkey_path = self.build_dir / "verification_key.json"
+        if not self.is_available():
+            raise FileNotFoundError(
+                "Required SNARK artifacts not found. Ensure redaction.wasm, redaction_final.zkey, "
+                "and verification_key.json are present in circuits/build."
+            )
         
     def is_enabled(self) -> bool:
-        """Check if real SNARK functionality is enabled."""
-        return env_bool("USE_REAL_SNARK", False)
+        """Real SNARK functionality is always enabled."""
+        return True
     
     def is_available(self) -> bool:
         """Check if all required circuit artifacts are available."""
@@ -58,8 +63,8 @@ class SnarkClient:
     
     def generate_witness(self, public_inputs: Dict[str, Any], private_inputs: Dict[str, Any]) -> Optional[Path]:
         """Generate witness from inputs using snarkjs wtns calculate."""
-        if not self.is_enabled() or not self.is_available():
-            return None
+        if not self.is_available():
+            raise RuntimeError("SNARK artifacts missing; cannot generate witness")
             
         # Combine all inputs
         inputs = {**public_inputs, **private_inputs}
@@ -87,8 +92,8 @@ class SnarkClient:
     
     def prove(self, witness_path: Path) -> Optional[Tuple[Dict[str, Any], List[str]]]:
         """Generate Groth16 proof from witness."""
-        if not self.is_enabled() or not witness_path.exists():
-            return None
+        if not witness_path.exists():
+            raise RuntimeError("Witness file not found for Groth16 proof generation")
             
         proof_path = self.build_dir / "proof.json"
         public_path = self.build_dir / "public.json"
@@ -119,8 +124,8 @@ class SnarkClient:
     
     def verify_proof(self, proof: Dict[str, Any], public_signals: List[str]) -> bool:
         """Verify proof using snarkjs groth16 verify."""
-        if not self.is_enabled() or not self.is_available():
-            return False
+        if not self.is_available():
+            raise RuntimeError("SNARK artifacts missing; cannot verify proof")
             
         # Create temporary files
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
@@ -186,9 +191,6 @@ class SnarkClient:
     
     def prove_redaction(self, public_inputs: Dict[str, Any], private_inputs: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Generate complete redaction proof with formatted calldata."""
-        if not self.is_enabled():
-            return None
-            
         # Generate witness
         witness_path = self.generate_witness(public_inputs, private_inputs)
         if not witness_path:
@@ -274,4 +276,3 @@ class SnarkClient:
 
 # Backward compatibility aliases
 RealSnarkClient = SnarkClient
-

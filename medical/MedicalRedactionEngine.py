@@ -13,10 +13,11 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 import copy
 
-from ZK.SNARKs import RedactionSNARKManager, ZKProof
+from ZK.SNARKs import ZKProof
 from ZK.ProofOfConsistency import ConsistencyProofGenerator, ConsistencyCheckType, ConsistencyProof
 from Models.SmartContract import SmartContract, RedactionPolicy
 from adapters.config import env_bool, env_str
+from medical.circuit_mapper import MedicalDataCircuitMapper
 import os
 try:
     from medical.backends import RedactionBackend, SimulatedBackend, EVMBackend  # type: ignore
@@ -96,67 +97,82 @@ class MedicalDataRecord:
     
 
 class HybridSNARKManager:
-    """Hybrid SNARK manager that can use either real snarkjs adapter or simulation."""
+    """SNARK manager that always uses the real snarkjs adapter."""
     
     def __init__(self, snark_client=None):
+        if snark_client is None:
+            raise ValueError("HybridSNARKManager requires a real SnarkClient instance")
+        if not hasattr(snark_client, "is_available") or not snark_client.is_available():
+            raise ValueError("SnarkClient is not ready: circuit artifacts missing")
         self.snark_client = snark_client
-        self.simulation_manager = RedactionSNARKManager()
-        self.use_real = snark_client is not None and snark_client.is_enabled()
+        self.circuit_mapper = MedicalDataCircuitMapper()
+    
+    def _extract_medical_record_dict(self, redaction_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert redaction payload into a canonical medical record dictionary."""
+        original_data = redaction_data.get("original_data", "{}")
+        try:
+            record_dict = json.loads(original_data)
+            if isinstance(record_dict, dict) and "patient_id" in record_dict:
+                return record_dict
+        except (json.JSONDecodeError, TypeError):
+            pass
+        return {
+            "patient_id": redaction_data.get("request_id", "unknown"),
+            "diagnosis": original_data if isinstance(original_data, str) else str(original_data),
+            "treatment": "",
+            "physician": redaction_data.get("requester", "unknown")
+        }
     
     def create_redaction_proof(self, redaction_data: Dict[str, Any]) -> Optional[ZKProof]:
-        """Create a redaction proof using real snarkjs or simulation."""
-        if self.use_real and self.snark_client:
-            try:
-                # Map redaction data to circuit inputs
-                public_inputs = {
-                    "policyHash0": 0,  # TODO: compute from policy
-                    "policyHash1": 0,
-                    "merkleRoot0": 0,  # TODO: compute from state
-                    "merkleRoot1": 0,
-                    "policyAllowed": 1
-                }
-                
-                private_inputs = {
-                    "originalHash0": 0,  # TODO: compute from original data
-                    "originalHash1": 0,
-                    "redactedHash0": 0,  # TODO: compute from redacted data
-                    "redactedHash1": 0,
-                    "originalData": [0, 0, 0, 0],
-                    "redactedData": [0, 0, 0, 0],
-                    "policyData": [0, 0],
-                    "merklePathElements": [0, 0, 0, 0, 0, 0, 0, 0],
-                    "merklePathIndices": [0, 0, 0, 0, 0, 0, 0, 0],
-                    "enforceMerkle": 0
-                }
-                
-                result = self.snark_client.prove_redaction(public_inputs, private_inputs)
-                if result and result.get("verified"):
-                    # Convert to simulation format for compatibility
-                    return ZKProof(
-                        proof_id=f"real_{int(time.time())}",
-                        operation_type=redaction_data.get("redaction_type", "MODIFY"),
-                        commitment=str(result["calldata"]["pubSignals"][0]),
-                        nullifier=f"nullifier_{int(time.time())}",
-                        merkle_root=redaction_data.get("merkle_root", ""),
-                        timestamp=int(time.time()),
-                        verifier_challenge="real_challenge",
-                        prover_response="real_response"
-                    )
-            except Exception as e:
-                print(f"Real SNARK proof generation failed: {e}")
-                # Fall back to simulation
-                
-        # Use simulation fallback
-        return self.simulation_manager.create_redaction_proof(redaction_data)
+        """Create a redaction proof using real snarkjs."""
+        try:
+            medical_record_dict = self._extract_medical_record_dict(redaction_data)
+            redaction_type = redaction_data.get("redaction_type", "MODIFY")
+            policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
+            
+            circuit_inputs = self.circuit_mapper.prepare_circuit_inputs(
+                medical_record_dict,
+                redaction_type,
+                policy_hash
+            )
+            if not self.circuit_mapper.validate_circuit_inputs(circuit_inputs):
+                raise ValueError("Invalid circuit inputs for SNARK proof generation")
+            
+            result = self.snark_client.prove_redaction(
+                circuit_inputs.public_inputs,
+                circuit_inputs.private_inputs
+            )
+            if not result or not result.get("verified"):
+                raise ValueError("snarkjs failed to generate or verify the proof")
+            
+            calldata = result.get("calldata", {})
+            pub_signals = calldata.get("pubSignals", [])
+            if not pub_signals:
+                raise ValueError("Missing public signals from SNARK proof result")
+            
+            return ZKProof(
+                proof_id=f"real_{int(time.time())}_{hash(str(pub_signals)) % 1_000_000}",
+                operation_type=redaction_type,
+                commitment=str(pub_signals[0]),
+                nullifier=f"nullifier_{int(time.time())}",
+                merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
+                timestamp=int(time.time()),
+                verifier_challenge=json.dumps(result.get("proof", {})),
+                prover_response=json.dumps(pub_signals)
+            )
+        except Exception as exc:
+            print(f"Real SNARK proof generation failed: {exc}")
+            return None
     
     def verify_redaction_proof(self, proof: ZKProof, public_inputs: Dict[str, Any]) -> bool:
-        """Verify a redaction proof."""
-        if self.use_real and proof.proof_id.startswith("real_"):
-            # For real proofs, verification was done during generation
-            return True
-        
-        # Use simulation verification
-        return self.simulation_manager.verify_redaction_proof(proof, public_inputs)
+        """Verify a redaction proof using snarkjs artifacts."""
+        try:
+            proof_payload = json.loads(proof.verifier_challenge)
+            public_signals = json.loads(proof.prover_response)
+            return self.snark_client.verify_proof(proof_payload, public_signals)
+        except Exception as exc:
+            print(f"Failed to verify SNARK proof {proof.proof_id}: {exc}")
+            return False
 
 
 class MedicalDataContract(SmartContract):
@@ -307,19 +323,14 @@ class MyRedactionEngine:
     
     def __init__(self):
         # Feature toggles
-        self._use_real_snark = env_bool("USE_REAL_SNARK", False)
         self._use_real_evm = env_bool("USE_REAL_EVM", False)
 
-        # SNARK backend: real (if available) or simulated
-        if self._use_real_snark:
-            try:
-                from adapters.snark import SnarkClient
-                self.snark_client = SnarkClient()
-            except Exception:
-                self.snark_client = None
-                self._use_real_snark = False
-        else:
-            self.snark_client = None
+        # SNARK backend: real snarkjs integration is mandatory
+        try:
+            from adapters.snark import SnarkClient
+            self.snark_client = SnarkClient()
+        except Exception as exc:
+            raise RuntimeError("Real SNARK proofs are required but SnarkClient failed to initialize") from exc
 
         self.snark_manager = HybridSNARKManager(self.snark_client)
         self.consistency_generator = ConsistencyProofGenerator()
@@ -482,21 +493,17 @@ class MyRedactionEngine:
             
             print(f" Redaction request {request_id} created with SNARK proof {zk_proof.proof_id}")
 
-            # If EVM backend is attached, mirror the request on-chain.
-            # When real SNARKs are enabled, pass snarkjs proof file paths so the EVM adapter
-            # can build Groth16 calldata (pA, pB, pC, pubSignals).
+            # If EVM backend is attached, mirror the request on-chain and provide proof artifacts.
             try:
                 if self._backend_mode == "EVM" and self.evm_client is not None:
                     proof_payload = None
-                    if self._use_real_snark and self.snark_client is not None:
-                        # Default snarkjs output locations used by adapters/evm.py
-                        proof_json_path = os.path.join(str(self.snark_client.build_dir), "proof.json")
-                        public_json_path = os.path.join(str(self.snark_client.build_dir), "public.json")
-                        if os.path.exists(proof_json_path) and os.path.exists(public_json_path):
-                            proof_payload = {
-                                "proof_json_path": proof_json_path,
-                                "public_json_path": public_json_path,
-                            }
+                    proof_json_path = os.path.join(str(self.snark_client.build_dir), "proof.json")
+                    public_json_path = os.path.join(str(self.snark_client.build_dir), "public.json")
+                    if os.path.exists(proof_json_path) and os.path.exists(public_json_path):
+                        proof_payload = {
+                            "proof_json_path": proof_json_path,
+                            "public_json_path": public_json_path,
+                        }
                     _ = self.backend.request_data_redaction(
                         patient_id=patient_id,
                         redaction_type=redaction_type,

@@ -6,7 +6,6 @@ against either the simulated in-memory contract or an EVM-backed adapter.
 from __future__ import annotations
 
 from typing import Optional, Any, Dict
-from adapters.config import env_bool
 
 
 class RedactionBackend:
@@ -106,25 +105,24 @@ class EVMBackend(RedactionBackend):
                     proof_payload.get("original_hash", b"\x00" * 32),
                     proof_payload.get("redacted_hash", b"\x00" * 32),
                 )
-            # If real SNARK flag is set, try Groth16 call using provided paths or defaults
-            if env_bool("USE_REAL_SNARK", False):
-                if proof_payload and (
-                    proof_payload.get("proof_json_path") or proof_payload.get("public_json_path")
-                ):
-                    return self.evm.requestDataRedactionFromSnarkjs(
-                        self.contract,
-                        patient_id,
-                        redaction_type,
-                        reason,
-                        proof_json_path=proof_payload.get("proof_json_path"),
-                        public_json_path=proof_payload.get("public_json_path"),
-                    )
-                # Otherwise, auto-discover default paths under circuits/build
-                return self.evm.requestDataRedactionAuto(
-                    self.contract, patient_id, redaction_type, reason
+            if proof_payload and (
+                proof_payload.get("proof_json_path") or proof_payload.get("public_json_path")
+            ):
+                return self.evm.requestDataRedactionFromSnarkjs(
+                    self.contract,
+                    patient_id,
+                    redaction_type,
+                    reason,
+                    proof_json_path=proof_payload.get("proof_json_path"),
+                    public_json_path=proof_payload.get("public_json_path"),
                 )
-            # Fallback: no proof required
-            return self.evm.requestDataRedaction(self.contract, patient_id, redaction_type, reason)
+            # Auto-discover default paths under circuits/build if not provided explicitly
+            return self.evm.requestDataRedactionAuto(
+                self.contract,
+                patient_id,
+                redaction_type,
+                reason,
+            )
         except Exception:
             return None
 

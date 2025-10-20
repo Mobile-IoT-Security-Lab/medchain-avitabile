@@ -35,7 +35,6 @@ class EVMClient:
         self._w3 = None
         self._acct = None
         self._artifacts_dir = env_str("CONTRACT_ARTIFACTS_DIR", "contracts/artifacts")
-        self._use_real_snark = env_bool("USE_REAL_SNARK", False)
 
     def is_enabled(self) -> bool:
         return env_bool("USE_REAL_EVM", False)
@@ -210,14 +209,12 @@ class EVMClient:
     ) -> Optional[str]:
         if not self._connected:
             return None
-        if self._use_real_snark:
-            tx = self.requestDataRedactionFromSnarkjs(
-                contract, patient_id, redaction_type, reason, proof_json_path, public_json_path
-            )
-            if tx:
-                return tx
-        # Fallback to request without proof
-        return self.requestDataRedaction(contract, patient_id, redaction_type, reason)
+        tx = self.requestDataRedactionFromSnarkjs(
+            contract, patient_id, redaction_type, reason, proof_json_path, public_json_path
+        )
+        if tx:
+            return tx
+        return None
 
     def approveRedaction(self, contract, request_id: int) -> Optional[str]:
         if not self._connected:

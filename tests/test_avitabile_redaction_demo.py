@@ -8,6 +8,9 @@ from demo.avitabile_redaction_demo import run_avitabile_redaction_demo
 
 class TestAvitabileRedactionDemo(unittest.TestCase):
     def test_run(self):
+        from shutil import which
+        if which("snarkjs") is None:
+            self.skipTest("snarkjs CLI not available; real proof generation required")
         engine, rid_delete, rid_anon = run_avitabile_redaction_demo()
         self.assertTrue(rid_delete)
         self.assertTrue(rid_anon)

@@ -30,52 +30,41 @@ class TestSnarkAdapterInterface(unittest.TestCase):
         self.assertIsInstance(client.build_dir, Path)
     
     def test_snark_client_configuration_flags(self):
-        """Test configuration flag handling."""
+        """Test configuration and availability checks."""
         client = self.snark_class()
         
-        # Test enabled check
-        enabled = client.is_enabled()
-        self.assertIsInstance(enabled, bool)
+        # Real proofs are always enabled
+        self.assertTrue(client.is_enabled())
         
-        # Test availability check
+        # Availability reflects presence of circuit artifacts
         available = client.is_available()
         self.assertIsInstance(available, bool)
     
-    @patch.dict(os.environ, {"USE_REAL_SNARK": "0"})
-    def test_snark_client_disabled_mode(self):
-        """Test SNARK client behavior when disabled."""
-        client = self.snark_class()
-        
-        # Should not be enabled
-        self.assertFalse(client.is_enabled())
-        
-        # Methods should return None when disabled
-        result = client.generate_witness({"test": 1}, {"private": 2})
-        self.assertIsNone(result)
-        
-        result = client.prove_redaction({"test": 1}, {"private": 2})
-        self.assertIsNone(result)
+    def test_snark_client_requires_artifacts(self):
+        """SNARK client should raise if required artifacts are missing."""
+        with patch('pathlib.Path.exists', return_value=False):
+            with self.assertRaises(FileNotFoundError):
+                self.snark_class()
     
     @patch('subprocess.run')
     def test_snark_witness_generation_interface(self, mock_run):
         """Test witness generation interface."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "1"}):
-            client = self.snark_class()
+        client = self.snark_class()
+        
+        # Mock file existence checks using patch
+        with patch('pathlib.Path.exists', return_value=True):
             
-            # Mock file existence checks using patch
-            with patch('pathlib.Path.exists', return_value=True):
-                
-                # Mock witness file creation
-                result = client.generate_witness({"public": 1}, {"private": 2})
-                
-                # Should call snarkjs
-                self.assertTrue(mock_run.called)
-                args = mock_run.call_args[0][0]
-                self.assertEqual(args[0], "snarkjs")
-                self.assertEqual(args[1], "wtns")
-                self.assertEqual(args[2], "calculate")
+            # Mock witness file creation
+            result = client.generate_witness({"public": 1}, {"private": 2})
+            
+            # Should call snarkjs
+            self.assertTrue(mock_run.called)
+            args = mock_run.call_args[0][0]
+            self.assertEqual(args[0], "snarkjs")
+            self.assertEqual(args[1], "wtns")
+            self.assertEqual(args[2], "calculate")
     
     def test_snark_calldata_formatting(self):
         """Test calldata formatting for Solidity."""
@@ -225,11 +214,17 @@ class TestAdapterIntegration(unittest.TestCase):
         except ImportError:
             self.skipTest("Medical redaction engine not available")
 
-        # Test with no client (simulation mode)
-        manager = HybridSNARKManager(None)
-        self.assertFalse(manager.use_real)
+        mock_client = MagicMock()
+        mock_client.is_available.return_value = True
+        mock_client.prove_redaction.return_value = {
+            "verified": True,
+            "calldata": {"pubSignals": [123456]},
+            "proof": {"pi_a": ["1", "2", "1"], "pi_b": [["1", "0"], ["1", "0"]], "pi_c": ["1", "2"]}
+        }
+        mock_client.verify_proof.return_value = True
 
-        # Test proof creation fallback with proper data structure
+        manager = HybridSNARKManager(mock_client)
+
         redaction_data = {
             "redaction_type": "DELETE",
             "request_id": "test_123",
@@ -243,6 +238,7 @@ class TestAdapterIntegration(unittest.TestCase):
         proof = manager.create_redaction_proof(redaction_data)
         self.assertIsNotNone(proof)
         self.assertEqual(proof.operation_type, "DELETE")
+        mock_client.prove_redaction.assert_called_once()
 
     def test_medical_redaction_engine_adapter_integration(self):
         """Test medical redaction engine integrates adapters properly."""
@@ -251,7 +247,16 @@ class TestAdapterIntegration(unittest.TestCase):
         except ImportError:
             self.skipTest("Medical redaction engine not available")
 
-        with patch.dict(os.environ, {"USE_REAL_SNARK": "0", "USE_REAL_EVM": "0"}):
+        mock_client = MagicMock()
+        mock_client.is_available.return_value = True
+        mock_client.prove_redaction.return_value = {
+            "verified": True,
+            "calldata": {"pubSignals": [789]},
+            "proof": {"pi_a": ["1", "2", "1"], "pi_b": [["1", "0"], ["1", "0"]], "pi_c": ["1", "2"]}
+        }
+        mock_client.verify_proof.return_value = True
+
+        with patch("adapters.snark.SnarkClient", return_value=mock_client):
             engine = MyRedactionEngine()
 
             # Should have adapter components

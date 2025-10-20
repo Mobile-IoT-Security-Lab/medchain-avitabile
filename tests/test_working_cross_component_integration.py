@@ -7,11 +7,12 @@ These tests validate the integration between IPFS, SNARK, and EVM components
 using the actual working interfaces and patterns from the existing codebase.
 """
 
-import pytest
 import json
 import hashlib
 import time
 from typing import Dict, Any, Optional
+from shutil import which
+import pytest
 
 # Import components that actually work
 from medical.MedicalRedactionEngine import MyRedactionEngine
@@ -90,6 +91,8 @@ class TestWorkingCrossComponentIntegration:
     
     def test_snark_evm_basic_integration(self):
         """Test basic SNARK-EVM integration using working interfaces."""
+        if which("snarkjs") is None:
+            pytest.skip("snarkjs CLI not available; real proof generation required")
         
         # Step 1: Prepare redaction scenario
         original_data = self.test_patient_data.copy()
@@ -128,6 +131,8 @@ class TestWorkingCrossComponentIntegration:
     
     def test_full_pipeline_simplified(self):
         """Test simplified full pipeline across all components."""
+        if which("snarkjs") is None:
+            pytest.skip("snarkjs CLI not available; real proof generation required")
         
         print("\n" + "=" * 50)
         print("SIMPLIFIED FULL PIPELINE TEST")

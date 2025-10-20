@@ -14,7 +14,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 
-from ZK.SNARKs import RedactionSNARKManager, ZKProof
+from ZK.SNARKs import ZKProof
 
 try:
     from medical.circuit_mapper import MedicalDataCircuitMapper
@@ -33,9 +33,8 @@ class EnhancedHybridSNARKManager:
     
     This manager:
     1. Uses MedicalDataCircuitMapper to prepare proper circuit inputs
-    2. Generates real Groth16 proofs via snarkjs when enabled
-    3. Falls back to simulation mode when real mode unavailable
-    4. Provides seamless switching between modes
+    2. Generates real Groth16 proofs via snarkjs
+    3. Provides detailed diagnostics for proof generation
     """
     
     def __init__(self, snark_client: Optional[Any] = None):
@@ -45,22 +44,16 @@ class EnhancedHybridSNARKManager:
         Args:
             snark_client: Optional SnarkClient instance for real proof generation
         """
+        if snark_client is None:
+            from adapters.snark import SnarkClient
+            snark_client = SnarkClient()
+        if not hasattr(snark_client, 'is_available') or not snark_client.is_available():
+            raise ValueError("EnhancedHybridSNARKManager requires a ready SnarkClient with circuit artifacts")
+        if MedicalDataCircuitMapper is None:
+            raise ImportError("MedicalDataCircuitMapper is required for real SNARK proofs")
+
         self.snark_client = snark_client
-        self.simulation_manager = RedactionSNARKManager()
-        self.circuit_mapper = MedicalDataCircuitMapper() if MedicalDataCircuitMapper else None
-        self.use_real = (
-            snark_client is not None and 
-            hasattr(snark_client, 'is_enabled') and
-            snark_client.is_enabled() and
-            hasattr(snark_client, 'is_available') and
-            snark_client.is_available() and
-            self.circuit_mapper is not None
-        )
-        
-        if self.use_real:
-            print(f" Enhanced SNARK manager initialized in REAL mode")
-        else:
-            print(f" Enhanced SNARK manager initialized in SIMULATION mode")
+        self.circuit_mapper = MedicalDataCircuitMapper()
     
     def _extract_medical_record_dict(self, redaction_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -97,80 +90,69 @@ class EnhancedHybridSNARKManager:
         """
         Create a redaction proof using real snarkjs or simulation.
         
-        This method:
-        1. Extracts medical record from redaction data
-        2. Uses circuit mapper to prepare proper inputs
-        3. Generates real Groth16 proof if enabled
-        4. Falls back to simulation if real mode fails or is disabled
-        
         Args:
             redaction_data: Dictionary containing redaction request details
             
         Returns:
             ZKProof object if successful, None otherwise
         """
-        if self.use_real and self.snark_client and self.circuit_mapper:
-            try:
-                print(f" Generating real SNARK proof...")
-                
-                # Extract medical record
-                medical_record_dict = self._extract_medical_record_dict(redaction_data)
-                
-                # Get redaction type and policy
-                redaction_type = redaction_data.get("redaction_type", "MODIFY")
-                policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
-                
-                # Use circuit mapper to prepare inputs
-                circuit_inputs = self.circuit_mapper.prepare_circuit_inputs(
-                    medical_record_dict,
-                    redaction_type,
-                    policy_hash
-                )
-                
-                # Validate inputs
-                if not self.circuit_mapper.validate_circuit_inputs(circuit_inputs):
-                    print(f"  Circuit input validation failed")
-                    raise ValueError("Invalid circuit inputs")
-                
-                print(f"   Circuit inputs prepared and validated")
-                
-                # Generate real SNARK proof using snarkjs
-                result = self.snark_client.prove_redaction(
-                    circuit_inputs.public_inputs,
-                    circuit_inputs.private_inputs
-                )
-                
-                if result and result.get("verified"):
-                    print(f" Real SNARK proof generated and verified")
-                    
-                    # Extract calldata
-                    calldata = result.get("calldata", {})
-                    pub_signals = calldata.get("pubSignals", [])
-                    
-                    # Create ZKProof object compatible with existing system
-                    proof = ZKProof(
-                        proof_id=f"real_groth16_{int(time.time())}_{hash(str(pub_signals)) % 10000}",
-                        operation_type=redaction_type,
-                        commitment=str(pub_signals[0] if pub_signals else 0),
-                        nullifier=f"nullifier_real_{int(time.time())}",
-                        merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
-                        timestamp=int(time.time()),
-                        verifier_challenge=json.dumps(result.get("proof", {})),
-                        prover_response=json.dumps(pub_signals)
-                    )
-                    
-                    return proof
-                else:
-                    print(f"  Real SNARK proof verification failed")
-                    raise ValueError("Proof verification failed")
-                    
-            except Exception as e:
-                print(f"  Real SNARK proof generation failed: {e}")
-                print(f"   Falling back to simulation mode")
-        
-        # Use simulation fallback
-        print(f" Generating simulated SNARK proof...")
-        return self.simulation_manager.create_redaction_proof(redaction_data)
+        try:
+            print(f" Generating real SNARK proof...")
+            
+            # Extract medical record
+            medical_record_dict = self._extract_medical_record_dict(redaction_data)
+            
+            # Get redaction type and policy
+            redaction_type = redaction_data.get("redaction_type", "MODIFY")
+            policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
+            
+            # Use circuit mapper to prepare inputs
+            circuit_inputs = self.circuit_mapper.prepare_circuit_inputs(
+                medical_record_dict,
+                redaction_type,
+                policy_hash
+            )
+            
+            # Validate inputs
+            if not self.circuit_mapper.validate_circuit_inputs(circuit_inputs):
+                print(f"  Circuit input validation failed")
+                raise ValueError("Invalid circuit inputs")
+            
+            print(f"   Circuit inputs prepared and validated")
+            
+            # Generate real SNARK proof using snarkjs
+            result = self.snark_client.prove_redaction(
+                circuit_inputs.public_inputs,
+                circuit_inputs.private_inputs
+            )
+            
+            if not result or not result.get("verified"):
+                print(f"  Real SNARK proof verification failed")
+                raise ValueError("Proof verification failed")
+            
+            # Extract calldata
+            calldata = result.get("calldata", {})
+            pub_signals = calldata.get("pubSignals", [])
+            if not pub_signals:
+                raise ValueError("Missing public signals from proof result")
+            
+            # Create ZKProof object compatible with existing system
+            proof = ZKProof(
+                proof_id=f"real_groth16_{int(time.time())}_{hash(str(pub_signals)) % 10000}",
+                operation_type=redaction_type,
+                commitment=str(pub_signals[0]),
+                nullifier=f"nullifier_real_{int(time.time())}",
+                merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
+                timestamp=int(time.time()),
+                verifier_challenge=json.dumps(result.get("proof", {})),
+                prover_response=json.dumps(pub_signals)
+            )
+            
+            return proof
+            
+        except Exception as e:
+            print(f"  Real SNARK proof generation failed: {e}")
+            return None
     
     def create_redaction_proof_with_consistency(
         self,
@@ -180,12 +162,6 @@ class EnhancedHybridSNARKManager:
         """
         Create a redaction proof WITH consistency verification integrated.
         
-        This method:
-        1. Extracts medical record from redaction data
-        2. Uses circuit mapper to prepare inputs WITH consistency proof data
-        3. Generates real Groth16 proof that includes consistency verification
-        4. Falls back to simulation if real mode fails or is disabled
-        
         Args:
             redaction_data: Dictionary containing redaction request details
             consistency_proof: Optional ConsistencyProof object to integrate
@@ -193,69 +169,64 @@ class EnhancedHybridSNARKManager:
         Returns:
             ZKProof object if successful, None otherwise
         """
-        if self.use_real and self.snark_client and self.circuit_mapper:
-            try:
-                print(f" Generating real SNARK proof WITH consistency verification...")
-                
-                # Extract medical record
-                medical_record_dict = self._extract_medical_record_dict(redaction_data)
-                
-                # Get redaction type and policy
-                redaction_type = redaction_data.get("redaction_type", "MODIFY")
-                policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
-                
-                # Use circuit mapper to prepare inputs WITH consistency proof
-                circuit_inputs = self.circuit_mapper.prepare_circuit_inputs_with_consistency(
-                    medical_record_dict,
-                    redaction_type,
-                    policy_hash,
-                    consistency_proof
-                )
-                
-                # Validate inputs with consistency
-                if not self.circuit_mapper.validate_circuit_inputs_with_consistency(circuit_inputs):
-                    print(f"  Circuit input validation failed (with consistency)")
-                    raise ValueError("Invalid circuit inputs with consistency")
-                
-                print(f"   Circuit inputs prepared and validated (with consistency)")
-                
-                # Generate real SNARK proof using snarkjs
-                result = self.snark_client.prove_redaction(
-                    circuit_inputs.public_inputs,
-                    circuit_inputs.private_inputs
-                )
-                
-                if result and result.get("verified"):
-                    print(f" Real SNARK proof with consistency generated and verified")
-                    
-                    # Extract calldata
-                    calldata = result.get("calldata", {})
-                    pub_signals = calldata.get("pubSignals", [])
-                    
-                    # Create ZKProof object compatible with existing system
-                    proof = ZKProof(
-                        proof_id=f"real_groth16_consistency_{int(time.time())}_{hash(str(pub_signals)) % 10000}",
-                        operation_type=redaction_type,
-                        commitment=str(pub_signals[0] if pub_signals else 0),
-                        nullifier=f"nullifier_real_{int(time.time())}",
-                        merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
-                        timestamp=int(time.time()),
-                        verifier_challenge=json.dumps(result.get("proof", {})),
-                        prover_response=json.dumps(pub_signals)
-                    )
-                    
-                    return proof
-                else:
-                    print(f"  Real SNARK proof verification failed")
-                    raise ValueError("Proof verification failed")
-                    
-            except Exception as e:
-                print(f"  Real SNARK proof with consistency generation failed: {e}")
-                print(f"   Falling back to simulation mode")
-        
-        # Use simulation fallback (without consistency integration)
-        print(f" Generating simulated SNARK proof (consistency not integrated in simulation)...")
-        return self.simulation_manager.create_redaction_proof(redaction_data)
+        try:
+            print(f" Generating real SNARK proof WITH consistency verification...")
+            
+            # Extract medical record
+            medical_record_dict = self._extract_medical_record_dict(redaction_data)
+            
+            # Get redaction type and policy
+            redaction_type = redaction_data.get("redaction_type", "MODIFY")
+            policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
+            
+            # Use circuit mapper to prepare inputs WITH consistency proof
+            circuit_inputs = self.circuit_mapper.prepare_circuit_inputs_with_consistency(
+                medical_record_dict,
+                redaction_type,
+                policy_hash,
+                consistency_proof
+            )
+            
+            # Validate inputs with consistency
+            if not self.circuit_mapper.validate_circuit_inputs_with_consistency(circuit_inputs):
+                print(f"  Circuit input validation failed (with consistency)")
+                raise ValueError("Invalid circuit inputs with consistency")
+            
+            print(f"   Circuit inputs prepared and validated (with consistency)")
+            
+            # Generate real SNARK proof using snarkjs
+            result = self.snark_client.prove_redaction(
+                circuit_inputs.public_inputs,
+                circuit_inputs.private_inputs
+            )
+            
+            if not result or not result.get("verified"):
+                print(f"  Real SNARK proof verification failed")
+                raise ValueError("Proof verification failed")
+            
+            # Extract calldata
+            calldata = result.get("calldata", {})
+            pub_signals = calldata.get("pubSignals", [])
+            if not pub_signals:
+                raise ValueError("Missing public signals from proof result")
+            
+            # Create ZKProof object compatible with existing system
+            proof = ZKProof(
+                proof_id=f"real_groth16_consistency_{int(time.time())}_{hash(str(pub_signals)) % 10000}",
+                operation_type=redaction_type,
+                commitment=str(pub_signals[0]),
+                nullifier=f"nullifier_real_{int(time.time())}",
+                merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
+                timestamp=int(time.time()),
+                verifier_challenge=json.dumps(result.get("proof", {})),
+                prover_response=json.dumps(pub_signals)
+            )
+            
+            return proof
+            
+        except Exception as e:
+            print(f"  Real SNARK proof with consistency generation failed: {e}")
+            return None
     
     def verify_redaction_proof(self, proof: ZKProof, public_inputs: Dict[str, Any]) -> bool:
         """
@@ -268,15 +239,16 @@ class EnhancedHybridSNARKManager:
         Returns:
             True if proof is valid, False otherwise
         """
-        # Check if this is a real proof
-        if proof.proof_id.startswith("real_groth16_"):
-            # For real Groth16 proofs, verification was done during generation
-            # The proof would not exist if verification failed
-            print(f" Real SNARK proof {proof.proof_id} is valid (pre-verified)")
-            return True
-        
-        # Use simulation verification for simulated proofs
-        return self.simulation_manager.verify_redaction_proof(proof, public_inputs)
+        try:
+            proof_payload = json.loads(proof.verifier_challenge)
+            public_signals = json.loads(proof.prover_response)
+            is_valid = self.snark_client.verify_proof(proof_payload, public_signals)
+            if not is_valid:
+                print(f" Proof {proof.proof_id} failed verification")
+            return is_valid
+        except Exception as e:
+            print(f" Verification error for proof {proof.proof_id}: {e}")
+            return False
     
     def get_proof_metadata(self, proof: ZKProof) -> Dict[str, Any]:
         """
@@ -288,12 +260,10 @@ class EnhancedHybridSNARKManager:
         Returns:
             Dictionary with proof metadata
         """
-        is_real = proof.proof_id.startswith("real_groth16_")
-        
         return {
             "proof_id": proof.proof_id,
             "operation_type": proof.operation_type,
-            "mode": "REAL_GROTH16" if is_real else "SIMULATION",
+            "mode": "REAL_GROTH16",
             "timestamp": proof.timestamp,
             "commitment": proof.commitment,
             "nullifier": proof.nullifier,
@@ -307,7 +277,7 @@ class EnhancedHybridSNARKManager:
         Returns:
             True if real mode is available, False otherwise
         """
-        return self.use_real
+        return True
     
     def get_mode_info(self) -> Dict[str, Any]:
         """
@@ -316,35 +286,13 @@ class EnhancedHybridSNARKManager:
         Returns:
             Dictionary with mode information
         """
-        if self.use_real:
-            return {
-                "mode": "REAL",
-                "backend": "circom/snarkjs",
-                "circuit": "redaction.circom",
-                "proof_system": "Groth16",
-                "circuit_mapper": "enabled"
-            }
-        else:
-            reasons = []
-            if self.snark_client is None:
-                reasons.append("no snark client")
-            elif not hasattr(self.snark_client, 'is_enabled'):
-                reasons.append("client not configured")
-            elif not self.snark_client.is_enabled():
-                reasons.append("USE_REAL_SNARK=0")
-            elif not hasattr(self.snark_client, 'is_available'):
-                reasons.append("availability check missing")
-            elif not self.snark_client.is_available():
-                reasons.append("circuit artifacts missing")
-            if self.circuit_mapper is None:
-                reasons.append("circuit mapper not available")
-            
-            return {
-                "mode": "SIMULATION",
-                "backend": "Python cryptography",
-                "reasons": reasons,
-                "fallback": True
-            }
+        return {
+            "mode": "REAL",
+            "backend": "circom/snarkjs",
+            "circuit": "redaction.circom",
+            "proof_system": "Groth16",
+            "circuit_mapper": "enabled"
+        }
 
 
 # Example usage and testing
