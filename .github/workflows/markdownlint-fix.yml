@@ -1,0 +1,43 @@
+name: Markdown Autofix
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  markdownlint:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Fix markdown lint issues
+        run: |
+          npx --yes markdownlint-cli2 --fix "**/*.md" "#node_modules" "#**/node_modules" "#**/dist" "#**/build" || true
+
+      - name: Commit and push fixes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! git status --porcelain | grep -q '\.md$'; then
+            echo "No markdown updates to commit."
+            exit 0
+          fi
+
+          if git status --porcelain | grep -v '\.md$'; then
+            echo "Non-markdown changes detected; skipping commit."
+            exit 0
+          fi
+
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git commit -am "chore: fix markdown lint issues [skip ci]" || exit 0
+          git push || true
