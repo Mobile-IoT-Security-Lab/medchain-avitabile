@@ -2,6 +2,8 @@
 
 Provides Python wrapper for snarkjs functionality including witness generation,
 proof creation, and calldata formatting for Solidity verifiers.
+
+### Bookmark1 for next meeting
 """
 from __future__ import annotations
 

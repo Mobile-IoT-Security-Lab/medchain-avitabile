@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Unit test for the Proof-of-Consistency demonstration in ProofOfConsistency.py
+
+### Bookmark1 for next meeting
 """
 import sys
 import os

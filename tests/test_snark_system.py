@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Unit test for the SNARK system demonstration in SNARKs.py
+
+### Bookmark1 for next meeting
 """
 import sys
 import os

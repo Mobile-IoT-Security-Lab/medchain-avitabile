@@ -4,6 +4,8 @@ for Data Redaction in Smart-Contract-Enabled Permissioned Blockchains
 
 This module implements zk-SNARKs to provide privacy-preserving proofs for redaction operations
 while maintaining blockchain consistency and auditability.
+
+### Bookmark1 for next meeting
 """
 
 import hashlib

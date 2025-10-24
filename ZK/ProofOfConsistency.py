@@ -11,6 +11,8 @@ The proof-of-consistency ensures:
 3. Transaction ordering preservation
 4. Merkle tree validity
 5. Cryptographic hash chain integrity
+
+### Bookmark1 for next meeting
 """
 
 import hashlib

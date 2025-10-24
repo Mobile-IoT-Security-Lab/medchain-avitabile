@@ -4,6 +4,8 @@ My Smart Contract Integration for Data Redaction
 
 This module enhances the smart contract system with SNARK proofs and consistency verification
 for the "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" implementation.
+
+### Bookmark1 for next meeting
 """
 
 import json
