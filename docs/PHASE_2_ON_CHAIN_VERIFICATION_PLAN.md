@@ -20,26 +20,26 @@ Phase 2 focuses on integrating SNARK proof verification directly into smart cont
 
 ### Files with Bookmark1 (Phase 1 Complete)
 
-✅ **Core SNARK Implementation:**
+ **Core SNARK Implementation:**
 
 - `medical/circuit_mapper.py` - Data to circuit input mapping
 - `medical/my_snark_manager.py` - Enhanced hybrid SNARK manager
 - `adapters/snark.py` - snarkjs wrapper
 - `ZK/SNARKs.py` - SNARK proof structures
 
-✅ **Consistency & Verification:**
+ **Consistency & Verification:**
 
 - `ZK/ProofOfConsistency.py` - Proof-of-consistency proofs
 - `medical/MedicalRedactionEngine.py` - Main redaction orchestration
 
-✅ **Tests:**
+ **Tests:**
 
 - `tests/test_circuit_mapper.py` - Circuit mapping tests
 - `tests/test_snark_system.py` - SNARK system tests
 - `tests/test_consistency_system.py` - Consistency proof tests
 - `tests/test_consistency_circuit_integration.py` - Integration tests
 
-✅ **Documentation:**
+ **Documentation:**
 
 - `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md` - Phase 1 planning
 
@@ -50,40 +50,40 @@ Phase 2 focuses on integrating SNARK proof verification directly into smart cont
 ### High-Level Flow
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                  Redaction Request                          │
-│         (Medical Data + Policy + Proof Parameters)          │
-└────────────────────┬────────────────────────────────────────┘
-                     │
-         ┌───────────▼───────────┐
-         │ Off-Chain SNARK Proof │
-         │   Generation          │
-         │ (Phase 1 Complete)    │
-         └───────────┬───────────┘
-                     │
-    ┌────────────────▼────────────────┐
-    │  Proof Calldata Formatting      │
-    │  - Extract a, b, c components  │
-    │  - Public signals              │
-    │  - Nullifier validation         │
-    └────────────────┬────────────────┘
-                     │
-    ┌────────────────▼──────────────────────────────────┐
-    │  On-Chain Verification (Phase 2 NEW)             │
-    │                                                   │
-    │  1. Check nullifier not in registry              │
-    │  2. Verify SNARK proof via verifier contract     │
-    │  3. Validate merkle tree consistency             │
-    │  4. Check policy authorization                  │
-    │  5. Execute redaction & store nullifier         │
-    └────────────────┬──────────────────────────────────┘
-                     │
-    ┌────────────────▼──────────────────────────────────┐
-    │  State Update (Chameleon Hash)                   │
-    │  - IPFS: Re-upload censored data                │
-    │  - Blockchain: Update content hash              │
-    │  - Event: Log successful redaction              │
-    └──────────────────────────────────────────────────┘
+
+                  Redaction Request                          
+         (Medical Data + Policy + Proof Parameters)          
+
+                     
+         
+          Off-Chain SNARK Proof 
+            Generation          
+          (Phase 1 Complete)    
+         
+                     
+    
+      Proof Calldata Formatting      
+      - Extract a, b, c components  
+      - Public signals              
+      - Nullifier validation         
+    
+                     
+    
+      On-Chain Verification (Phase 2 NEW)             
+                                                       
+      1. Check nullifier not in registry              
+      2. Verify SNARK proof via verifier contract     
+      3. Validate merkle tree consistency             
+      4. Check policy authorization                  
+      5. Execute redaction & store nullifier         
+    
+                     
+    
+      State Update (Chameleon Hash)                   
+      - IPFS: Re-upload censored data                
+      - Blockchain: Update content hash              
+      - Event: Log successful redaction              
+    
 ```
 
 ---
@@ -668,7 +668,7 @@ class TestPhase2OnChainVerification:
         )
         
         assert circuit_mapper.validate_circuit_inputs(circuit_inputs)
-        print(f" ✓ Circuit inputs prepared")
+        print(f"  Circuit inputs prepared")
         
         # Step 2: Generate SNARK proof
         proof_result = evm_backend.snark_client.prove_redaction(
@@ -677,7 +677,7 @@ class TestPhase2OnChainVerification:
         )
         
         assert proof_result is not None
-        print(f" ✓ SNARK proof generated")
+        print(f"  SNARK proof generated")
         
         # Step 3: Create on-chain redaction request
         request_id = evm_backend.request_data_redaction_with_proof(
@@ -688,12 +688,12 @@ class TestPhase2OnChainVerification:
         )
         
         assert request_id is not None
-        print(f" ✓ On-chain redaction request created: {request_id}")
+        print(f"  On-chain redaction request created: {request_id}")
         
         # Step 4: Verify on-chain
         # TODO: Query contract to verify request was accepted
         
-        print(f" ✓ Phase 2 end-to-end test PASSED")
+        print(f"  Phase 2 end-to-end test PASSED")
 
 
 if __name__ == "__main__":
@@ -792,7 +792,7 @@ pytest tests/test_evm_backend.py -v
 # Full Phase 2 pipeline
 pytest tests/test_phase2_on_chain_verification.py -v
 
-# SNARK ↔ EVM integration
+# SNARK  EVM integration
 pytest tests/test_snark_evm_integration.py -v
 
 # Include consistency proofs
@@ -815,41 +815,41 @@ USE_REAL_EVM=1 pytest tests/test_phase2_on_chain_verification.py::TestPhase2OnCh
 
 | Metric | Target | Current | Status |
 |--------|--------|---------|--------|
-| Proof Generation | <15s | Phase 1: ~5-10s | ✓ On track |
-| On-Chain Verification | <300,000 gas | N/A Phase 2 | 🔄 TBD |
-| Nullifier Lookup | <100 gas | N/A Phase 2 | 🔄 TBD |
-| Consistency Validation | <5s off-chain | Phase 1: ✓ | ✓ On track |
-| End-to-End (request→execute) | <30s | N/A Phase 2 | 🔄 TBD |
+| Proof Generation | <15s | Phase 1: ~5-10s |  On track |
+| On-Chain Verification | <300,000 gas | N/A Phase 2 |  TBD |
+| Nullifier Lookup | <100 gas | N/A Phase 2 |  TBD |
+| Consistency Validation | <5s off-chain | Phase 1:  |  On track |
+| End-to-End (request→execute) | <30s | N/A Phase 2 |  TBD |
 
 ---
 
 ## Phase 2 Success Criteria
 
-✅ **Proof Generation**
+ **Proof Generation**
 
 - [ ] Real SNARK proofs generate with valid witness for medical records
 - [ ] Calldata correctly formats for Solidity verifier
 - [ ] Proof verification works off-chain
 
-✅ **Smart Contract Integration**
+ **Smart Contract Integration**
 
 - [ ] MedicalDataManager successfully calls verifier contract
 - [ ] NullifierRegistry prevents replay attacks
 - [ ] On-chain state updates correctly after verification
 
-✅ **Consistency Proofs**
+ **Consistency Proofs**
 
 - [ ] Consistency proofs integrate into circuit inputs
 - [ ] Merkle tree consistency checks pass
 - [ ] Hash chain validation prevents tampering
 
-✅ **Testing**
+ **Testing**
 
 - [ ] Unit tests pass for all components
 - [ ] Integration tests pass E2E
 - [ ] Performance meets targets
 
-✅ **Documentation**
+ **Documentation**
 
 - [ ] Phase 2 completion documented
 - [ ] Deployment guide updated
