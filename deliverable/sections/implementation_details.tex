@@ -17,3 +17,225 @@ Medical records enter the system through the redaction engine, which serialises 
     \item \textbf{IPFS (Kubo) + ipfshttpclient}: provide distributed, content-addressed storage with AES-GCM encryption of medical payloads prior to upload.
     \item \textbf{Cryptography \& tooling}: AES-GCM key management, dotenv-based configuration, and pytest-driven verification.
 \end{itemize}
+
+\subsection{Zero-Knowledge Proof Generation}
+\label{subsec:zk_proofs}
+
+The implementation delivers real Groth16 SNARK proofs integrated into redaction workflows, replacing prior simulations.
+
+\subsubsection{Circuit Input Mapping}
+
+The \texttt{MedicalDataCircuitMapper} class (in \texttt{medical/circuit\_mapper.py}) bridges medical records and cryptographic circuit inputs. Medical data is serialized to canonical JSON format with deterministic field ordering:
+
+\begin{equation}
+    \text{canonical}(R) = \text{JSON}(\{
+        \text{``patient\_id''}: p_id,
+        \text{``diagnosis''}: d,
+        \text{``treatment''}: t,
+        \text{``physician''}: ph
+    \}, \text{sorted\_keys})
+\end{equation}
+
+Data is converted to field elements compatible with BN254:
+
+\begin{equation}
+    e_i = \left(\text{SHA256}(data)[i \cdot n : (i+1) \cdot n] \bmod 2^{250}\right)
+\end{equation}
+
+Circuit inputs separate into public (verified on-chain) and private (prover secret) components:
+
+\textbf{Public inputs:}
+\begin{itemize}
+    \item Policy hashes (128-bit limbs): $(H_{\text{policy},0}, H_{\text{policy},1})$
+    \item Merkle root: $(H_{\text{merkle},0}, H_{\text{merkle},1})$
+    \item Original/redacted hashes: $(H_{\text{orig},0}, H_{\text{orig},1}, H_{\text{redact},0}, H_{\text{redact},1})$
+    \item Authorization flag: $\text{policyAllowed} \in \{0, 1\}$
+\end{itemize}
+
+\textbf{Private inputs:}
+\begin{itemize}
+    \item Data field elements: $(d_0^{\text{orig}}, d_1^{\text{orig}}, d_2^{\text{orig}}, d_3^{\text{orig}})$ and $(d_0^{\text{redact}}, \ldots)$
+    \item Policy field elements: $(d_0^{\text{policy}}, d_1^{\text{policy}})$
+    \item Merkle path elements and indices (optional for tree inclusion proofs)
+\end{itemize}
+
+\subsubsection{Real Proof Generation}
+
+The \texttt{EnhancedHybridSNARKManager} (in \texttt{medical/my\_snark\_manager.py}) orchestrates real Groth16 generation via snarkjs CLI through the \texttt{adapters/snark.py} wrapper:
+
+\begin{enumerate}
+    \item Extract medical record from redaction request
+    \item Prepare circuit inputs using \texttt{MedicalDataCircuitMapper}
+    \item Validate inputs conform to circuit specification
+    \item Call snarkjs to generate witness and proof
+    \item Verify proof off-chain before submission
+    \item Extract Groth16 components: $(a, b, c)$ and public signals
+\end{enumerate}
+
+Each proof is represented as:
+
+\begin{equation}
+    \Pi_{\text{redaction}} = (\pi_a, \pi_b, \pi_c, \{\sigma_i\}_{i=0}^{8})
+\end{equation}
+
+where $\pi_a, \pi_b, \pi_c$ are BN254 elliptic curve points and $\{\sigma_i\}$ are public signals including:
+\begin{itemize}
+    \item Commitment to redacted data
+    \item Nullifier for replay prevention
+    \item Merkle root claim
+    \item Policy and authorization flags
+\end{itemize}
+
+\subsubsection{Consistency Proof Integration}
+
+The \texttt{ConsistencyProofGenerator} (in \texttt{ZK/ProofOfConsistency.py}) verifies that redaction operations maintain blockchain integrity across five check types: block integrity, hash chain consistency, Merkle tree validity, smart contract state transitions, and transaction ordering.
+
+When a consistency proof is provided, it integrates into circuit public inputs via \texttt{prepare\_circuit\_inputs\_with\_consistency()}:
+
+\begin{equation}
+    \text{pubInputs}_{\text{consistency}} = \text{pubInputs}_{\text{base}} \cup \{
+        H_{\text{pre},0}, H_{\text{pre},1},
+        H_{\text{post},0}, H_{\text{post},1},
+        \text{consistencyValid}
+    \}
+\end{equation}
+
+Pre and post-state hashes are computed as:
+
+\begin{equation}
+    H_{\text{state}} = \text{SHA256}(\text{canonical}(\mathcal{S}))
+\end{equation}
+
+The circuit then verifies the redaction is cryptographically sound and consistency checks pass before generating a valid proof.
+
+\subsubsection{Implementation Status}
+
+All Phase 1 implementation files are marked with comment \texttt{\#\#\# Bookmark1 for next meeting}:
+\begin{itemize}
+    \item \texttt{medical/circuit\_mapper.py}, \texttt{medical/my\_snark\_manager.py}, \texttt{medical/MedicalRedactionEngine.py}
+    \item \texttt{ZK/SNARKs.py}, \texttt{ZK/ProofOfConsistency.py}, \texttt{adapters/snark.py}
+    \item \texttt{tests/test\_circuit\_mapper.py}, \texttt{tests/test\_snark\_system.py}, \texttt{tests/test\_consistency\_system.py}, \texttt{tests/test\_consistency\_circuit\_integration.py}
+\end{itemize}
+
+Test coverage includes 20+ unit tests for circuit mapping, 5+ SNARK system tests, 8+ consistency proof tests, and 5+ integration tests. All tests pass without blocking issues.
+
+\subsection{On-Chain Verification}
+\label{subsec:onchain_verification}
+
+Phase 2 extends Phase 1 with on-chain verification via smart contracts, enabling trustless, cryptographic validation of redaction operations on the blockchain.
+
+\subsubsection{Nullifier Registry}
+
+The \texttt{NullifierRegistry} contract maintains a mapping of used nullifiers to prevent replay attacks---the re-submission of an identical proof for unintended duplication:
+
+\begin{equation}
+    \text{usedNullifiers}: \mathbb{B}_{32} \to \{0, 1\}
+\end{equation}
+
+Each SNARK proof produces a unique nullifier via:
+
+\begin{equation}
+    n = \text{hash}(\text{public\_signals} \| \text{timestamp} \| \text{prover\_address})
+\end{equation}
+
+When a redaction request is processed, the contract:
+\begin{enumerate}
+    \item Extracts nullifier $n$ from SNARK public signals
+    \item Queries registry: $\text{isNullifierUsed}(n)$
+    \item Reverts if true (already submitted)
+    \item Registers nullifier on success for audit trail
+\end{enumerate}
+
+\subsubsection{Groth16 Verifier Integration}
+
+The \texttt{RedactionVerifier\_groth16} contract is auto-generated from snarkjs and implements:
+
+\begin{equation}
+    \text{verifyProof}(\pi_a, \pi_b, \pi_c, \{\sigma_i\}) \to \{0, 1\}
+\end{equation}
+
+The \texttt{MedicalDataManager} contract integrates this verifier via:
+
+\begin{verbatim}
+function requestDataRedactionWithProof(
+    string memory patientId,
+    string memory redactionType,
+    string memory reason,
+    uint[2] memory a,
+    uint[2][2] memory b,
+    uint[2] memory c,
+    uint[9] memory publicSignals
+) public onlyAuthorized returns (string memory requestId)
+\end{verbatim}
+
+This function:
+\begin{enumerate}
+    \item Calls verifier: $\text{valid} = \text{verifyProof}(a, b, c, \text{publicSignals})$
+    \item Extracts nullifier from signals
+    \item Checks nullifier registry for replay
+    \item Validates consistency proofs (if included)
+    \item Creates redaction request
+    \item Registers nullifier and emits audit event
+\end{enumerate}
+
+Gas cost breakdown: Groth16 verification ($\sim 250k$ gas) + nullifier operations ($\sim 20k$ gas) + state updates ($\sim 50k$ gas) = $\sim 320k$ gas total (approximately \$20 at 100 gwei).
+
+\subsubsection{Python Backend}
+
+The \texttt{EVMBackend} class (in \texttt{medical/backends.py}) extends redaction workflows with on-chain verification:
+
+\begin{verbatim}
+def request_data_redaction_with_proof(
+    patient_id: str,
+    redaction_type: str,
+    reason: str,
+    medical_record_dict: Dict[str, Any]
+) -> Optional[str]
+\end{verbatim}
+
+This method:
+\begin{enumerate}
+    \item Prepares circuit inputs via \texttt{MedicalDataCircuitMapper}
+    \item Generates SNARK proof via \texttt{SnarkClient}
+    \item Extracts proof components: $(a, b, c)$, public signals
+    \item Calls \texttt{MedicalDataManager.requestDataRedactionWithProof()} on-chain
+    \item Returns request ID or None on failure
+\end{enumerate}
+
+\subsubsection{Circuit Extensions}
+
+The redaction circuit is extended with consistency proof inputs, adding to public inputs:
+
+\begin{equation}
+    \{\text{preStateHash0}, \text{preStateHash1}, \text{postStateHash0}, \text{postStateHash1}, \text{consistencyCheckPassed}\}
+\end{equation}
+
+The circuit verifies:
+\begin{enumerate}
+    \item Original data hash matches circuit input
+    \item Redacted data hash is correct for operation type
+    \item Policy hash is authorized
+    \item If consistency enabled: pre/post-state hashes match provided proof
+\end{enumerate}
+
+\subsubsection{Testing and Deployment}
+
+Integration tests validate:
+\begin{itemize}
+    \item SNARK proof generation with real artifacts
+    \item On-chain submission and verification
+    \item Nullifier replay prevention
+    \item Consistency proof integration
+    \item End-to-end workflow from request to verified redaction
+\end{itemize}
+
+Contract deployment steps:
+\begin{enumerate}
+    \item Deploy \texttt{NullifierRegistry}
+    \item Deploy \texttt{RedactionVerifier\_groth16}
+    \item Deploy updated \texttt{MedicalDataManager} with verifier and registry addresses
+    \item Configure environment variables with contract addresses
+    \item Run integration test suite
+\end{enumerate}
+
+
