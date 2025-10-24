@@ -1,9 +1,20 @@
 \section{Future Work}
 
-Identify enhancements, technical debt, and roadmap items that extend the current implementation.
+Remaining tasks span protocol hardening, usability improvements, and compliance sign-off. The backlog in \texttt{todo.md} is the authoritative source; highlights are summarised here to guide the next development cycle.
 
 \subsection{Short-Term Priorities}
-Detail improvements that should be tackled in the next iteration.
+\begin{itemize}
+    \item Complete end-to-end smart contract orchestration: invoke Groth16 verification and proof-of-consistency checks from \texttt{MedicalDataManager.sol} before allowing state changes.
+    \item Extend the circom circuit and mapper to ingest consistency proof data, enforcing state-transition validity inside the proof system.
+    \item Finalise the censored medical dataset pipeline by automating policy-based anonymisation, IPFS publication, and on-chain/off-chain linkage tests.
+    \item Add negative-path testing for proof verification, policy breaches, and IPFS redaction edge cases to increase confidence ahead of demonstrations.
+    \item Produce architecture diagrams and compliance mapping artefacts that visualise data flow and reference relevant GDPR/HIPAA clauses.
+\end{itemize}
 
 \subsection{Long-Term Vision}
-Describe strategic directions and research opportunities for the project.
+\begin{itemize}
+    \item Deploy the solution on a managed permissioned blockchain and evaluate operational characteristics such as latency, throughput, and key management at scale.
+    \item Investigate formal verification of smart contracts and circuits to strengthen assurance guarantees demanded by healthcare regulators.
+    \item Introduce a role-aware operator dashboard that surfaces approvals, audit logs, and redaction history to non-technical stakeholders.
+    \item Explore interoperability with existing health information systems (FHIR APIs, consent registries) to streamline data ingestion and audit trails.
+\end{itemize}

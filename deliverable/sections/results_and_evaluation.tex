@@ -1,12 +1,20 @@
 \section{Results and Evaluation}
 
-Report experimental findings, benchmarks, or demos that demonstrate project effectiveness.
+The prototype has been exercised through automated tests, Hardhat simulations, and interactive demos. Validation emphasises deterministic proof generation, correctness of redaction policies, and the alignment between on-chain state, off-chain storage, and compliance expectations.
 
 \subsection{Validation Scenarios}
-Document the scenarios used to validate functionality and compliance requirements.
+\begin{itemize}
+    \item \textbf{Circuit and proof validation}: \texttt{pytest} targets such as \texttt{tests/test\_circuit\_mapper.py} ensure the medical circuit mapper produces valid public/private inputs for Groth16 proofs, while \texttt{tests/test\_avitabile\_redaction\_demo.py} exercises the full redactable blockchain flow with approvals, trapdoor updates, and consistency checks.
+    \item \textbf{Smart contract testing}: Hardhat tests under \texttt{contracts/test/} validate storage, approval thresholds, and verifier integration for \texttt{MedicalDataManager.sol}. Solidity coverage reports are exported to \texttt{contracts/coverage/} and surfaced through the repository badges.
+    \item \textbf{Demo walkthroughs}: CLI demos in \texttt{demo/medchain\_demo.py} and \texttt{demo/medical\_redaction\_demo.py} are used to rehearse GDPR Right-to-Erasure requests, highlighting the interaction between simulated consensus, SNARK proofs, and IPFS storage updates.
+\end{itemize}
 
 \subsection{Metrics and KPIs}
-Capture quantitative or qualitative measures that indicate project success.
+\begin{itemize}
+    \item \textbf{Build health}: GitHub Actions workflows (\texttt{tests.yml} and \texttt{contracts.yml}) report passing status at the time of writing, with coverage badges generated into \texttt{badges/python-coverage.svg} and \texttt{badges/solidity-coverage.svg}.
+    \item \textbf{Proof integrity}: Real Groth16 proofs are generated via \texttt{SnarkClient.prove\_redaction} and verified locally before redactions are executed; failures revert to prevent inconsistent ledger states.
+    \item \textbf{Governance enforcement}: Policy thresholds configured in \texttt{MedicalDataContract} are respected in both simulator and contract tests, demonstrating that multi-role approvals gate every destructive operation.
+\end{itemize}
 
 \subsection{Lessons Learned}
-Reflect on what worked well, encountered challenges, and mitigation strategies employed.
+Deploying real zero-knowledge tooling inside a research simulator requires disciplined artefact management: the team standardised on deterministic circuit inputs and explicit validation to avoid silent proof drift. Integrating IPFS taught the importance of encrypting payloads before upload and of treating pinning/unpinning as part of the redaction lifecycle. Finally, aligning simulated governance with on-chain contracts highlighted the need for shared data models and consistent event semantics so that auditors can trace the same operation across components.

@@ -1,12 +1,19 @@
 \section{Implementation Details}
 
-Describe the system modules, critical algorithms, and integration points implemented in this project.
+The codebase is organised to keep privacy-critical functionality isolated yet composable. Python orchestrates simulation, proof generation, and integration logic, while Solidity contracts and circom circuits implement the on-chain and zero-knowledge layers respectively. This separation allows rapid prototyping in the simulator without losing sight of deployment targets.
 
 \subsection{System Architecture}
-Summarize core components (smart contracts, services, zero-knowledge circuits, etc.) and their responsibilities.
+At the core, the \texttt{Models/} package extends the Ateniese redactable blockchain benchmark with explicit smart contract abstractions and role-aware governance policies. The \texttt{medical/MedicalRedactionEngine.py} module coordinates redaction requests, approval tracking, zero-knowledge proof generation, and proof-of-consistency checks produced by \texttt{ZK/ProofOfConsistency.py}. Integration layers under \texttt{adapters/} connect the simulator to external infrastructure: \texttt{adapters/snark.py} wraps the snarkjs CLI, \texttt{adapters/ipfs.py} manages encrypted storage and pinning, and \texttt{adapters/evm.py} (paired with \texttt{medical/backends.py}) exposes a Web3 client for the deployed Solidity contracts in \texttt{contracts/src/}. Circom circuits inside \texttt{circuits/} define the Groth16 redaction verifier, while generated artefacts are consumed both off-chain (Python) and on-chain (Solidity verifier contracts).
 
 \subsection{Data Flows}
-Explain how data traverses the system, highlighting privacy, security, and compliance considerations.
+Medical records enter the system through the redaction engine, which serialises the payload, stores an encrypted copy in IPFS via the adapter layer, and anchors a commitment plus policy metadata to the blockchain model. Redaction requests trigger policy evaluation, multi-role approvals, and the creation of Groth16 proofs using \texttt{medical/circuit\_mapper.py} to derive deterministic circuit inputs. Successful proofs and consistency checks are attached to the request, after which the chameleon hash trapdoor rewrites the affected block without breaking hash links. When operating against the Solidity deployment, the same flow persists, with the \texttt{MedicalDataManager.sol} contract emitting events that downstream services consume to update off-chain storage. Throughout the pipeline, personal data is encrypted-at-rest and provenance is maintained via hashes and event logs.
 
 \subsection{Technology Stack}
-List major technologies, frameworks, and third-party services used, including their roles.
+\begin{itemize}
+    \item \textbf{Python 3.11}: primary language for the simulator, orchestration, and CLI demos.
+    \item \textbf{Circom \& snarkjs}: compile and evaluate Groth16 circuits, producing verifier calldata for Solidity.
+    \item \textbf{Solidity + Hardhat}: implement smart contracts (\texttt{MedicalDataManager}, \texttt{RedactionVerifier}) and manage deployments, testing, and coverage.
+    \item \textbf{Web3.py}: connect Python workflows to the deployed EVM contracts when \texttt{USE\_REAL\_EVM} is enabled.
+    \item \textbf{IPFS (Kubo) + ipfshttpclient}: provide distributed, content-addressed storage with AES-GCM encryption of medical payloads prior to upload.
+    \item \textbf{Cryptography \& tooling}: AES-GCM key management, dotenv-based configuration, and pytest-driven verification.
+\end{itemize}

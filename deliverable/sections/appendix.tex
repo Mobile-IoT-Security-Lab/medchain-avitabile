@@ -2,4 +2,20 @@
 
 \section{Appendix}
 
-Add supplementary material such as configuration snippets, extended tables, or survey instruments that support the main text.
+This appendix captures configuration references and command snippets used during the current iteration.
+
+\subsection{Key Environment Variables}
+\begin{itemize}
+    \item \texttt{USE\_REAL\_IPFS}, \texttt{IPFS\_API\_ADDR}, \texttt{IPFS\_GATEWAY\_URL}: toggle and configure the real IPFS client in \texttt{adapters/ipfs.py}.
+    \item \texttt{USE\_REAL\_EVM}, \texttt{WEB3\_PROVIDER\_URI}, \texttt{MEDICAL\_CONTRACT\_ADDRESS}: enable on-chain execution via \texttt{adapters/evm.py} and \texttt{medical/backends.py}.
+    \item \texttt{CIRCUITS\_DIR}: override the default location of circom artefacts consumed by \texttt{adapters/snark.py}.
+    \item \texttt{TESTING\_MODE}, \texttt{DRY\_RUN}: adjust simulator behaviour for accelerated testing or preview runs.
+\end{itemize}
+
+\subsection{Representative Commands}
+\begin{itemize}
+    \item \textbf{Run simulator}: \texttt{python Main.py} (set \texttt{TESTING\_MODE=1} for fast mode).
+    \item \textbf{Generate SNARK artefacts}: \texttt{cd circuits \&\& ./scripts/compile.sh} followed by \texttt{PTAU=../tools/pot14\_final.ptau ./scripts/setup.sh}.
+    \item \textbf{Execute medical demo}: \texttt{python -m demo.medical\_redaction\_demo}.
+    \item \textbf{Run Hardhat suite}: \texttt{cd contracts \&\& npm test} (coverage emitted under \texttt{contracts/coverage/}).
+\end{itemize}
