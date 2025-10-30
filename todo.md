@@ -19,17 +19,37 @@ a. [x] mark every file used for the above step one with something like (Bookmark
      - `tests/test_consistency_system.py`
      - `tests/test_consistency_circuit_integration.py`
    - **Next Phase**: On-chain verification integration (Phase 2)
-2. [ ] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
-a. [ ] mark every file used for the above step two with something like (Bookmark2 for next meeting)
-   - **IN PROGRESS**: SNARKs now use real Groth16 proofs (no longer simulated)
+2. [x] actually implement the avitabile addings to ateniese paper (snark proofs, proof of consistency, zk proofs), not a simulation
+a. [x] mark every file used for the above step two with something like (Bookmark2 for next meeting)
+   - **COMPLETED**: Phase 2 on-chain verification implementation finished
+   - SNARKs use real Groth16 proofs (no simulation)
    - Proof of consistency implemented in `ZK/ProofOfConsistency.py`
    - **COMPLETED (Phase 1)**: Wire consistency proofs into circuit public inputs
      - Implemented in `medical/circuit_mapper.py`: `prepare_circuit_inputs_with_consistency()`
      - Integrated in `medical/my_snark_manager.py`: `create_redaction_proof_with_consistency()`
      - Test coverage in `tests/test_consistency_circuit_integration.py`
-   - **IN PROGRESS (Phase 2)**: On-chain verification of both SNARK and consistency proofs
-     - See: `docs/PHASE_2_ON_CHAIN_VERIFICATION_PLAN.md` for detailed Phase 2 implementation plan
-     - Tasks: Nullifier registry, MedicalDataManager integration, contract deployment
+   - **COMPLETED (Phase 2)**: On-chain verification of both SNARK and consistency proofs
+     - Implemented `contracts/src/NullifierRegistry.sol` for replay prevention
+     - Enhanced `contracts/src/MedicalDataManager.sol` with full proof verification
+     - Updated `medical/backends.py` EVMBackend with Phase 2 support
+     - Updated `medical/MedicalRedactionEngine.py` to wire all proofs together
+     - Created `tests/test_phase2_onchain_verification.py` for E2E testing
+     - Created `tests/test_nullifier_registry.py` for nullifier contract testing
+     - Created `contracts/scripts/deploy_phase2.js` for deployment
+     - **Bookmark2 Files Added/Updated**:
+       - `contracts/src/NullifierRegistry.sol` (NEW)
+       - `contracts/src/MedicalDataManager.sol` (UPDATED with Phase 2)
+       - `medical/backends.py` (UPDATED with full proof submission)
+       - `medical/MedicalRedactionEngine.py` (UPDATED with Phase 2 integration)
+       - `adapters/evm.py` (UPDATED with Bookmark2)
+       - `ZK/SNARKs.py` (UPDATED with Bookmark2)
+       - `ZK/ProofOfConsistency.py` (UPDATED with Bookmark2)
+       - `medical/circuit_mapper.py` (UPDATED with Bookmark2)
+       - `tests/test_phase2_onchain_verification.py` (NEW)
+       - `tests/test_nullifier_registry.py` (NEW)
+       - `contracts/scripts/deploy_phase2.js` (NEW)
+       - `docs/PHASE_2_ON_CHAIN_VERIFICATION_PLAN.md` (NEW)
+   - **NO MORE SIMULATION**: All proofs are real, all verification is on-chain
 3. [ ] deliverables
 
 ## Professor and Boss Directives
