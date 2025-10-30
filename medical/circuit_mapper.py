@@ -5,7 +5,7 @@ Medical Data to Circuit Input Mapper
 This module provides utilities to map medical data records to circom circuit inputs
 for zero-knowledge proof generation.
 
-### Bookmark1 for next meeting
+### Bookmark2 for next meeting - Phase 2 on-chain verification implementation
 """
 
 import hashlib

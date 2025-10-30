@@ -5,7 +5,7 @@ My Smart Contract Integration for Data Redaction
 This module enhances the smart contract system with SNARK proofs and consistency verification
 for the "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" implementation.
 
-### Bookmark1 for next meeting
+### Bookmark2 for next meeting - Phase 2 on-chain verification implementation
 """
 
 import json
@@ -561,12 +561,14 @@ class MyRedactionEngine:
             print(f" Redaction request {request_id} approval added ({len(request.approvals)}/{request.approval_threshold})")
             return True
 
-    def attach_evm_backend(self, contract: Any, ipfs_manager: Optional[Any] = None) -> None:
-        """Attach an EVM backend when contract is available and requested by config."""
+    def attach_evm_backend(self, contract: Any, nullifier_registry: Any = None, ipfs_manager: Optional[Any] = None) -> None:
+        """Attach an EVM backend with Phase 2 support when contract is available and requested by config."""
         if self._backend_mode == "EVM" and self.evm_client is not None and contract is not None:
             try:
-                self.backend = EVMBackend(self.evm_client, contract, ipfs_manager)
-            except Exception:
+                self.backend = EVMBackend(self.evm_client, contract, nullifier_registry, ipfs_manager)
+                print("✅ Phase 2 EVM backend attached with nullifier registry support")
+            except Exception as exc:
+                print(f"⚠️  Failed to attach EVM backend: {exc}")
                 self.backend = SimulatedBackend(self)
     
     def execute_redaction(self, request_id: str) -> bool:
@@ -806,6 +808,32 @@ class MyRedactionEngine:
             if getattr(pol, "policy_type", "") == redaction_type:
                 return pol
         return None
+    
+    def _parse_groth16_for_solidity(self, proof_data: Dict[str, Any], public_data: List[Any]) -> tuple:
+        """Parse snarkjs proof.json and public.json to Solidity calldata format."""
+        def to_int(x):
+            return int(x)
+        
+        pi_a = proof_data.get("pi_a", [])
+        pi_b = proof_data.get("pi_b", [])
+        pi_c = proof_data.get("pi_c", [])
+        
+        # pA: [pi_a[0], pi_a[1]]
+        pA = [to_int(pi_a[0]), to_int(pi_a[1])]
+        
+        # pB: [[pi_b[0][1], pi_b[0][0]], [pi_b[1][1], pi_b[1][0]]] (swapped for Solidity)
+        pB = [
+            [to_int(pi_b[0][1]), to_int(pi_b[0][0])],
+            [to_int(pi_b[1][1]), to_int(pi_b[1][0])],
+        ]
+        
+        # pC: [pi_c[0], pi_c[1]]
+        pC = [to_int(pi_c[0]), to_int(pi_c[1])]
+        
+        # Public signals
+        pubSignals = [to_int(public_data[0])] if public_data else [0]
+        
+        return pA, pB, pC, pubSignals
 
 
 # Testing and demonstration

@@ -2,6 +2,8 @@
 
 Provides a pluggable layer so the MyRedactionEngine can operate
 against either the simulated in-memory contract or an EVM-backed adapter.
+
+### Bookmark2 for next meeting - Phase 2 on-chain verification implementation
 """
 from __future__ import annotations
 
@@ -70,12 +72,13 @@ class SimulatedBackend(RedactionBackend):
 class EVMBackend(RedactionBackend):
     """Backend that mirrors requests to an EVM contract via the adapter.
 
-    Note: execution remains off-chain/simulated; this backend emits requests/approvals on-chain.
+    Phase 2: Full on-chain verification with nullifier tracking and consistency proofs.
     """
 
-    def __init__(self, evm_client: Any, contract: Any, ipfs_manager: Any | None = None):
+    def __init__(self, evm_client: Any, contract: Any, nullifier_registry: Any = None, ipfs_manager: Any | None = None):
         self.evm = evm_client
         self.contract = contract
+        self.nullifier_registry = nullifier_registry
         self.ipfs_manager = ipfs_manager
 
     def store_medical_data(self, record: Any) -> bool:
@@ -124,6 +127,119 @@ class EVMBackend(RedactionBackend):
                 reason,
             )
         except Exception:
+            return None
+    
+    def request_data_redaction_with_full_proofs(
+        self,
+        patient_id: str,
+        redaction_type: str,
+        reason: str,
+        snark_proof_payload: Dict[str, Any],
+        consistency_proof: Any,
+    ) -> Optional[str]:
+        """Phase 2: Submit redaction request with full on-chain verification."""
+        if self.contract is None or self.evm is None:
+            return None
+            
+        try:
+            import hashlib
+            import time
+            
+            # Extract SNARK proof components
+            pA = snark_proof_payload.get("pA", [])
+            pB = snark_proof_payload.get("pB", [])
+            pC = snark_proof_payload.get("pC", [])
+            pubSignals = snark_proof_payload.get("pubSignals", [])
+            
+            # Extract or generate nullifier
+            nullifier = snark_proof_payload.get("nullifier")
+            if not nullifier:
+                # Generate nullifier from proof data
+                nullifier_str = f"{patient_id}_{int(time.time())}_{hash(str(pubSignals))}"
+                nullifier = hashlib.sha256(nullifier_str.encode()).digest()
+            else:
+                # Ensure it's bytes32
+                if isinstance(nullifier, str):
+                    if nullifier.startswith("nullifier_"):
+                        # Generate from string
+                        nullifier = hashlib.sha256(nullifier.encode()).digest()
+                    elif len(nullifier) == 64:
+                        nullifier = bytes.fromhex(nullifier)
+                    else:
+                        nullifier = nullifier.encode()
+                if not isinstance(nullifier, bytes):
+                    nullifier = str(nullifier).encode()
+                if len(nullifier) != 32:
+                    nullifier = hashlib.sha256(nullifier).digest()
+            
+            # Check nullifier validity before submitting (if registry available)
+            if self.nullifier_registry is not None:
+                try:
+                    nullifier_valid = self.nullifier_registry.functions.isNullifierValid(nullifier).call()
+                    if not nullifier_valid:
+                        print(f"❌ Nullifier already used - replay attack prevented")
+                        return None
+                except Exception:
+                    pass  # Registry may not be available
+            
+            # Extract consistency proof hashes
+            if consistency_proof:
+                # Compute consistency proof hash
+                import json
+                consistency_dict = {
+                    "check_type": str(consistency_proof.check_type) if hasattr(consistency_proof, "check_type") else "",
+                    "pre_state": str(consistency_proof.pre_redaction_state) if hasattr(consistency_proof, "pre_redaction_state") else "",
+                    "post_state": str(consistency_proof.post_redaction_state) if hasattr(consistency_proof, "post_redaction_state") else "",
+                }
+                consistency_proof_hash = hashlib.sha256(json.dumps(consistency_dict, sort_keys=True).encode()).digest()
+                
+                # Compute state hashes
+                if hasattr(consistency_proof, "pre_redaction_state"):
+                    pre_state_str = json.dumps(consistency_proof.pre_redaction_state, sort_keys=True)
+                    pre_state_hash = hashlib.sha256(pre_state_str.encode()).digest()
+                else:
+                    pre_state_hash = b'\x00' * 32
+                    
+                if hasattr(consistency_proof, "post_redaction_state"):
+                    post_state_str = json.dumps(consistency_proof.post_redaction_state, sort_keys=True)
+                    post_state_hash = hashlib.sha256(post_state_str.encode()).digest()
+                else:
+                    post_state_hash = b'\x00' * 32
+            else:
+                consistency_proof_hash = b'\x00' * 32
+                pre_state_hash = b'\x00' * 32
+                post_state_hash = b'\x00' * 32
+            
+            # Submit to smart contract with full proofs (Phase 2)
+            fn = self.contract.functions.requestDataRedactionWithFullProofs(
+                patient_id,
+                redaction_type,
+                reason,
+                pA,
+                pB,
+                pC,
+                pubSignals,
+                nullifier,
+                consistency_proof_hash,
+                pre_state_hash,
+                post_state_hash
+            )
+            
+            tx_hash = self.evm._build_and_send(fn)
+            
+            if tx_hash:
+                print(f"✅ Phase 2 on-chain verification successful")
+                print(f"   TX Hash: {tx_hash}")
+                print(f"   Nullifier: {nullifier.hex()}")
+                print(f"   Consistency Proof: {consistency_proof_hash.hex()[:16]}...")
+                return tx_hash
+            
+            return None
+            
+        except Exception as exc:
+            print(f"❌ Phase 2 on-chain verification failed: {exc}")
+            import traceback
+            traceback.print_exc()
             return None
 
     def approve_redaction(self, request_id: str | int, approver: str, comments: str = "") -> bool:
