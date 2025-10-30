@@ -54,18 +54,18 @@ class ProfessorDemo:
         # Check SNARK availability
         self.snark_available = self._check_snark_availability()
         
-        print(f"✓ Circuit Mapper initialized (Bookmark1)")
-        print(f"✓ Proof of Consistency system initialized (Bookmark1)")
-        print(f"✓ EVM Backend initialized (Bookmark2)")
-        print(f"✓ SNARK artifacts available: {self.snark_available}")
+        print(f" Circuit Mapper initialized (Bookmark1)")
+        print(f" Proof of Consistency system initialized (Bookmark1)")
+        print(f" EVM Backend initialized (Bookmark2)")
+        print(f" SNARK artifacts available: {self.snark_available}")
         
         if self.snark_available:
             self.snark_manager = EnhancedHybridSNARKManager()
             self.redaction_engine = MyRedactionEngine()
-            print(f"✓ SNARK Manager initialized (Bookmark1)")
-            print(f"✓ Redaction Engine initialized (Bookmark2)")
+            print(f" SNARK Manager initialized (Bookmark1)")
+            print(f" Redaction Engine initialized (Bookmark2)")
         else:
-            print(f"⚠ SNARK artifacts not found - will show structure only")
+            print(f" SNARK artifacts not found - will show structure only")
         
     def _check_snark_availability(self) -> bool:
         """Check if SNARK circuit artifacts are available."""
@@ -111,12 +111,12 @@ class ProfessorDemo:
         original_json = json.dumps(original_data, sort_keys=True)
         original_hash = hashlib.sha256(original_json.encode()).hexdigest()
         
-        print(f"✓ Original data hash: {original_hash[:16]}...")
-        print(f"✓ Converting hash to field elements for circuit...")
+        print(f" Original data hash: {original_hash[:16]}...")
+        print(f" Converting hash to field elements for circuit...")
         
         # Split into field elements
         field_elements = self.circuit_mapper.hash_to_field_elements(original_hash)
-        print(f"✓ Split into {len(field_elements)} field elements")
+        print(f" Split into {len(field_elements)} field elements")
         print(f"  Field elements: {field_elements[:4]}... (showing first 4)")
         
         self.print_step(3, "Redaction Operation")
@@ -139,7 +139,7 @@ class ProfessorDemo:
         # Hash redacted data
         redacted_json = json.dumps(redacted_data, sort_keys=True)
         redacted_hash = hashlib.sha256(redacted_json.encode()).hexdigest()
-        print(f"\n✓ Redacted data hash: {redacted_hash[:16]}...")
+        print(f"\n Redacted data hash: {redacted_hash[:16]}...")
         
         self.print_step(4, "Circuit Input Preparation")
         print("Preparing circuit inputs with public and private signals...")
@@ -150,16 +150,16 @@ class ProfessorDemo:
             policy_hash="GDPR_POLICY"
         )
         
-        print(f"✓ Public inputs: {len(circuit_inputs.public_inputs)} field elements")
+        print(f" Public inputs: {len(circuit_inputs.public_inputs)} field elements")
         print(f"  - Original hash elements")
         print(f"  - Redacted hash elements")
         print(f"  - Policy hash elements")
         
-        print(f"\n✓ Private inputs: {len(circuit_inputs.private_inputs)} field elements")
+        print(f"\n Private inputs: {len(circuit_inputs.private_inputs)} field elements")
         print(f"  - Original data")
         print(f"  - Redaction mask")
         
-        print("\n✓ Circuit inputs validated and ready for proof generation")
+        print("\n Circuit inputs validated and ready for proof generation")
         
         return original_data, redacted_data, circuit_inputs
     
@@ -168,7 +168,7 @@ class ProfessorDemo:
         self.print_header("DEMO 2: Real SNARK Proof Generation (Bookmark1)")
         
         if not self.snark_available:
-            print("⚠ SNARK artifacts not available - showing structure only\n")
+            print(" SNARK artifacts not available - showing structure only\n")
             print("Circuit files required (in circuits/build/):")
             print("  - redaction.wasm (compiled circuit)")
             print("  - redaction_final.zkey (proving key)")
@@ -179,8 +179,8 @@ class ProfessorDemo:
         self.print_step(1, "SNARK Manager Initialization")
         print("Using: medical/my_snark_manager.py (Bookmark1)")
         print("Using: adapters/snark.py (Bookmark1)")
-        print(f"✓ EnhancedHybridSNARKManager initialized")
-        print(f"✓ Real SnarkClient with Groth16 backend")
+        print(f" EnhancedHybridSNARKManager initialized")
+        print(f" Real SnarkClient with Groth16 backend")
         
         self.print_step(2, "Witness Generation")
         print("Generating witness from circuit inputs...")
@@ -188,7 +188,7 @@ class ProfessorDemo:
         print(f"  WASM: circuits/build/redaction_js/redaction.wasm")
         
         # Note: Actual witness generation happens inside create_redaction_proof
-        print("✓ Witness generation prepared")
+        print(" Witness generation prepared")
         
         self.print_step(3, "Groth16 Proof Generation")
         print("Generating zero-knowledge proof...")
@@ -198,13 +198,13 @@ class ProfessorDemo:
         try:
             # Generate real proof - use the circuit inputs we prepared
             print("Note: Actual proof generation requires:")
-            print("  - Valid circuit inputs (✓)")
+            print("  - Valid circuit inputs ()")
             print("  - snarkjs CLI installed")
             print("  - Circuit artifacts compiled")
             print("\nProof generation would produce:")
             
             # Show what the proof structure would be
-            print("\n✓ Proof structure (Groth16):")
+            print("\n Proof structure (Groth16):")
             print("  Proof components:")
             print("    - pi_a: 3 elements (G1 point)")
             print("    - pi_b: 3x2 elements (G2 point)")
@@ -214,7 +214,7 @@ class ProfessorDemo:
             print(f"    - Includes original/redacted hashes")
             print(f"    - Includes policy verification")
             
-            print("\n✓ Proof is ready for on-chain verification")
+            print("\n Proof is ready for on-chain verification")
             
             # Return a mock proof structure
             proof_result = {
@@ -229,7 +229,7 @@ class ProfessorDemo:
             return proof_result
             
         except Exception as e:
-            print(f"\n✗ Error generating proof: {e}")
+            print(f"\n Error generating proof: {e}")
             print("  This is expected if snarkjs is not installed")
             return None
     
@@ -254,15 +254,15 @@ class ProfessorDemo:
         original_state = hashlib.sha256(original_json.encode()).hexdigest()
         redacted_state = hashlib.sha256(redacted_json.encode()).hexdigest()
         
-        print(f"✓ Original state hash: {original_state[:16]}...")
-        print(f"✓ Redacted state hash: {redacted_state[:16]}...")
+        print(f" Original state hash: {original_state[:16]}...")
+        print(f" Redacted state hash: {redacted_state[:16]}...")
         
         self.print_step(3, "Consistency Proof Components")
         print("Consistency proof would include:")
-        print("  ✓ Merkle tree proof (data integrity)")
-        print("  ✓ Hash chain proof (ordering)")
-        print("  ✓ State transition proof (valid operation)")
-        print("  ✓ Transaction ordering proof")
+        print("   Merkle tree proof (data integrity)")
+        print("   Hash chain proof (ordering)")
+        print("   State transition proof (valid operation)")
+        print("   Transaction ordering proof")
         
         # Create mock consistency proof
         consistency_proof = {
@@ -276,16 +276,16 @@ class ProfessorDemo:
             }
         }
         
-        print("\n✓ Consistency proof structure created!")
+        print("\n Consistency proof structure created!")
         print(f"  Old state hash: {original_state[:16]}...")
         print(f"  New state hash: {redacted_state[:16]}...")
         print(f"  Transition verified: Valid")
         
         self.print_step(4, "Consistency Verification")
         print("Verifying consistency proof...")
-        print("✓ Proof verification: VALID")
-        print("✓ Redaction maintains data consistency")
-        print("✓ Ready for integration with SNARK proof")
+        print(" Proof verification: VALID")
+        print(" Redaction maintains data consistency")
+        print(" Ready for integration with SNARK proof")
         
         return consistency_proof
     
@@ -294,7 +294,7 @@ class ProfessorDemo:
         self.print_header("DEMO 4: Phase 2 On-Chain Verification (Bookmark2)")
         
         if not snark_proof:
-            print("⚠ SNARK proof not available - showing architecture only\n")
+            print(" SNARK proof not available - showing architecture only\n")
         
         self.print_step(1, "Smart Contract Architecture")
         print("Solidity Contracts (Bookmark2):")
@@ -315,54 +315,54 @@ class ProfessorDemo:
         print("Using: medical/backends.py (Bookmark2)")
         print("Using: adapters/evm.py (Bookmark2)")
         print("\nEVMBackend capabilities:")
-        print("  ✓ Submit SNARK proof to verifier contract")
-        print("  ✓ Submit consistency proof")
-        print("  ✓ Check nullifier registry")
-        print("  ✓ Update medical data pointers")
-        print("  ✓ Emit events for audit trail")
+        print("   Submit SNARK proof to verifier contract")
+        print("   Submit consistency proof")
+        print("   Check nullifier registry")
+        print("   Update medical data pointers")
+        print("   Emit events for audit trail")
         
         self.print_step(3, "Full Redaction Workflow")
         print("Complete workflow using MyRedactionEngine (Bookmark2):")
         print("\n1. Prepare medical data")
-        print("   └─> medical/MedicalRedactionEngine.py")
+        print("   > medical/MedicalRedactionEngine.py")
         print("\n2. Generate circuit inputs")
-        print("   └─> medical/circuit_mapper.py (Bookmark1)")
+        print("   > medical/circuit_mapper.py (Bookmark1)")
         print("\n3. Create SNARK proof")
-        print("   └─> medical/my_snark_manager.py (Bookmark1)")
-        print("   └─> adapters/snark.py (Bookmark1)")
+        print("   > medical/my_snark_manager.py (Bookmark1)")
+        print("   > adapters/snark.py (Bookmark1)")
         print("\n4. Generate consistency proof")
-        print("   └─> ZK/ProofOfConsistency.py (Bookmark1 & Bookmark2)")
+        print("   > ZK/ProofOfConsistency.py (Bookmark1 & Bookmark2)")
         print("\n5. Submit to blockchain")
-        print("   └─> medical/backends.py (Bookmark2)")
-        print("   └─> adapters/evm.py (Bookmark2)")
+        print("   > medical/backends.py (Bookmark2)")
+        print("   > adapters/evm.py (Bookmark2)")
         print("\n6. Verify on-chain")
-        print("   └─> RedactionVerifier.sol contract")
-        print("   └─> NullifierRegistry.sol contract")
+        print("   > RedactionVerifier.sol contract")
+        print("   > NullifierRegistry.sol contract")
         print("\n7. Update data pointers")
-        print("   └─> MedicalDataManager.sol contract")
+        print("   > MedicalDataManager.sol contract")
         
         self.print_step(4, "Simulation of On-Chain Verification")
         print("In simulation mode (USE_REAL_EVM=0):")
-        print("  ✓ All proof generation is REAL")
-        print("  ✓ Contract verification is simulated locally")
-        print("  ✓ State changes tracked in memory")
+        print("   All proof generation is REAL")
+        print("   Contract verification is simulated locally")
+        print("   State changes tracked in memory")
         print("\nIn production mode (USE_REAL_EVM=1):")
-        print("  ✓ Connect to Hardhat/Anvil devnet")
-        print("  ✓ Deploy contracts")
-        print("  ✓ Submit transactions on-chain")
-        print("  ✓ Gas estimation and optimization")
+        print("   Connect to Hardhat/Anvil devnet")
+        print("   Deploy contracts")
+        print("   Submit transactions on-chain")
+        print("   Gas estimation and optimization")
         
         if snark_proof and consistency_proof:
-            print("\n" + "─" * 80)
+            print("\n" + "" * 80)
             print("COMPLETE PROOF PACKAGE FOR ON-CHAIN SUBMISSION:")
-            print("─" * 80)
+            print("" * 80)
             print("\nSNARK Proof Components:")
-            print(f"  ✓ Proof generated: {snark_proof is not None}")
-            print(f"  ✓ Public signals: {len(snark_proof.get('public_signals', []))} elements")
+            print(f"   Proof generated: {snark_proof is not None}")
+            print(f"   Public signals: {len(snark_proof.get('public_signals', []))} elements")
             print("\nConsistency Proof Components:")
-            print(f"  ✓ Proof generated: {consistency_proof is not None}")
-            print(f"  ✓ State transition verified")
-            print("\n✓ Ready for on-chain verification via MedicalDataManager.sol")
+            print(f"   Proof generated: {consistency_proof is not None}")
+            print(f"   State transition verified")
+            print("\n Ready for on-chain verification via MedicalDataManager.sol")
     
     def demo_5_test_coverage(self):
         """Demo: Test coverage for implementation (Bookmark1 & Bookmark2)."""
@@ -413,23 +413,23 @@ class ProfessorDemo:
         print("    - Adapter pattern validation")
         print("    - Interface consistency tests")
         
-        print("\n" + "─" * 80)
+        print("\n" + "" * 80)
         print("TOTAL TEST COVERAGE:")
-        print("─" * 80)
-        print("  ✓ Unit tests: 40+ tests")
-        print("  ✓ Integration tests: 15+ tests")
-        print("  ✓ End-to-end tests: 5+ tests")
-        print("  ✓ All tests pass in CI/CD pipeline")
+        print("" * 80)
+        print("   Unit tests: 40+ tests")
+        print("   Integration tests: 15+ tests")
+        print("   End-to-end tests: 5+ tests")
+        print("   All tests pass in CI/CD pipeline")
     
     def run_complete_demo(self):
         """Run the complete professor demo."""
         print("\n")
-        print("╔" + "═" * 78 + "╗")
-        print("║" + " " * 78 + "║")
-        print("║" + "  Professor Demo: ZK Proofs & Avitabile Implementation".center(78) + "║")
-        print("║" + "  Real SNARK Proofs + Proof of Consistency + On-Chain Verification".center(78) + "║")
-        print("║" + " " * 78 + "║")
-        print("╚" + "═" * 78 + "╝")
+        print("" + "" * 78 + "")
+        print("" + " " * 78 + "")
+        print("" + "  Professor Demo: ZK Proofs & Avitabile Implementation".center(78) + "")
+        print("" + "  Real SNARK Proofs + Proof of Consistency + On-Chain Verification".center(78) + "")
+        print("" + " " * 78 + "")
+        print("" + "" * 78 + "")
         
         # Demo 1: Medical data preparation
         original_data, redacted_data, circuit_inputs = self.demo_1_medical_data_preparation()
@@ -456,7 +456,7 @@ class ProfessorDemo:
         
         # Final summary
         self.print_header("DEMO SUMMARY")
-        print("✓ Implementation Status:")
+        print(" Implementation Status:")
         print("\n  1. Zero-Knowledge Proofs (Todo #1) - COMPLETED")
         print("     - Real Groth16 SNARK proofs (not simulation)")
         print("     - Circuit mapper for medical data")
@@ -476,9 +476,9 @@ class ProfessorDemo:
         print("     - Real Solidity verifier contracts")
         print("     - Production-ready architecture")
         
-        print("\n" + "─" * 80)
+        print("\n" + "" * 80)
         print("Demo complete! All implementation goals achieved.")
-        print("─" * 80 + "\n")
+        print("" * 80 + "\n")
 
 
 def main():
