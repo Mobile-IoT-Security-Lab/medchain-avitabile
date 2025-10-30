@@ -177,7 +177,7 @@ class EVMBackend(RedactionBackend):
                 try:
                     nullifier_valid = self.nullifier_registry.functions.isNullifierValid(nullifier).call()
                     if not nullifier_valid:
-                        print(f"❌ Nullifier already used - replay attack prevented")
+                        print(f" Nullifier already used - replay attack prevented")
                         return None
                 except Exception:
                     pass  # Registry may not be available
@@ -228,7 +228,7 @@ class EVMBackend(RedactionBackend):
             tx_hash = self.evm._build_and_send(fn)
             
             if tx_hash:
-                print(f"✅ Phase 2 on-chain verification successful")
+                print(f" Phase 2 on-chain verification successful")
                 print(f"   TX Hash: {tx_hash}")
                 print(f"   Nullifier: {nullifier.hex()}")
                 print(f"   Consistency Proof: {consistency_proof_hash.hex()[:16]}...")
@@ -237,7 +237,7 @@ class EVMBackend(RedactionBackend):
             return None
             
         except Exception as exc:
-            print(f"❌ Phase 2 on-chain verification failed: {exc}")
+            print(f" Phase 2 on-chain verification failed: {exc}")
             import traceback
             traceback.print_exc()
             return None

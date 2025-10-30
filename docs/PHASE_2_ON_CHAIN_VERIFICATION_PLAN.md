@@ -13,32 +13,32 @@ This document outlines the complete implementation of **Phase 2: On-Chain Verifi
 ## Architecture Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│                     Medical Redaction Flow                       │
-└─────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Generate SNARK Proof (Real Groth16)                 │
-│              + Consistency Proof (Hash Chain)                    │
-└─────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Submit to Smart Contract                      │
-│                                                                  │
-│  1. Check nullifier not used (NullifierRegistry)                │
-│  2. Verify SNARK proof (RedactionVerifier_groth16)              │
-│  3. Store consistency proof hash (MedicalDataManager)           │
-│  4. Record nullifier (prevent replay)                           │
-│  5. Emit events for audit trail                                 │
-└─────────────────────────────────────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Approval & Execution (Off-Chain)                    │
-│              with On-Chain State Updates                         │
-└─────────────────────────────────────────────────────────────────┘
+
+                     Medical Redaction Flow                       
+
+                             
+                             
+
+              Generate SNARK Proof (Real Groth16)                 
+              + Consistency Proof (Hash Chain)                    
+
+                             
+                             
+
+                    Submit to Smart Contract                      
+                                                                  
+  1. Check nullifier not used (NullifierRegistry)                
+  2. Verify SNARK proof (RedactionVerifier_groth16)              
+  3. Store consistency proof hash (MedicalDataManager)           
+  4. Record nullifier (prevent replay)                           
+  5. Emit events for audit trail                                 
+
+                             
+                             
+
+              Approval & Execution (Off-Chain)                    
+              with On-Chain State Updates                         
+
 ```
 
 ## Key Components to Implement
@@ -377,7 +377,7 @@ class EVMBackend(RedactionBackend):
             # Check nullifier validity before submitting
             nullifier_valid = self.nullifier_registry.functions.isNullifierValid(nullifier).call()
             if not nullifier_valid:
-                print(f"❌ Nullifier already used - replay attack prevented")
+                print(f" Nullifier already used - replay attack prevented")
                 return None
 
             # Extract consistency proof hashes
@@ -416,7 +416,7 @@ class EVMBackend(RedactionBackend):
             tx_hash = self.evm._build_and_send(fn)
 
             if tx_hash:
-                print(f"✅ On-chain verification successful")
+                print(f" On-chain verification successful")
                 print(f"   TX Hash: {tx_hash}")
                 print(f"   Nullifier: {nullifier.hex()}")
                 print(f"   Consistency Proof: {consistency_proof_hash.hex()[:16]}...")
@@ -428,7 +428,7 @@ class EVMBackend(RedactionBackend):
             return None
 
         except Exception as exc:
-            print(f"❌ On-chain verification failed: {exc}")
+            print(f" On-chain verification failed: {exc}")
             return None
 
     def _compute_state_hash(self, state: Dict[str, Any]) -> bytes:
@@ -497,7 +497,7 @@ def request_data_redaction(
     zk_proof = self.snark_manager.create_redaction_proof(redaction_request_data)
 
     if not zk_proof:
-        print(f"❌ Failed to generate SNARK proof for redaction request")
+        print(f" Failed to generate SNARK proof for redaction request")
         return None
 
     # Create request with both proofs
@@ -546,11 +546,11 @@ def request_data_redaction(
                 )
 
                 if onchain_request_id:
-                    print(f"✅ Phase 2 on-chain verification complete")
+                    print(f" Phase 2 on-chain verification complete")
                     print(f"   Request ID: {request_id}")
                     print(f"   On-chain ID: {onchain_request_id}")
         except Exception as exc:
-            print(f"⚠️  On-chain submission failed (proceeding with local): {exc}")
+            print(f"  On-chain submission failed (proceeding with local): {exc}")
 
     return request_id
 ```
@@ -622,7 +622,7 @@ async function main() {
       JSON.stringify(addresses, null, 2)
    );
 
-   console.log("✅ Phase 2 deployment complete!");
+   console.log(" Phase 2 deployment complete!");
 }
 
 main()
@@ -674,13 +674,13 @@ All files marked with `<!-- Bookmark2 for next meeting -->` or `# Bookmark2 for 
 
 **Total Estimated Time:** 8-10 hours (1 day sprint)
 
--  ✅ Hour 1: Create NullifierRegistry contract
--  ✅ Hours 2-3: Update MedicalDataManager
--  ✅ Hours 4-5: Update EVMBackend and integration
--  ✅ Hour 6: Update MedicalRedactionEngine
--  ✅ Hours 7-8: Write integration tests
--  ✅ Hour 9: Deployment scripts and documentation
--  ✅ Hour 10: Final testing and verification
+-   Hour 1: Create NullifierRegistry contract
+-   Hours 2-3: Update MedicalDataManager
+-   Hours 4-5: Update EVMBackend and integration
+-   Hour 6: Update MedicalRedactionEngine
+-   Hours 7-8: Write integration tests
+-   Hour 9: Deployment scripts and documentation
+-   Hour 10: Final testing and verification
 
 ## Next Steps After Phase 2
 

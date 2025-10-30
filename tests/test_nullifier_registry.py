@@ -46,7 +46,7 @@ class TestNullifierRegistry:
             self.contract = contract
             self.address = addr
             
-            print(f"\n✅ NullifierRegistry deployed at {addr}")
+            print(f"\n NullifierRegistry deployed at {addr}")
             
             yield
         finally:
@@ -57,7 +57,7 @@ class TestNullifierRegistry:
         nullifier = hashlib.sha256(b"test_nullifier_1").digest()
         is_valid = self.contract.functions.isNullifierValid(nullifier).call()
         assert is_valid is True
-        print("✅ New nullifier is valid")
+        print(" New nullifier is valid")
     
     def test_record_nullifier(self):
         """Test recording a new nullifier."""
@@ -78,7 +78,7 @@ class TestNullifierRegistry:
         assert timestamp > 0
         assert submitter != "0x0000000000000000000000000000000000000000"
         
-        print(f"✅ Nullifier recorded (timestamp: {timestamp}, submitter: {submitter[:10]}...)")
+        print(f" Nullifier recorded (timestamp: {timestamp}, submitter: {submitter[:10]}...)")
     
     def test_duplicate_nullifier_rejected(self):
         """Test that duplicate nullifiers are rejected."""
@@ -94,7 +94,7 @@ class TestNullifierRegistry:
         result = self.contract.functions.recordNullifier(nullifier).call()
         assert result is False
         
-        print("✅ Duplicate nullifier correctly rejected")
+        print(" Duplicate nullifier correctly rejected")
     
     def test_batch_nullifier_validation(self):
         """Test batch validation of multiple nullifiers."""
@@ -118,7 +118,7 @@ class TestNullifierRegistry:
         assert not results[0] and not results[1] and not results[2]
         assert results[3] and results[4]
         
-        print("✅ Batch validation works correctly")
+        print(" Batch validation works correctly")
     
     def test_batch_nullifier_recording(self):
         """Test batch recording of nullifiers."""
@@ -137,7 +137,7 @@ class TestNullifierRegistry:
         results = self.contract.functions.areNullifiersValid(nullifiers).call()
         assert not any(results)
         
-        print("✅ Batch recording works correctly")
+        print(" Batch recording works correctly")
     
     def test_nullifier_info_retrieval(self):
         """Test retrieving nullifier information."""
@@ -158,7 +158,7 @@ class TestNullifierRegistry:
         assert timestamp > 0
         assert submitter != "0x0000000000000000000000000000000000000000"
         
-        print(f"✅ Nullifier info retrieved: timestamp={timestamp}, submitter={submitter[:10]}...")
+        print(f" Nullifier info retrieved: timestamp={timestamp}, submitter={submitter[:10]}...")
     
     def test_pause_unpause(self):
         """Test pause/unpause functionality."""
@@ -197,7 +197,7 @@ class TestNullifierRegistry:
         )
         assert tx_hash is not None
         
-        print("✅ Pause/unpause works correctly")
+        print(" Pause/unpause works correctly")
 
 
 if __name__ == "__main__":

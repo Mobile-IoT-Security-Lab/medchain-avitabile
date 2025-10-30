@@ -51,13 +51,13 @@ class TestPhase2OnChainVerification:
             if not deployed_nullifier:
                 pytest.skip("Failed to deploy NullifierRegistry – ensure Hardhat node is running")
             nullifier_addr, nullifier_registry = deployed_nullifier
-            print(f"✅ NullifierRegistry deployed at {nullifier_addr}")
+            print(f" NullifierRegistry deployed at {nullifier_addr}")
             
             deployed_verifier = self.evm_client.deploy("RedactionVerifier_groth16")
             if not deployed_verifier:
                 pytest.skip("Failed to deploy RedactionVerifier_groth16 – ensure Hardhat node is running")
             verifier_addr, verifier = deployed_verifier
-            print(f"✅ RedactionVerifier_groth16 deployed at {verifier_addr}")
+            print(f" RedactionVerifier_groth16 deployed at {verifier_addr}")
             
             deployed_medical = self.evm_client.deploy(
                 "MedicalDataManager",
@@ -66,7 +66,7 @@ class TestPhase2OnChainVerification:
             if not deployed_medical:
                 pytest.skip("Failed to deploy MedicalDataManager – ensure Hardhat node is running")
             medical_addr, medical_contract = deployed_medical
-            print(f"✅ MedicalDataManager deployed at {medical_addr}")
+            print(f" MedicalDataManager deployed at {medical_addr}")
             
             # Store contracts
             self.nullifier_registry = nullifier_registry
@@ -103,7 +103,7 @@ class TestPhase2OnChainVerification:
         # Verify timestamp is recorded
         timestamp, submitter = self.nullifier_registry.functions.getNullifierInfo(test_nullifier).call()
         assert timestamp > 0, "Timestamp should be recorded"
-        print(f"✅ Nullifier registry test passed (timestamp: {timestamp})")
+        print(f" Nullifier registry test passed (timestamp: {timestamp})")
     
     def test_nullifier_replay_prevention(self):
         """Test that duplicate nullifiers are rejected (replay attack prevention)."""
@@ -123,7 +123,7 @@ class TestPhase2OnChainVerification:
         except Exception:
             pass  # Expected if contract reverts
         
-        print("✅ Replay attack prevention test passed")
+        print(" Replay attack prevention test passed")
     
     def test_batch_nullifier_checking(self):
         """Test batch nullifier validation."""
@@ -147,14 +147,14 @@ class TestPhase2OnChainVerification:
         assert results[0] is False and results[1] is False and results[2] is False
         assert results[3] is True and results[4] is True
         
-        print("✅ Batch nullifier checking test passed")
+        print(" Batch nullifier checking test passed")
     
     def test_medical_data_manager_with_nullifier_registry(self):
         """Test that MedicalDataManager correctly references nullifier registry."""
         # Check constructor setup
         registry_addr = self.medical_contract.functions.nullifierRegistry().call()
         assert registry_addr != "0x0000000000000000000000000000000000000000"
-        print(f"✅ MedicalDataManager references NullifierRegistry at {registry_addr}")
+        print(f" MedicalDataManager references NullifierRegistry at {registry_addr}")
     
     @pytest.mark.slow
     def test_full_phase2_redaction_workflow(self):
@@ -172,7 +172,7 @@ class TestPhase2OnChainVerification:
         
         # Store record
         assert self.engine.store_medical_data(record), "Failed to store medical data"
-        print("✅ Medical record stored")
+        print(" Medical record stored")
         
         # Request redaction with full Phase 2 verification
         request_id = self.engine.request_data_redaction(
@@ -184,20 +184,20 @@ class TestPhase2OnChainVerification:
         )
         
         assert request_id is not None, "Failed to create redaction request"
-        print(f"✅ Redaction request created: {request_id}")
+        print(f" Redaction request created: {request_id}")
         
         # Verify request has both proofs
         request = self.engine.redaction_requests[request_id]
         assert request.zk_proof is not None, "ZK proof should be generated"
         assert request.consistency_proof is not None, "Consistency proof should be generated"
-        print(f"✅ Both proofs generated:")
+        print(f" Both proofs generated:")
         print(f"   ZK Proof: {request.zk_proof.proof_id}")
         print(f"   Consistency Proof: {request.consistency_proof.proof_id}")
         
         # If on-chain submission happened, verify nullifier was recorded
         # (This depends on EVM backend being properly attached)
         
-        print("✅ Full Phase 2 workflow test passed")
+        print(" Full Phase 2 workflow test passed")
     
     @pytest.mark.slow
     def test_consistency_proof_storage(self):
@@ -228,7 +228,7 @@ class TestPhase2OnChainVerification:
         
         # Verify consistency proof exists
         assert request.consistency_proof is not None
-        print(f"✅ Consistency proof stored: {request.consistency_proof.proof_id}")
+        print(f" Consistency proof stored: {request.consistency_proof.proof_id}")
     
     def test_phase2_event_emissions(self):
         """Test that Phase 2 events are emitted correctly."""
@@ -238,7 +238,7 @@ class TestPhase2OnChainVerification:
         # Check that MedicalDataManager has the Phase 2 events
         # ProofVerifiedOnChain, NullifierRecorded, ConsistencyProofStored
         
-        print("✅ Phase 2 event emission test (placeholder)")
+        print(" Phase 2 event emission test (placeholder)")
 
 
 @pytest.mark.integration

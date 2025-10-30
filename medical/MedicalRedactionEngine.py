@@ -566,9 +566,9 @@ class MyRedactionEngine:
         if self._backend_mode == "EVM" and self.evm_client is not None and contract is not None:
             try:
                 self.backend = EVMBackend(self.evm_client, contract, nullifier_registry, ipfs_manager)
-                print("✅ Phase 2 EVM backend attached with nullifier registry support")
+                print(" Phase 2 EVM backend attached with nullifier registry support")
             except Exception as exc:
-                print(f"⚠️  Failed to attach EVM backend: {exc}")
+                print(f"  Failed to attach EVM backend: {exc}")
                 self.backend = SimulatedBackend(self)
     
     def execute_redaction(self, request_id: str) -> bool:
