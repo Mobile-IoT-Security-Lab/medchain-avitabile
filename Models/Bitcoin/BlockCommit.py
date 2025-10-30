@@ -225,7 +225,7 @@ class BlockCommit(BaseBlockCommit):
         # Forge new r
         # t1 = time.time()
         if p.hasMulti:
-            # here we are sending the secret key i to the performing miner
+            # here I am sending the secret key i to the performing miner
             miner_list = [miner for miner in p.NODES if miner.hashPower > 0]
             # propagation delay in sharing secret key
             time.sleep(0.005)

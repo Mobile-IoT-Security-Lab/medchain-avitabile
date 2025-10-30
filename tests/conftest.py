@@ -423,7 +423,7 @@ def pytest_collection_modifyitems(config, items):
     
     for item in items:
         if "integration" in item.keywords:
-            # Check if we should skip integration tests
+            # Check if I should skip integration tests
             if config.getoption("-m") and "not integration" in config.getoption("-m"):
                 item.add_marker(skip_integration)
         

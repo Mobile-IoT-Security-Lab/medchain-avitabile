@@ -196,7 +196,7 @@ class ProfessorDemo:
         print("  Proving key: circuits/build/redaction_final.zkey")
         
         try:
-            # Generate real proof - use the circuit inputs we prepared
+            # Generate real proof - use the circuit inputs I prepared
             print("Note: Actual proof generation requires:")
             print("  - Valid circuit inputs ()")
             print("  - snarkjs CLI installed")

@@ -92,6 +92,329 @@ cd contracts && npx hardhat test
 
 \textbf{Why Manual?} Circuit compilation is time-intensive (5--15 min) and requires circom installation. Build artifacts in \texttt{circuits/build/} currently contain 1 signal from earlier configuration. After recompilation, nullifier extraction, consistency proof verification, and replay attack prevention activate as described in this deliverable.
 
+\subsubsection{Detailed Recompilation Procedure}
+
+The following procedure provides step-by-step instructions for activating the full 16-signal verification system:
+
+\paragraph{Step 1: Environment Setup}
+
+Install required tooling:
+
+\begin{verbatim}
+# Install Rust toolchain (required for circom)
+curl --proto '=https' --tlsv1.2 \
+  https://sh.rustup.rs -sSf | sh
+source $HOME/.cargo/env
+
+# Clone and build circom v2.x
+git clone https://github.com/iden3/circom.git
+cd circom
+cargo build --release
+cargo install --path circom
+
+# Verify installation
+circom --version  # Should show 2.x.x
+\end{verbatim}
+
+Install snarkjs (if not already present):
+
+\begin{verbatim}
+npm install -g snarkjs
+snarkjs --version  # Should show 0.7.x or higher
+\end{verbatim}
+
+\paragraph{Step 2: Circuit Compilation}
+
+Navigate to project root and compile circuit:
+
+\begin{verbatim}
+cd /path/to/medchain-avitabile
+
+# Compile circuit to R1CS and WASM
+make circuits-compile
+
+# Expected output:
+#   circuits/build/redaction.r1cs
+#   circuits/build/redaction_js/redaction.wasm
+#   circuits/build/redaction.sym
+\end{verbatim}
+
+Verify compilation succeeded:
+
+\begin{verbatim}
+# Check witness generator exists
+ls -lh circuits/build/redaction_js/redaction.wasm
+
+# Inspect R1CS info
+snarkjs r1cs info circuits/build/redaction.r1cs
+# Should show: "# of Public Inputs: 16"
+\end{verbatim}
+
+\paragraph{Step 3: Trusted Setup}
+
+Generate proving and verification keys using existing PTAU:
+
+\begin{verbatim}
+# Run Groth16 setup (uses pot12_0000.ptau)
+make circuits-setup PTAU=tools/pot12_0000.ptau
+
+# Expected output:
+#   circuits/build/redaction_0000.zkey (initial)
+#   circuits/build/redaction_final.zkey (after contribution)
+#   circuits/build/verification_key.json
+\end{verbatim}
+
+Verify keys generated correctly:
+
+\begin{verbatim}
+# Check key sizes
+ls -lh circuits/build/*.zkey
+# redaction_final.zkey should be ~4-8 MB
+
+# Export verification key in JSON
+snarkjs zkey export verificationkey \
+  circuits/build/redaction_final.zkey \
+  circuits/build/verification_key.json
+
+# Verify public signal count
+jq '.nPublic' circuits/build/verification_key.json
+# Should output: 16
+\end{verbatim}
+
+\paragraph{Step 4: Verify Public Signals}
+
+Confirm \texttt{public.json} now exports 16 signals:
+
+\begin{verbatim}
+cat circuits/build/public.json
+# Expected output:
+# [
+#   "policyHash0", "policyHash1",
+#   "merkleRoot0", "merkleRoot1",
+#   "originalHash0", "originalHash1",
+#   "redactedHash0", "redactedHash1",
+#   "nullifier0", "nullifier1",
+#   "preStateHash0", "preStateHash1",
+#   "postStateHash0", "postStateHash1",
+#   "consistencyCheckPassed",
+#   "policyAllowed"
+# ]
+\end{verbatim}
+
+If \texttt{public.json} still shows \texttt{["1"]}, the circuit compilation did not complete successfully. Re-check Step 2.
+
+\paragraph{Step 5: Generate Solidity Verifier}
+
+Export Groth16 verifier contract:
+
+\begin{verbatim}
+make circuits-export-verifier
+
+# Or manually:
+snarkjs zkey export solidityverifier \
+  circuits/build/redaction_final.zkey \
+  contracts/src/RedactionVerifier_groth16.sol
+\end{verbatim}
+
+Verify verifier contract signature:
+
+\begin{verbatim}
+grep "function verifyProof" \
+  contracts/src/RedactionVerifier_groth16.sol
+# Should show: verifyProof(uint[2] memory a, uint[2][2] 
+#   memory b, uint[2] memory c, uint[16] memory input)
+#   ^^^^ Note: 16 public inputs
+\end{verbatim}
+
+\paragraph{Step 6: Update Smart Contract Interfaces}
+
+Modify \texttt{MedicalDataManager.sol} to accept 16 public signals:
+
+\begin{verbatim}
+// Before (1 signal):
+function requestDataRedactionWithFullProofs(
+    ...,
+    uint[1] memory pubSignals,
+    ...
+)
+
+// After (16 signals):
+function requestDataRedactionWithFullProofs(
+    ...,
+    uint[16] memory pubSignals,
+    ...
+) {
+    // Extract nullifier from circuit outputs (not timestamp hash)
+    bytes32 nullifier = bytes32(
+        (uint256(pubSignals[8]) | (uint256(pubSignals[9]) << 128))
+    );
+    
+    // Extract consistency hashes
+    bytes32 preStateHash = bytes32(
+        (uint256(pubSignals[10]) | (uint256(pubSignals[11]) << 128))
+    );
+    bytes32 postStateHash = bytes32(
+        (uint256(pubSignals[12]) | (uint256(pubSignals[13]) << 128))
+    );
+    
+    // Use extracted values for verification
+    require(nullifierRegistry.isNullifierValid(nullifier), 
+            "Replay attack detected");
+    // ... rest of logic
+}
+\end{verbatim}
+
+\paragraph{Step 7: Update Python Backend}
+
+Modify \texttt{medical/my\_snark\_manager.py} to use circuit-derived nullifiers:
+
+\begin{verbatim}
+# Remove timestamp-based fallback at line 185:
+# OLD: nullifier_seed = f"{request_id}_{int(time.time())}"
+#      nullifier = hashlib.sha256(nullifier_seed.encode()).hexdigest()
+
+# NEW: Extract from circuit public signals
+if len(pub_signals) >= 10:
+    null_limb0 = int(pub_signals[8])
+    null_limb1 = int(pub_signals[9])
+    nullifier_int = null_limb0 + (null_limb1 << 128)
+    nullifier = hex(nullifier_int)[2:].zfill(64)
+else:
+    raise ValueError("Circuit outputs missing nullifier signals")
+\end{verbatim}
+
+Remove all timestamp-based nullifier generation. After recompilation, nullifiers must come from circuit outputs to be cryptographically verifiable.
+
+\paragraph{Step 8: Deploy Updated Contracts}
+
+Redeploy contracts with new verifier:
+
+\begin{verbatim}
+cd contracts
+
+# Deploy to Hardhat local node
+npx hardhat node  # In separate terminal
+
+# Deploy contracts
+npx hardhat run scripts/deploy_phase2.js --network localhost
+
+# Expected output:
+#   NullifierRegistry deployed to: 0x...
+#   RedactionVerifier_groth16 deployed to: 0x...
+#   MedicalDataManager deployed to: 0x...
+#
+# Addresses saved to: deployed_addresses.json
+\end{verbatim}
+
+\paragraph{Step 9: Validation Tests}
+
+Run integration tests to verify end-to-end functionality:
+
+\begin{verbatim}
+# Test 1: Circuit integration with Python
+pytest tests/test_consistency_circuit_integration.py -v
+
+# Expected: All tests pass, proof generation <10s
+
+# Test 2: On-chain Groth16 verification
+cd contracts
+npx hardhat test test/Groth16Integration.test.js
+
+# Expected: "On-chain verify currently returns false" 
+#           comment should be REMOVED, test should PASS
+\end{verbatim}
+
+Verify specific functionality:
+
+\begin{verbatim}
+# Test nullifier extraction
+pytest tests/test_backend_switching.py::test_evm_backend_full_proofs -v
+# Should extract nullifier from pubSignals[8:10], not timestamp
+
+# Test consistency proof integration  
+pytest tests/test_full_redaction_pipeline.py -v --run-integration
+# Should extract preStateHash/postStateHash from pubSignals[10:14]
+
+# Test replay prevention
+cd contracts
+npx hardhat test test/NullifierRegistry.test.js
+# Should reject duplicate nullifiers from circuit outputs
+\end{verbatim}
+
+\paragraph{Step 10: Performance Benchmarking}
+
+Measure actual performance metrics (currently projected):
+
+\begin{verbatim}
+# Proof generation timing
+python -m tests.performance_test
+
+# Expected output:
+#   SNARK proof generation: 5-10 seconds
+#   Witness computation: 1-2 seconds
+#   Off-chain verification: <100ms
+
+# Gas cost measurement
+cd contracts
+REPORT_GAS=true npx hardhat test
+
+# Expected output (approximate):
+#   verifyProof(): ~250,000 gas
+#   recordNullifier(): ~21,000 gas
+#   requestDataRedactionWithFullProofs(): ~350,000 gas
+\end{verbatim}
+
+Update Table~\ref{tab:phase2_performance} in Results section with empirical measurements, removing "WARNING: projected estimates" disclaimer.
+
+\subsubsection{Verification Checklist}
+
+After completing Steps 1--10, verify the following:
+
+\begin{enumerate}
+    \item[$\square$] \texttt{circuits/build/public.json} contains 16 signal names
+    \item[$\square$] \texttt{circuits/build/verification\_key.json} shows \texttt{"nPublic": 16}
+    \item[$\square$] Solidity verifier accepts \texttt{uint[16] memory input}
+    \item[$\square$] \texttt{MedicalDataManager.sol} extracts nullifier from \texttt{pubSignals[8:10]}
+    \item[$\square$] Python code removes timestamp-based nullifier generation
+    \item[$\square$] Hardhat test \texttt{Groth16Integration.test.js:53} passes (returns \texttt{true})
+    \item[$\square$] Integration tests run without skipping (no Hardhat/IPFS skip markers)
+    \item[$\square$] Gas costs measured empirically, Table~\ref{tab:phase2_performance} updated
+    \item[$\square$] Appendix Section~A.3 "Known Limitations" can be removed or marked resolved
+    \item[$\square$] Abstract disclaimer about "system does not function end-to-end" can be removed
+\end{enumerate}
+
+\subsubsection{Troubleshooting Common Issues}
+
+\textbf{Issue 1: Circuit compilation fails with "signal not found"}
+
+\textit{Cause:} Circuit source file (\texttt{circuits/redaction.circom}) not updated with new signals.
+
+\textit{Solution:} Verify lines 10--25 define all 16 public signals including \texttt{nullifier0/1}, \texttt{preStateHash0/1}, \texttt{postStateHash0/1}, \texttt{consistencyCheckPassed}.
+
+\textbf{Issue 2: Verifier contract shows only 1 public input}
+
+\textit{Cause:} Using old verifier contract generated before circuit update.
+
+\textit{Solution:} Re-run Step 5 to regenerate \texttt{RedactionVerifier\_groth16.sol} from new \texttt{.zkey} file.
+
+\textbf{Issue 3: On-chain verification returns false}
+
+\textit{Cause:} Signal count mismatch between proof (16 signals) and contract expectation (1 signal), or vice versa.
+
+\textit{Solution:} Ensure Steps 1--6 completed successfully. Redeploy contracts (Step 8). Verify Python code passes all 16 signals to contract call.
+
+\textbf{Issue 4: Python IndexError accessing \texttt{pubSignals[8]}}
+
+\textit{Cause:} Circuit artifacts not recompiled; still using 1-signal proof.
+
+\textit{Solution:} Complete Steps 1--4. Verify Step 4 shows 16 signals in \texttt{public.json}.
+
+\textbf{Issue 5: Nullifier verification fails on-chain}
+
+\textit{Cause:} Nullifier still generated from timestamp hash (off-chain) instead of circuit outputs.
+
+\textit{Solution:} Complete Step 7. Search codebase for \texttt{hashlib.sha256} and \texttt{time.time()} in nullifier generation; remove these patterns.
+
 This appendix captures configuration references and command snippets used during the current iteration.
 
 \subsection{Key Environment Variables}

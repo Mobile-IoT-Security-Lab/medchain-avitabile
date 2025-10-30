@@ -735,7 +735,7 @@ class ConsistencyProofVerifier:
                         # Check state hash consistency (if available)
                         if "state_hash" in pre_ref and "state_hash" in post_ref:
                             # For non-redacted contracts, state hash should remain the same
-                            # For redacted contracts, we need to verify the hash change is valid
+                            # For redacted contracts, I need to verify the hash change is valid
                             if pre_ref.get("version", 0) == post_ref.get("version", 0):
                                 if pre_ref["state_hash"] != post_ref["state_hash"]:
                                     return False, f"Contract {contract_addr} state hash changed without version increment in block {block_index}"

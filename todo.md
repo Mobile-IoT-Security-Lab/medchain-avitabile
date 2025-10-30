@@ -54,7 +54,7 @@ a. [x] mark every file used for the above step two with something like (Bookmark
 
 ## Professor and Boss Directives
 
-We must implement the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" end‑to‑end. Starting from the Ateniese redactable blockchain benchmarks (<https://github.com/karimboubouh/Redactable_blockchain_benchmarks/tree/main/Redaction_Ateniese>), we add smart‑contract support and build a POC with a medical use case. First, demonstrate redactable blockchains with contracts, zero‑knowledge proofs (SNARKs), and proof‑of‑consistency. Then generate a synthetic medical dataset, build a censored version, upload only the censored version to IPFS (linked to the original). Provide a demo with CRUD (add/read/update/delete) and GDPR Right‑to‑be‑Forgotten via the Avitabile implementation.
+I must implement the paper "Data Redaction in Smart-Contract-Enabled Permissioned Blockchains" end‑to‑end. Starting from the Ateniese redactable blockchain benchmarks (<https://github.com/karimboubouh/Redactable_blockchain_benchmarks/tree/main/Redaction_Ateniese>), I add smart‑contract support and build a POC with a medical use case. First, I demonstrate redactable blockchains with contracts, zero‑knowledge proofs (SNARKs), and proof‑of‑consistency. Then I generate a synthetic medical dataset, build a censored version, upload only the censored version to IPFS (linked to the original), and provide a demo with CRUD (add/read/update/delete) and GDPR Right‑to‑be‑Forgotten via the Avitabile implementation.
 
 ## Real Implementation
 

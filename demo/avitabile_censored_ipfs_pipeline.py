@@ -95,11 +95,11 @@ class AvitabilePipelineDemo:
         print("\nPhase B: Store original records on chain, link to IPFS")
         count = 0
         for rec in dataset.patient_records:
-            # Rehydrate original from links (same patient ids; we want original values for on-chain)
+            # Rehydrate original from links (same patient ids; I want original values for on-chain)
             pid = rec["patient_id"]
-            # The original dataset contents aren’t saved; we can infer by uncensoring here is not possible.
-            # For the demo, we store the censored subset fields as the on-chain record body and keep original hash in links.
-            # In a real pipeline, you would feed original records into the chain directly before censoring.
+            # The original dataset contents aren’t saved; inferring by uncensoring here is not possible for me.
+            # For the demo, I store the censored subset fields as the on-chain record body and keep original hash in links.
+            # In a real pipeline, I would feed original records into the chain directly before censoring.
             onchain = {
                 "patient_id": pid,
                 "patient_name": rec.get("patient_name", "[REDACTED]"),

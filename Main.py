@@ -355,13 +355,13 @@ def main():
                     print_medical_data_comparison(
                         f"DETAILED {redaction_type} REDACTION ANALYSIS",
                         original_metadata,
-                        original_metadata,  # We'll modify this for AFTER state
+                        original_metadata,  # I'll modify this for AFTER state
                         redaction_type
                     )
                     
                     # Simulate the redaction operation
                     if redaction_type == "DELETE":
-                        # For demo, we'll show what deletion looks like
+                        # For demo, I'll show what deletion looks like
                         print(f"\n  EXECUTING {redaction_type} REDACTION...")
                         print(f"  Generating SNARK proof for private deletion...")
                         print(f"  Forging chameleon hash to preserve blockchain integrity...")

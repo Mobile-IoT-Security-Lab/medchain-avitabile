@@ -116,7 +116,7 @@ class TestPhase2OnChainVerification:
         assert tx_hash is not None, "First nullifier recording should succeed"
         
         # Try to record same nullifier again (should fail)
-        # Note: This will revert in the contract, so we expect False return
+        # Note: This will revert in the contract, so I expect False return
         try:
             result = self.nullifier_registry.functions.recordNullifier(test_nullifier).call()
             assert result is False, "Duplicate nullifier should return False"

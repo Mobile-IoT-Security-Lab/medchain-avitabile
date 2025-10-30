@@ -44,7 +44,7 @@ class MedicalDataCircuitMapper:
         for i in range(num_elements):
             chunk = h[i*bytes_per_element:(i+1)*bytes_per_element]
             # Convert bytes to integer (field element)
-            # Use modulo to ensure we stay within field bounds
+            # Use modulo to ensure I stay within field bounds
             element = int.from_bytes(chunk, 'big') % (2**250)  # Stay well below BN254 field
             elements.append(element)
         

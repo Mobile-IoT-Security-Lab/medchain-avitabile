@@ -225,8 +225,8 @@ class TestSNARKEVMIntegration:
         assert "merkle_proofs" in consistency_dict
         assert "hash_chain_proof" in consistency_dict
         
-        # Since consistency proof shows inconsistency, we can't proceed with SNARK generation
-        # But we can test the mock path and error handling
+        # Since the consistency proof shows inconsistency, I can't proceed with SNARK generation
+        # But I can test the mock path and error handling
         if not self.snark_client.is_enabled():
             # Test mock consistency SNARK even with invalid proof 
             snark_consistency_proof = self._mock_consistency_snark(consistency_dict)
@@ -377,7 +377,7 @@ class TestSNARKEVMIntegration:
         )
         
         # Simulate corruption detection
-        if "f" * 10 in str(proof):  # Detect our test corruption
+        if "f" * 10 in str(proof):  # Detect my test corruption
             valid = False
         
         return {"valid": valid, "gas_used": 50000}

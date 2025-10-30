@@ -11,7 +11,7 @@ This demo illustrates the core idea from the paper
   adjust the randomness r to keep the block hash unchanged.
 - The hash chain remains valid, so the chain does not need to be rebuilt.
 
-We build a tiny chain, perform a redaction on an interior block, and
+I build a tiny chain, perform a redaction on an interior block, and
 verify that the block id (hash) remains stable while the contents change.
 """
 
@@ -155,7 +155,7 @@ def run_demo():
     print("Redactable Blockchain – Chameleon Hash Redaction Demo")
     print("-" * 60)
 
-    # Note: We use the globally configured trapdoor SK through forge().
+    # Note: I use the globally configured trapdoor SK through forge().
     # The CH module exposes PK and the trapdoor-based forge operation.
     from CH.ChameleonHash import SK  # import here to keep top clean
 

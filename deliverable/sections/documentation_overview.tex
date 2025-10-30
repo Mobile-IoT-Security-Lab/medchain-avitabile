@@ -1,12 +1,38 @@
 \section{Documentation Overview}
 
-The repository collects implementation notes, compliance guidance, and operating procedures alongside the code. Documentation lives close to the artefacts it describes to encourage short feedback loops: project-wide briefs reside under \texttt{docs/}, developer onboarding material is surfaced in the root \texttt{README.md}, and deliverable-specific sections are assembled through this \LaTeX{} template. The \texttt{todo.md} backlog is treated as a living document that captures directives from supervisors and tracks progress on required enhancements.
+The repository collects implementation notes, compliance guidance, and operating procedures alongside the code. Documentation lives close to the artefacts it describes to encourage short feedback loops: developer onboarding material is surfaced in the root \texttt{README.md}, and deliverable-specific sections are assembled through this \LaTeX{} template. The \texttt{todo.md} backlog is treated as a living document that captures directives and tracks progress on required enhancements.
 
 \subsection{Architecture Documentation}
-High-level design rationale and cryptographic integration notes are maintained in \texttt{docs/ZK\_PROOF\_IMPLEMENTATION\_PLAN.md} and \texttt{docs/CONSISTENCY\_CIRCUIT\_INTEGRATION\_PLAN.md}. These documents describe how the redactable blockchain core, smart contracts, and proof systems fit together, and they are updated whenever major milestones land (e.g., the shift from simulated to real Groth16 proofs). The top-level \texttt{README.md} complements them with an overview of core features, command entry points, and the relationship between on-chain commitments and off-chain IPFS artefacts. Diagramming remains a TODO; the team keeps placeholders for future architecture figures as the contract orchestration layer stabilises.
+
+High-level design rationale and cryptographic integration notes are maintained in this deliverable document. Section~3 (Avitabile Implementation) describes how the redactable blockchain core, smart contracts, and proof systems fit together, documenting the progression from protocol-level chameleon hash redaction to smart contract governance with zero-knowledge proofs. Section~4 (Implementation Details) provides technical depth on circuit design, SNARK integration, and backend architecture.
+
+The top-level \texttt{README.md} complements these sections with an overview of core features, command entry points, and the relationship between on-chain commitments and off-chain IPFS artefacts. 
+
+\textbf{Critical implementation status}: As documented in the Abstract and Appendix Section~A.3, the system infrastructure is code-complete but requires circuit recompilation to activate end-to-end functionality. The circuit source code defines 16 public signals, but compiled artifacts in \texttt{circuits/build/} contain only 1 signal from an earlier configuration. Appendix Section~A.1.3 provides complete recompilation procedures.
 
 \subsection{Developer Documentation}
-Developer-facing resources emphasise reproducibility. The \texttt{README.md} provides bootstrap commands, environment variables, and demo invocations. Module-specific docstrings (for example in \texttt{medical/MedicalRedactionEngine.py} and \texttt{adapters/snark.py}) document extension points, while the adapters include inline comments that justify non-obvious design decisions such as IPFS retry strategies. Configuration helpers under \texttt{adapters/config.py} and the generated badges in \texttt{badges/} surface build and coverage status for new contributors. Outstanding documentation work includes formal coding standards and an explicit contribution guide.
+
+Developer-facing resources emphasise reproducibility. The \texttt{README.md} provides bootstrap commands, environment variables, and demo invocations. Module-specific docstrings (for example in \texttt{medical/MedicalRedactionEngine.py} and \texttt{adapters/snark.py}) document extension points, while the adapters include inline comments that justify non-obvious design decisions such as IPFS retry strategies. Configuration helpers under \texttt{adapters/config.py} and the generated badges in \texttt{badges/} surface build and coverage status for new contributors.
+
+Key technical documentation includes:
+\begin{itemize}
+    \item \textbf{Circuit mapping}: \texttt{medical/circuit\_mapper.py} docstrings explain field element conversion and signal preparation for 16-signal proofs
+    \item \textbf{SNARK integration}: \texttt{medical/my\_snark\_manager.py} documents proof generation workflow and nullifier extraction logic
+    \item \textbf{Backend interfaces}: \texttt{medical/backends.py} describes EVM vs simulated backend switching
+    \item \textbf{Test suite}: \texttt{tests/README.md} (if present) or test file docstrings explain unit vs integration test organization
+\end{itemize}
 
 \subsection{User-Facing Documentation}
-User-oriented material focuses on demonstrators rather than polished manuals. The demo suite under \texttt{demo/} showcases standard redaction flows, IPFS integration, and zero-knowledge proof generation. The medical use-case notebooks and scripts document how synthetic datasets are generated and censored before being published via IPFS. A concise operator guide is planned once smart contract orchestration reaches feature parity with the simulator; in the meantime, the deliverable, demo walkthroughs, and inline CLI help serve as the main references for stakeholders evaluating the prototype.
+
+User-oriented material focuses on demonstrators and workflow examples. The demo suite under \texttt{demo/} showcases standard redaction flows, IPFS integration, and zero-knowledge proof generation pathways. Key demos include:
+
+\begin{itemize}
+    \item \texttt{demo/avitabile\_redaction\_demo.py}: Multi-party approval governance workflow
+    \item \texttt{demo/avitabile\_censored\_ipfs\_pipeline.py}: Censored data storage model
+    \item \texttt{demo/avitabile\_consistency\_demo.py}: Consistency proof validation
+    \item \texttt{demo/final\_demo.py}: Complete professor demonstration of Phase 1 and Phase 2 implementation
+\end{itemize}
+
+The medical use-case scripts demonstrate how synthetic datasets are generated and censored before being published via IPFS. 
+
+\textbf{Operational readiness}: Demo scripts currently operate with 1-signal circuit artifacts. After circuit recompilation (see Appendix~A.1.3), demos will showcase full 16-signal proof verification with circuit-derived nullifiers and on-chain consistency validation. The deliverable, demo walkthroughs, and inline CLI help serve as the main references for stakeholders evaluating the prototype.

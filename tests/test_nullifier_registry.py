@@ -180,7 +180,7 @@ class TestNullifierRegistry:
         nullifier = hashlib.sha256(b"pause_test").digest()
         try:
             result = self.contract.functions.recordNullifier(nullifier).call()
-            # If we get here, check if it's false due to pause
+            # If I get here, I check if it's false due to pause
             # (may vary by implementation)
         except Exception:
             pass  # Expected revert

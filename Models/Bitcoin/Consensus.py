@@ -7,7 +7,7 @@ import random
 
 class Consensus(BaseConsensus):
     """
-	We modelled PoW consensus protocol by drawing the time it takes the miner to finish the PoW from an exponential distribution
+	I modelled PoW consensus protocol by drawing the time it takes the miner to finish the PoW from an exponential distribution
         based on the invested hash power (computing power) fraction
     """
 

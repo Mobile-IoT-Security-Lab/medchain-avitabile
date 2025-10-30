@@ -180,7 +180,7 @@ class TestIPFSAdapterInterface(unittest.TestCase):
                     self.assertTrue(hasattr(client, method), f"Missing method: {method}")
                     self.assertTrue(callable(getattr(client, method)), f"Method not callable: {method}")
         except Exception:
-            # If we can't create the client, just test the class has the right methods
+            # If I can't create the client, I just test the class has the right methods
             required_methods = ['add', 'get', 'pin', 'unpin', 'rm', 'stat']
             for method in required_methods:
                 self.assertTrue(hasattr(self.real_client_class, method), f"Missing method: {method}")

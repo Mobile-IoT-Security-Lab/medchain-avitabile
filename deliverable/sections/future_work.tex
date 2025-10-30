@@ -2,13 +2,46 @@
 
 Remaining tasks span protocol hardening, usability improvements, and compliance sign-off. The backlog in \texttt{todo.md} is the authoritative source; highlights are summarised here to guide the next development cycle.
 
-\subsection{Short-Term Priorities}
+\subsection{Immediate Next Steps: Circuit Recompilation}
+
+The highest-priority task is completing the circuit compilation workflow to activate the full 16-signal proof verification system. As documented in Appendix Section~A.1.3 (Detailed Recompilation Procedure), this requires:
+
+\begin{enumerate}
+    \item Installing circom v2.x compiler and snarkjs tooling
+    \item Recompiling \texttt{circuits/redaction.circom} to generate 16-signal artifacts
+    \item Updating Solidity contracts to accept \texttt{uint[16]} public signals
+    \item Removing timestamp-based nullifier generation in favor of circuit-derived nullifiers
+    \item Validating end-to-end with Hardhat integration tests
+\end{enumerate}
+
+\textbf{Time estimate:} 2--4 hours (assuming environment setup succeeds).
+
+\textbf{Impact:} Resolves all blockers documented in Appendix Section~A.3 (Known Limitations). After completion:
 \begin{itemize}
-    \item Complete end-to-end smart contract orchestration: invoke Groth16 verification and proof-of-consistency checks from \texttt{MedicalDataManager.sol} before allowing state changes.
-    \item Extend the circom circuit and mapper to ingest consistency proof data, enforcing state-transition validity inside the proof system.
-    \item Finalise the censored medical dataset pipeline by automating policy-based anonymisation, IPFS publication, and on-chain/off-chain linkage tests.
-    \item Add negative-path testing for proof verification, policy breaches, and IPFS redaction edge cases to increase confidence ahead of demonstrations.
+    \item Nullifiers will be cryptographically verifiable (extracted from \texttt{pubSignals[8:10]})
+    \item On-chain Groth16 verification will pass (Hardhat test at \texttt{contracts/test/Groth16Integration.test.js:53})
+    \item Consistency proof hashes will be available as public signals (\texttt{pubSignals[10:14]})
+    \item Integration tests will run without skipping (Hardhat/IPFS services accessible)
+    \item Gas cost measurements will be empirical, not projected
+\end{itemize}
+
+\textbf{Deliverable updates post-recompilation:}
+\begin{itemize}
+    \item Remove "CRITICAL IMPLEMENTATION STATUS" warning box from Results section
+    \item Update Abstract to state "fully functional end-to-end system"
+    \item Mark Appendix Section~A.3 subsections as resolved
+    \item Replace Table~\ref{tab:phase2_performance} caption with empirical measurements
+    \item Update Security Metrics to show on-chain verification results, not unit test mocks
+\end{itemize}
+
+See Appendix Section~A.1.3 for complete step-by-step instructions, verification checklist, and troubleshooting guide.
+
+\subsection{Short-Term Priorities (Post-Recompilation)}
+\begin{itemize}
+    \item Extend negative-path testing for proof verification, policy breaches, and IPFS redaction edge cases to increase confidence ahead of demonstrations.
     \item Produce architecture diagrams and compliance mapping artefacts that visualise data flow and reference relevant GDPR/HIPAA clauses.
+    \item Implement batch proof verification to reduce gas costs for multiple simultaneous redaction requests (current estimates: 52\% savings for 10 concurrent operations).
+    \item Add comprehensive logging and monitoring for production deployment (proof generation failures, nullifier collisions, contract reverts).
 \end{itemize}
 
 \subsection{Long-Term Vision}
@@ -17,4 +50,5 @@ Remaining tasks span protocol hardening, usability improvements, and compliance 
     \item Investigate formal verification of smart contracts and circuits to strengthen assurance guarantees demanded by healthcare regulators.
     \item Introduce a role-aware operator dashboard that surfaces approvals, audit logs, and redaction history to non-technical stakeholders.
     \item Explore interoperability with existing health information systems (FHIR APIs, consent registries) to streamline data ingestion and audit trails.
+    \item Research recursive SNARK composition for proof aggregation, reducing on-chain verification costs to O(1) regardless of batch size.
 \end{itemize}

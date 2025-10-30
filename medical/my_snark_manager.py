@@ -225,7 +225,7 @@ class EnhancedHybridSNARKManager:
             if not pub_signals:
                 raise ValueError("Missing public signals from proof result")
             
-            # Extract nullifier from public signals (indices 8, 9 based on our circuit)
+            # Extract nullifier from public signals (indices 8, 9 based on my circuit)
             # Public signal order: policyHash0, policyHash1, merkleRoot0, merkleRoot1,
             #                      originalHash0, originalHash1, redactedHash0, redactedHash1,
             #                      nullifier0, nullifier1, preStateHash0, preStateHash1,

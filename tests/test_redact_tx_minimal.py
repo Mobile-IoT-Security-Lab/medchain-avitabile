@@ -89,7 +89,7 @@ class TestRedactTxMinimal(unittest.TestCase):
         self.assertEqual(len(other.blockchain[self.block_index].transactions), 0)
 
     def test_execute_approved_redaction_modify(self):
-        # Set up: ensure we have a fresh transaction to modify
+        # Set up: ensure I have a fresh transaction to modify
         # Reset minimal state
         self.setUp()
 
