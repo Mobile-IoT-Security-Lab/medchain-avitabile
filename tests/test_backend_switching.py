@@ -193,7 +193,59 @@ class TestBackendSwitching(unittest.TestCase):
                 # Should fall back to simulation
                 self.assertFalse(engine._use_real_evm)
                 self.assertIsNone(engine.evm_client)
-                self.assertIsNone(engine.evm_client)
+
+    def test_engine_uses_full_proof_submission_for_evm_backend(self):
+        """Engine should invoke the full-proof backend path when EVM mode is active."""
+        try:
+            from medical.MedicalRedactionEngine import MyRedactionEngine
+            from medical.backends import EVMBackend
+        except ImportError:
+            self.skipTest("Medical redaction engine not available")
+
+        mock_snark_client = MagicMock()
+        mock_snark_client.is_available.return_value = True
+        mock_snark_client.prove_redaction.return_value = {
+            "verified": True,
+            "calldata": {
+                "pA": [1, 2],
+                "pB": [[1, 0], [0, 1]],
+                "pC": [3, 4],
+                "pubSignals": [123, 456],
+            },
+            "proof": {"pi_a": ["1", "2", "1"], "pi_b": [["1", "0"], ["1", "0"]], "pi_c": ["1", "2"]},
+        }
+        mock_snark_client.verify_proof.return_value = True
+
+        with patch("adapters.snark.SnarkClient", return_value=mock_snark_client):
+            engine = MyRedactionEngine()
+
+        engine._backend_mode = "EVM"
+        mock_evm_client = MagicMock()
+        backend = EVMBackend(mock_evm_client, MagicMock())
+        backend.request_data_redaction_with_full_proofs = MagicMock(return_value="0xtx")
+        engine.backend = backend
+
+        patient = engine.create_medical_data_record(
+            {
+                "patient_id": "evm_patient",
+                "patient_name": "Test",
+                "medical_record_number": "MRN-EVM",
+                "diagnosis": "Diag",
+                "treatment": "Treat",
+                "physician": "Doc",
+            }
+        )
+        engine.store_medical_data(patient)
+
+        request_id = engine.request_data_redaction(
+            patient_id="evm_patient",
+            redaction_type="DELETE",
+            reason="EVM backend test",
+            requester="admin",
+            requester_role="ADMIN",
+        )
+        self.assertIsNotNone(request_id)
+        backend.request_data_redaction_with_full_proofs.assert_called_once()
 
 
 class TestHybridManager(unittest.TestCase):
