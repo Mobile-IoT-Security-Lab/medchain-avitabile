@@ -26,7 +26,7 @@ jobs:
         with:
           working_directory: deliverable
           root_file: main.tex
-          args: -pdf -interaction=nonstopmode -file-line-error
+          args: -pdf -interaction=nonstopmode -file-line-error -bibtex
           extra_system_packages: |
             py-pygments
       
