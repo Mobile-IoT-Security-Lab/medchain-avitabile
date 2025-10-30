@@ -1,4 +1,3 @@
-````markdown
 # Phase 2: On-Chain Verification Implementation Plan
 
 <!-- Bookmark2 for next meeting -->
@@ -726,4 +725,3 @@ Once Phase 2 is complete:
 **Author:** Senior Development Team  
 **Phase:** 2 - On-Chain Verification  
 **Deadline:** TODAY
-````
