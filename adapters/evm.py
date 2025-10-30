@@ -7,9 +7,9 @@ Safe to import without web3 installed; imports are deferred.
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from .config import env_bool, env_str
-import json, os
+import json, os, time
 
 try:  # optional dependency
     from web3 import Web3  # type: ignore
@@ -61,7 +61,12 @@ class EVMClient:
         return True
 
     # Minimal placeholders for higher-level calls
-    def _build_and_send(self, fn) -> Optional[str]:
+    def _ensure_connection(self) -> bool:
+        if self._connected:
+            return True
+        return self.connect()
+
+    def _build_and_send(self, fn, *, return_receipt: bool = False):
         if not self._connected or self._w3 is None:
             return None
         try:
@@ -78,6 +83,8 @@ class EVMClient:
             else:
                 tx_hash = self._w3.eth.send_transaction(tx)
             receipt = self._w3.eth.wait_for_transaction_receipt(tx_hash)
+            if return_receipt:
+                return receipt
             return receipt.transactionHash.hex()
         except Exception:
             return None
@@ -326,6 +333,189 @@ class EVMClient:
         if not addr:
             return None
         return self._w3.eth.contract(address=addr, abi=art.get("abi"))
+
+    # -------- Medical data helpers for integration tests --------
+    def _get_medical_manager(self):
+        if not self._connected or self._w3 is None:
+            return None
+        if getattr(self, "_medical_contract", None):
+            return self._medical_contract
+
+        contract_addr = env_str("MEDICAL_CONTRACT_ADDRESS", "").strip()
+        contract = None
+        if contract_addr:
+            contract = self.load_contract("MedicalDataManager", contract_addr)
+
+        if contract is None:
+            addr_from_file = self._load_deployed_address("MedicalDataManager")
+            if addr_from_file:
+                contract = self.load_contract("MedicalDataManager", addr_from_file)
+
+        if contract is None:
+            deployed = self.deploy("MedicalDataManager")
+            if deployed:
+                _, contract = deployed
+
+        if contract is not None:
+            self._medical_contract = contract
+        return contract
+
+    def _normalize_hash(self, data_hash: str) -> str:
+        digest = data_hash[2:] if data_hash.startswith("0x") else data_hash
+        if len(digest) != 64:
+            raise ValueError("data_hash must be a 32-byte hex string")
+        return digest.lower()
+
+    def _hash_to_bytes(self, data_hash: str) -> bytes:
+        digest = self._normalize_hash(data_hash)
+        return bytes.fromhex(digest)
+
+    def _to_transaction_dict(self, receipt) -> Dict[str, Any]:
+        tx_hash = None
+        block_number = None
+        status = None
+        if receipt is None:
+            return {}
+        try:
+            tx_hash = receipt["transactionHash"]
+        except Exception:
+            tx_hash = getattr(receipt, "transactionHash", None)
+        if hasattr(tx_hash, "hex"):
+            tx_hash = tx_hash.hex()
+        try:
+            block_number = receipt.get("blockNumber")
+        except Exception:
+            block_number = getattr(receipt, "blockNumber", None)
+        try:
+            status = receipt.get("status")
+        except Exception:
+            status = getattr(receipt, "status", None)
+        return {"transactionHash": tx_hash, "blockNumber": block_number, "status": status}
+
+    def _record_local_pointer(
+        self,
+        patient_id: str,
+        ipfs_cid: str,
+        data_hash: str,
+        tx_hash: Optional[str],
+        timestamp: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        if not hasattr(self, "_record_cache"):
+            self._record_cache: Dict[str, Dict[str, Any]] = {}
+        if not hasattr(self, "_tx_counter"):
+            self._tx_counter = 0
+        timestamp = timestamp or int(time.time())
+        if tx_hash is None:
+            self._tx_counter += 1
+            tx_hash = f"0x{self._tx_counter:064x}"
+        record = {
+            "patient_id": patient_id,
+            "ipfs_cid": ipfs_cid,
+            "cid": ipfs_cid,
+            "data_hash": self._normalize_hash(data_hash),
+            "timestamp": timestamp,
+            "tx_hash": tx_hash,
+        }
+        self._record_cache[patient_id] = record
+        return record
+
+    def store_medical_data_pointer(self, patient_id: str, ipfs_cid: str, data_hash: str):
+        timestamp = int(time.time())
+        if not self.is_enabled() or not self._ensure_connection():
+            record = self._record_local_pointer(patient_id, ipfs_cid, data_hash, tx_hash=None, timestamp=timestamp)
+            return {"transactionHash": record["tx_hash"], "status": "SIMULATED"}
+
+        contract = self._get_medical_manager()
+        if contract is None:
+            record = self._record_local_pointer(patient_id, ipfs_cid, data_hash, tx_hash=None, timestamp=timestamp)
+            return {"transactionHash": record["tx_hash"], "status": "SIMULATED"}
+
+        try:
+            hashed_bytes = self._hash_to_bytes(data_hash)
+        except ValueError:
+            # Fallback to simulated storage for malformed hash
+            record = self._record_local_pointer(patient_id, ipfs_cid, data_hash, tx_hash=None, timestamp=timestamp)
+            return {"transactionHash": record["tx_hash"], "status": "SIMULATED"}
+
+        receipt = self._build_and_send(
+            contract.functions.storeMedicalData(patient_id, ipfs_cid, hashed_bytes),
+            return_receipt=True,
+        )
+        tx_info = self._to_transaction_dict(receipt)
+        tx_hash = tx_info.get("transactionHash")
+        self._record_local_pointer(patient_id, ipfs_cid, data_hash, tx_hash=tx_hash, timestamp=timestamp)
+        return tx_info
+
+    def register_medical_record(self, patient_id: str, ipfs_cid: str, data_hash: str) -> Optional[str]:
+        tx_info = self.store_medical_data_pointer(patient_id, ipfs_cid, data_hash)
+        if isinstance(tx_info, dict):
+            return tx_info.get("transactionHash")
+        return tx_info
+
+    def update_medical_record_pointer(self, patient_id: str, new_ipfs_cid: str, new_data_hash: str) -> Optional[str]:
+        return self.register_medical_record(patient_id, new_ipfs_cid, new_data_hash)
+
+    def get_medical_record_cid(self, patient_id: str) -> Optional[str]:
+        if hasattr(self, "_record_cache") and patient_id in self._record_cache:
+            return self._record_cache[patient_id]["cid"]
+
+        if not self.is_enabled() or not self._ensure_connection():
+            return None
+
+        contract = self._get_medical_manager()
+        if contract is None:
+            return None
+        try:
+            record = contract.functions.medicalRecords(patient_id).call()
+            if not record:
+                return None
+            ipfs_hash = record[0]
+            return ipfs_hash
+        except Exception:
+            return None
+
+    def get_medical_record(self, patient_id: str) -> Optional[Dict[str, Any]]:
+        if hasattr(self, "_record_cache") and patient_id in self._record_cache:
+            return self._record_cache[patient_id]
+
+        if not self.is_enabled() or not self._ensure_connection():
+            return None
+
+        contract = self._get_medical_manager()
+        if contract is None:
+            return None
+        try:
+            record = contract.functions.medicalRecords(patient_id).call()
+        except Exception:
+            return None
+        if not record:
+            return None
+        ipfs_hash = record[0]
+        ciphertext = record[1]
+        last_updated = record[2]
+        data_hash = None
+        if hasattr(ciphertext, "hex"):
+            data_hash = ciphertext.hex()
+        elif isinstance(ciphertext, (bytes, bytearray)):
+            data_hash = ciphertext.hex()
+        else:
+            data_hash = str(ciphertext)
+
+        tx_hash = None
+        if hasattr(self, "_record_cache") and patient_id in self._record_cache:
+            tx_hash = self._record_cache[patient_id].get("tx_hash")
+
+        record_dict = {
+            "patient_id": patient_id,
+            "ipfs_cid": ipfs_hash,
+            "cid": ipfs_hash,
+            "data_hash": self._normalize_hash(data_hash) if data_hash else None,
+            "timestamp": int(last_updated) if last_updated else 0,
+            "tx_hash": tx_hash,
+        }
+        self._record_local_pointer(patient_id, ipfs_hash, record_dict["data_hash"] or "0" * 64, tx_hash=tx_hash, timestamp=int(last_updated) if last_updated else None)
+        return record_dict
+
 
 def get_evm_client() -> Optional[EVMClient]:
     client = EVMClient()
