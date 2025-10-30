@@ -51,11 +51,11 @@ This document outlines the complete implementation of **Phase 2: On-Chain Verifi
 
 **Features:**
 
--  Store nullifier → timestamp mapping
--  Prevent duplicate nullifier submission
--  Optional time-bound windows for nullifiers
--  Query functions for verification
--  Events for monitoring
+- Store nullifier → timestamp mapping
+- Prevent duplicate nullifier submission
+- Optional time-bound windows for nullifiers
+- Query functions for verification
+- Events for monitoring
 
 ### 2. Enhanced MedicalDataManager
 
@@ -65,11 +65,11 @@ This document outlines the complete implementation of **Phase 2: On-Chain Verifi
 
 **Enhancements:**
 
--  Reference to NullifierRegistry
--  Reference to RedactionVerifier_groth16
--  Store consistency proof hashes
--  Verify both SNARK and consistency proofs
--  Complete audit trail via events
+- Reference to NullifierRegistry
+- Reference to RedactionVerifier_groth16
+- Store consistency proof hashes
+- Verify both SNARK and consistency proofs
+- Complete audit trail via events
 
 ### 3. EVMBackend Integration
 
@@ -79,10 +79,10 @@ This document outlines the complete implementation of **Phase 2: On-Chain Verifi
 
 **Features:**
 
--  Submit proofs with nullifiers
--  Handle consistency proof data
--  Parse verification results from events
--  Error handling for failed verification
+- Submit proofs with nullifiers
+- Handle consistency proof data
+- Parse verification results from events
+- Error handling for failed verification
 
 ### 4. Complete Integration Tests
 
@@ -90,9 +90,9 @@ This document outlines the complete implementation of **Phase 2: On-Chain Verifi
 
 **Files:**
 
--  `tests/test_onchain_verification.py` (new)
--  `tests/test_nullifier_registry.py` (new)
--  `tests/test_consistency_integration.py` (update)
+- `tests/test_onchain_verification.py` (new)
+- `tests/test_nullifier_registry.py` (new)
+- `tests/test_consistency_integration.py` (update)
 
 ## Implementation Tasks
 
@@ -174,10 +174,10 @@ contract NullifierRegistry {
 
 1. Add references to NullifierRegistry and Verifier
 2. Update `requestDataRedactionWithGroth16Proof` to:
-   -  Check nullifier validity
-   -  Verify SNARK proof
-   -  Record nullifier
-   -  Store consistency proof hash
+   - Check nullifier validity
+   - Verify SNARK proof
+   - Record nullifier
+   - Store consistency proof hash
 3. Add consistency proof storage
 4. Enhanced events
 
@@ -646,14 +646,14 @@ See full test implementation in appendix.
 
 Phase 2 is complete when:
 
--  [x] NullifierRegistry contract deployed and tested
--  [x] MedicalDataManager contract enhanced with full proof verification
--  [x] EVMBackend submits both SNARK and consistency proofs on-chain
--  [x] Nullifier replay attacks are prevented
--  [x] Consistency proof hashes stored on-chain
--  [x] All events emitted for audit trail
--  [x] Integration tests pass end-to-end
--  [x] No simulation fallbacks (all real proofs)
+- [x] NullifierRegistry contract deployed and tested
+- [x] MedicalDataManager contract enhanced with full proof verification
+- [x] EVMBackend submits both SNARK and consistency proofs on-chain
+- [x] Nullifier replay attacks are prevented
+- [x] Consistency proof hashes stored on-chain
+- [x] All events emitted for audit trail
+- [x] Integration tests pass end-to-end
+- [x] No simulation fallbacks (all real proofs)
 
 ## Files Modified (Bookmark2)
 
@@ -668,19 +668,19 @@ All files marked with `<!-- Bookmark2 for next meeting -->` or `# Bookmark2 for 
 7. `tests/test_phase2_onchain_verification.py` (NEW)
 8. `tests/test_nullifier_registry.py` (NEW)
 9. `contracts/scripts/deploy_phase2.js` (NEW)
-10.   `docs/PHASE_2_ON_CHAIN_VERIFICATION_PLAN.md` (THIS FILE)
+10. `docs/PHASE_2_ON_CHAIN_VERIFICATION_PLAN.md` (THIS FILE)
 
 ## Timeline
 
 **Total Estimated Time:** 8-10 hours (1 day sprint)
 
--   Hour 1: Create NullifierRegistry contract
--   Hours 2-3: Update MedicalDataManager
--   Hours 4-5: Update EVMBackend and integration
--   Hour 6: Update MedicalRedactionEngine
--   Hours 7-8: Write integration tests
--   Hour 9: Deployment scripts and documentation
--   Hour 10: Final testing and verification
+- Hour 1: Create NullifierRegistry contract
+- Hours 2-3: Update MedicalDataManager
+- Hours 4-5: Update EVMBackend and integration
+- Hour 6: Update MedicalRedactionEngine
+- Hours 7-8: Write integration tests
+- Hour 9: Deployment scripts and documentation
+- Hour 10: Final testing and verification
 
 ## Next Steps After Phase 2
 
@@ -688,35 +688,35 @@ Once Phase 2 is complete:
 
 1. **Deliverables (Todo #3):**
 
-   -  Write final project report
-   -  Create demo video
-   -  Prepare presentation
-   -  Document architecture
+   - Write final project report
+   - Create demo video
+   - Prepare presentation
+   - Document architecture
 
 2. **Performance Optimization:**
 
-   -  Gas optimization for contracts
-   -  Batch proof submissions
-   -  Caching strategies
+   - Gas optimization for contracts
+   - Batch proof submissions
+   - Caching strategies
 
 3. **Security Hardening:**
 
-   -  Full security audit
-   -  Formal verification of circuits
-   -  Penetration testing
+   - Full security audit
+   - Formal verification of circuits
+   - Penetration testing
 
 4. **Production Deployment:**
-   -  Multi-party trusted setup ceremony
-   -  Mainnet deployment
-   -  Monitoring and alerting
+   - Multi-party trusted setup ceremony
+   - Mainnet deployment
+   - Monitoring and alerting
 
 ## References
 
--  **Phase 1 Summary:** `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`
--  **Consistency Integration:** `docs/CONSISTENCY_CIRCUIT_INTEGRATION_PLAN.md`
--  **Contract Code:** `contracts/src/MedicalDataManager.sol`
--  **Backend Code:** `medical/backends.py`
--  **Groth16 Verifier:** `contracts/src/RedactionVerifier_groth16.sol`
+- **Phase 1 Summary:** `docs/ZK_PROOF_IMPLEMENTATION_PLAN.md`
+- **Consistency Integration:** `docs/CONSISTENCY_CIRCUIT_INTEGRATION_PLAN.md`
+- **Contract Code:** `contracts/src/MedicalDataManager.sol`
+- **Backend Code:** `medical/backends.py`
+- **Groth16 Verifier:** `contracts/src/RedactionVerifier_groth16.sol`
 
 ---
 
