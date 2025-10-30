@@ -2,6 +2,8 @@
 
 Provides a minimal interface; real implementation uses web3.py when enabled.
 Safe to import without web3 installed; imports are deferred.
+
+### Bookmark2 for next meeting - Phase 2 on-chain verification implementation
 """
 from __future__ import annotations
 

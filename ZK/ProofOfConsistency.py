@@ -1,18 +1,12 @@
 """
-Proof-of-Consistency Implementation for Redactable Blockchain
-===========================================================
+Proof of Consistency for Redactable Blockchain
+==============================================
 
-This module implements proof-of-consistency mechanisms to ensure that redaction operations
-maintain blockchain integrity and auditability in smart-contract-enabled permissioned blockchains.
+Generates and verifies consistency proofs to ensure blockchain integrity
+after redaction operations. Supports Merkle tree verification, hash chain
+validation, and smart contract state consistency checks.
 
-The proof-of-consistency ensures:
-1. Block chain integrity after redaction operations
-2. Smart contract state consistency 
-3. Transaction ordering preservation
-4. Merkle tree validity
-5. Cryptographic hash chain integrity
-
-### Bookmark1 for next meeting
+### Bookmark2 for next meeting - Phase 2 on-chain verification implementation
 """
 
 import hashlib
