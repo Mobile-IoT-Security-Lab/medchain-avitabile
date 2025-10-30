@@ -4,51 +4,12 @@ Remaining tasks span protocol hardening, usability improvements, and compliance 
 
 \subsection{Immediate Next Steps: Circuit Recompilation}
 
-The highest-priority task is completing the circuit compilation workflow to activate the full 16-signal proof verification system. As documented in Appendix Section~A.1.3 (Detailed Recompilation Procedure), this requires:
-
-\begin{enumerate}
-    \item Installing circom v2.x compiler and snarkjs tooling
-    \item Recompiling \texttt{circuits/redaction.circom} to generate 16-signal artifacts
-    \item Updating Solidity contracts to accept \texttt{uint[16]} public signals
-    \item Removing timestamp-based nullifier generation in favor of circuit-derived nullifiers
-    \item Validating end-to-end with Hardhat integration tests
-\end{enumerate}
-
-\textbf{Time estimate:} 2--4 hours (assuming environment setup succeeds).
-
-\textbf{Impact:} Resolves all blockers documented in Appendix Section~A.3 (Known Limitations). After completion:
-\begin{itemize}
-    \item Nullifiers will be cryptographically verifiable (extracted from \texttt{pubSignals[8:10]})
-    \item On-chain Groth16 verification will pass (Hardhat test at \texttt{contracts/test/Groth16Integration.test.js:53})
-    \item Consistency proof hashes will be available as public signals (\texttt{pubSignals[10:14]})
-    \item Integration tests will run without skipping (Hardhat/IPFS services accessible)
-    \item Gas cost measurements will be empirical, not projected
-\end{itemize}
-
-\textbf{Deliverable updates post-recompilation:}
-\begin{itemize}
-    \item Remove "CRITICAL IMPLEMENTATION STATUS" warning box from Results section
-    \item Update Abstract to state "fully functional end-to-end system"
-    \item Mark Appendix Section~A.3 subsections as resolved
-    \item Replace Table~\ref{tab:phase2_performance} caption with empirical measurements
-    \item Update Security Metrics to show on-chain verification results, not unit test mocks
-\end{itemize}
-
-See Appendix Section~A.1.3 for complete step-by-step instructions, verification checklist, and troubleshooting guide.
+My top priority is to rebuild the Groth16 artifacts so the 16 public signals defined in the circuit source finally reach the verifier. Appendix~A.1.3 already lists the steps; in short I need to install circom/snarkjs, rerun the compile/setup scripts, switch the Solidity ABI to \texttt{uint[16]}, drop the timestamp-based nullifier shim, and rerun the Hardhat integration tests. I estimate two to four hours once the tooling is in place. When that job is done the nullifier registry will consume real limb data, the Solidity verifier will stop returning \texttt{false}, and the gas numbers in Table~\ref{tab:phase2_performance} can come from measurements instead of projections.
 
 \subsection{Short-Term Priorities (Post-Recompilation)}
-\begin{itemize}
-    \item Extend negative-path testing for proof verification, policy breaches, and IPFS redaction edge cases to increase confidence ahead of demonstrations.
-    \item Produce architecture diagrams and compliance mapping artefacts that visualise data flow and reference relevant GDPR/HIPAA clauses.
-    \item Implement batch proof verification to reduce gas costs for multiple simultaneous redaction requests (current estimates: 52\% savings for 10 concurrent operations).
-    \item Add comprehensive logging and monitoring for production deployment (proof generation failures, nullifier collisions, contract reverts).
-\end{itemize}
+
+After the recompilation I plan to tighten the test suite around the new behaviour (failed-proof paths, policy violations, IPFS edge cases), produce updated architecture and compliance diagrams, wire the batch-verification path for cheaper multi-request submissions, and add monitoring hooks so I can see proof failures or contract reverts in a deployed environment.
 
 \subsection{Long-Term Vision}
-\begin{itemize}
-    \item Deploy the solution on a managed permissioned blockchain and evaluate operational characteristics such as latency, throughput, and key management at scale.
-    \item Investigate formal verification of smart contracts and circuits to strengthen assurance guarantees demanded by healthcare regulators.
-    \item Introduce a role-aware operator dashboard that surfaces approvals, audit logs, and redaction history to non-technical stakeholders.
-    \item Explore interoperability with existing health information systems (FHIR APIs, consent registries) to streamline data ingestion and audit trails.
-    \item Research recursive SNARK composition for proof aggregation, reducing on-chain verification costs to O(1) regardless of batch size.
-\end{itemize}
+
+Longer term I want to run this stack on a managed permissioned chain, gather latency and throughput numbers, and explore formal methods for both the contracts and the circuit. I also see value in a lightweight operator dashboard for approvals and audits, integrations with hospital systems (FHIR, consent registries), and—if the workload justifies it—recursive SNARK aggregation to shrink on-chain costs.
