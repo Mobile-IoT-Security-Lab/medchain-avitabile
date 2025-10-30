@@ -399,20 +399,26 @@ class EVMClient:
         data_hash: str,
         tx_hash: Optional[str],
         timestamp: Optional[int] = None,
+        *,
+        generate_tx_hash: bool = True,
     ) -> Dict[str, Any]:
         if not hasattr(self, "_record_cache"):
             self._record_cache: Dict[str, Dict[str, Any]] = {}
         if not hasattr(self, "_tx_counter"):
             self._tx_counter = 0
         timestamp = timestamp or int(time.time())
-        if tx_hash is None:
+        if tx_hash is None and generate_tx_hash:
             self._tx_counter += 1
             tx_hash = f"0x{self._tx_counter:064x}"
+        try:
+            normalized_hash = self._normalize_hash(data_hash)
+        except Exception:
+            normalized_hash = "0" * 64
         record = {
             "patient_id": patient_id,
             "ipfs_cid": ipfs_cid,
             "cid": ipfs_cid,
-            "data_hash": self._normalize_hash(data_hash),
+            "data_hash": normalized_hash,
             "timestamp": timestamp,
             "tx_hash": tx_hash,
         }
@@ -513,7 +519,14 @@ class EVMClient:
             "timestamp": int(last_updated) if last_updated else 0,
             "tx_hash": tx_hash,
         }
-        self._record_local_pointer(patient_id, ipfs_hash, record_dict["data_hash"] or "0" * 64, tx_hash=tx_hash, timestamp=int(last_updated) if last_updated else None)
+        self._record_local_pointer(
+            patient_id,
+            ipfs_hash,
+            record_dict["data_hash"] or "0" * 64,
+            tx_hash=tx_hash,
+            timestamp=int(last_updated) if last_updated else None,
+            generate_tx_hash=False,
+        )
         return record_dict
 
 
