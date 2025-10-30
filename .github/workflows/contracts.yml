@@ -33,55 +33,9 @@ jobs:
           npx hardhat clean
           npx hardhat compile --force
       
-      - name: Install circuits dependencies
-        run: |
-          # Install basic tools
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq curl build-essential wget
-          # Install snarkjs globally (optional for tests)
-          npm install -g snarkjs || echo "snarkjs installation skipped"
-          # Install circom (optional for tests)
-          wget -q -O /tmp/circom-linux-amd64 https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 || true
-          if [ -f /tmp/circom-linux-amd64 ]; then
-            sudo mv /tmp/circom-linux-amd64 /usr/local/bin/circom
-            sudo chmod +x /usr/local/bin/circom
-            echo "circom installed successfully"
-          else
-            echo "circom installation skipped - not required for contract tests"
-          fi
-        continue-on-error: true
-          
-      - name: Build circuits and generate test proofs
-        env:
-          PTAU: ../tools/powersOfTau28_hez_final_14.ptau
-        run: |
-          cd circuits
-          echo "Circuit compilation can take 5-10 minutes and may timeout in CI"
-          echo "Contract tests will run with or without circuit artifacts"
-          # Make scripts executable
-          chmod +x scripts/*.sh 2>/dev/null || true
-          # Try to compile circuits but don't fail the build if it times out
-          timeout 600 bash -c '
-            # Ensure Powers of Tau file exists
-            mkdir -p ../tools
-            if [ ! -f "../tools/powersOfTau28_hez_final_14.ptau" ]; then
-              echo "Downloading Powers of Tau file (2^14 = 16384 constraints)..."
-              if ! curl -L -f -o "../tools/powersOfTau28_hez_final_14.ptau" \
-                "https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_14.ptau"; then
-                echo "Primary download failed, trying alternative..."
-                curl -L -f -o "../tools/powersOfTau28_hez_final_14.ptau" \
-                  "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau" || \
-                  echo "PTAU download failed - circuit compilation will be skipped"
-              fi
-            fi
-            # Run circuit compilation if PTAU exists
-            if [ -f "../tools/powersOfTau28_hez_final_14.ptau" ]; then
-              [ -f scripts/compile.sh ] && ./scripts/compile.sh
-              [ -f scripts/setup.sh ] && ./scripts/setup.sh
-              [ -f scripts/prove.sh ] && ./scripts/prove.sh
-            fi
-          ' || echo "Circuit compilation skipped or timed out - tests will run without real proofs"
-        continue-on-error: true
+      # Circuit compilation is skipped in CI as it's time-consuming and not required for contract tests
+      # Contract tests validate Solidity logic, not circuit compilation
+      # Circuits can be compiled locally for full integration testing
       
       - name: Test
         working-directory: contracts
