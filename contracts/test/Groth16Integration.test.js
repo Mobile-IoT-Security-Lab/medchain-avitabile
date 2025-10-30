@@ -14,7 +14,7 @@ describe("MedicalDataManager + Groth16Verifier (integration)", function () {
     await verifier.waitForDeployment();
 
     const MDM = await ethers.getContractFactory("MedicalDataManager");
-    const mdm = await MDM.deploy();
+    const mdm = await MDM.deploy(ethers.ZeroAddress, ethers.ZeroAddress);
     await mdm.waitForDeployment();
 
     await mdm.setVerifier(await verifier.getAddress());
@@ -52,7 +52,7 @@ describe("MedicalDataManager + Groth16Verifier (integration)", function () {
 
     // Deploy MDM and configure to use Groth16 path
     const MDM = await ethers.getContractFactory("MedicalDataManager");
-    const mdm = await MDM.deploy();
+    const mdm = await MDM.deploy(ethers.ZeroAddress, ethers.ZeroAddress);
     await mdm.waitForDeployment();
 
     await mdm.setVerifier(await verifier.getAddress());

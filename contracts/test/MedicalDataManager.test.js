@@ -8,11 +8,26 @@ describe("MedicalDataManager", function () {
     const verifier = await Verifier.deploy();
     await verifier.waitForDeployment();
 
+    const Nullifier = await ethers.getContractFactory("NullifierRegistry");
+    const nullifierRegistry = await Nullifier.deploy();
+    await nullifierRegistry.waitForDeployment();
+
     const MDM = await ethers.getContractFactory("MedicalDataManager");
-    const mdm = await MDM.deploy();
+    const mdm = await MDM.deploy(
+      ethers.ZeroAddress,
+      await nullifierRegistry.getAddress()
+    );
     await mdm.waitForDeployment();
 
-    return { owner, other, approver, outsider, mdm, verifier };
+    return {
+      owner,
+      other,
+      approver,
+      outsider,
+      mdm,
+      verifier,
+      nullifierRegistry,
+    };
   }
 
   it("enforces onlyAuthorized and allows storing data after authorization", async function () {
