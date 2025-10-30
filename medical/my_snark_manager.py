@@ -179,16 +179,31 @@ class EnhancedHybridSNARKManager:
             redaction_type = redaction_data.get("redaction_type", "MODIFY")
             policy_hash = redaction_data.get("policy_hash", f"policy_{redaction_type}")
             
+            # Generate nullifier
+            import hashlib
+            nullifier_seed = f"{redaction_data.get('request_id', 'unknown')}_{int(time.time())}"
+            nullifier = hashlib.sha256(nullifier_seed.encode()).hexdigest()
+            
+            # Extract consistency proof data
+            consistency_data = None
+            if consistency_proof:
+                consistency_data = {
+                    "pre_state_hash": consistency_proof.pre_state_hash if hasattr(consistency_proof, 'pre_state_hash') else "0" * 64,
+                    "post_state_hash": consistency_proof.post_state_hash if hasattr(consistency_proof, 'post_state_hash') else "0" * 64,
+                    "valid": consistency_proof.is_valid if hasattr(consistency_proof, 'is_valid') else True
+                }
+            
             # Use circuit mapper to prepare inputs WITH consistency proof
-            circuit_inputs = self.circuit_mapper.prepare_circuit_inputs_with_consistency(
+            circuit_inputs = self.circuit_mapper.prepare_circuit_inputs(
                 medical_record_dict,
                 redaction_type,
                 policy_hash,
-                consistency_proof
+                consistency_proof=consistency_data,
+                nullifier=nullifier
             )
             
             # Validate inputs with consistency
-            if not self.circuit_mapper.validate_circuit_inputs_with_consistency(circuit_inputs):
+            if not self.circuit_mapper.validate_circuit_inputs(circuit_inputs):
                 print(f"  Circuit input validation failed (with consistency)")
                 raise ValueError("Invalid circuit inputs with consistency")
             
@@ -210,12 +225,25 @@ class EnhancedHybridSNARKManager:
             if not pub_signals:
                 raise ValueError("Missing public signals from proof result")
             
+            # Extract nullifier from public signals (indices 8, 9 based on our circuit)
+            # Public signal order: policyHash0, policyHash1, merkleRoot0, merkleRoot1,
+            #                      originalHash0, originalHash1, redactedHash0, redactedHash1,
+            #                      nullifier0, nullifier1, preStateHash0, preStateHash1,
+            #                      postStateHash0, postStateHash1, consistencyCheckPassed, policyAllowed
+            nullifier_from_proof = None
+            if len(pub_signals) >= 10:
+                # Reconstruct nullifier from limbs (indices 8 and 9)
+                null_limb0 = int(pub_signals[8])
+                null_limb1 = int(pub_signals[9])
+                nullifier_int = null_limb0 + (null_limb1 << 128)
+                nullifier_from_proof = hex(nullifier_int)[2:].zfill(64)
+            
             # Create ZKProof object compatible with existing system
             proof = ZKProof(
                 proof_id=f"real_groth16_consistency_{int(time.time())}_{hash(str(pub_signals)) % 10000}",
                 operation_type=redaction_type,
                 commitment=str(pub_signals[0]),
-                nullifier=f"nullifier_real_{int(time.time())}",
+                nullifier=nullifier_from_proof or f"nullifier_{nullifier[:16]}",
                 merkle_root=str(circuit_inputs.public_inputs.get("merkleRoot0", 0)),
                 timestamp=int(time.time()),
                 verifier_challenge=json.dumps(result.get("proof", {})),

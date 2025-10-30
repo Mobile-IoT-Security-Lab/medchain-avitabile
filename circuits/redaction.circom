@@ -144,6 +144,10 @@ template RedactionCircuit() {
     signal input redactedHash0;
     signal input redactedHash1;
 
+    // Nullifier for replay attack prevention (public)
+    signal input nullifier0;
+    signal input nullifier1;
+
     // Consistency proof public inputs (state hashes before/after redaction)
     signal input preStateHash0;
     signal input preStateHash1;
@@ -217,6 +221,8 @@ template RedactionCircuit() {
                     +  originalHash1
                     +  redactedHash0
                     +  redactedHash1
+                    +  nullifier0
+                    +  nullifier1
                     +  preStateHash0
                     +  preStateHash1
                     +  postStateHash0
@@ -225,4 +231,21 @@ template RedactionCircuit() {
                     +  policyAllowed;
 }
 
-component main = RedactionCircuit();
+component main {public [
+    policyHash0,
+    policyHash1,
+    merkleRoot0,
+    merkleRoot1,
+    originalHash0,
+    originalHash1,
+    redactedHash0,
+    redactedHash1,
+    nullifier0,
+    nullifier1,
+    preStateHash0,
+    preStateHash1,
+    postStateHash0,
+    postStateHash1,
+    consistencyCheckPassed,
+    policyAllowed
+]} = RedactionCircuit();

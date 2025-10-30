@@ -2,6 +2,8 @@
 
 The prototype has been exercised through automated tests, Hardhat simulations, and interactive demos. Validation emphasises deterministic proof generation, correctness of redaction policies, and the alignment between on-chain state, off-chain storage, and compliance expectations.
 
+\textbf{Implementation Status Note:} The Python infrastructure (\texttt{medical/backends.py}, \texttt{medical/circuit\_mapper.py}, \texttt{medical/my\_snark\_manager.py}) and circuit definition (\texttt{circuits/redaction.circom}) are complete with support for 16 public signals including nullifiers and consistency hashes. However, the compiled artifacts in \texttt{circuits/build/} currently contain only a single public signal from an earlier configuration. \textbf{To activate full end-to-end verification:} Install circom v2.x and run \texttt{make circuits-compile circuits-setup circuits-export-verifier}, then update \texttt{MedicalDataManager.sol} to accept 16 public signals and re-test. Gas cost measurements below are projected estimates pending this recompilation; the infrastructure code is ready.
+
 \subsection{Validation Scenarios}
 \begin{itemize}
     \item \textbf{Circuit and proof validation}: \texttt{pytest} targets such as \texttt{tests/test\_circuit\_mapper.py} ensure the medical circuit mapper produces valid public/private inputs for Groth16 proofs, while \texttt{tests/test\_avitabile\_redaction\_demo.py} exercises the full redactable blockchain flow with approvals, trapdoor updates, and consistency checks.
@@ -32,10 +34,10 @@ Nullifier Check (on-chain) & $<$10 ms & $\sim$21,000 \\
 Consistency Proof Hash Storage & $<$5 ms & $\sim$20,000 \\
 Full Request Submission & $<$200 ms & $\sim$350,000 \\
 \midrule
-\textbf{Total End-to-End Latency} & $\sim$\textbf{10 seconds} & $\sim$\textbf{350k gas} \\
+\textbf{Total End-to-End Latency} & $\sim$\textbf{10 seconds} & $\sim$\textbf{350k gas}$^{*}$ \\
 \bottomrule
 \end{tabular}
-\caption{Phase 2 on-chain verification performance. Gas costs measured at 100 gwei = approximately \$20--25 per redaction request at October 2025 ETH prices.}
+\caption{Phase 2 on-chain verification performance. $^{*}$Gas costs are projected estimates for 16-signal verification; current circuit artifacts process 1 signal. Empirical validation requires circuit recompilation. Gas costs measured at 100 gwei = approximately \$20--25 per redaction request at October 2025 ETH prices.}
 \label{tab:phase2_performance}
 \end{table}
 

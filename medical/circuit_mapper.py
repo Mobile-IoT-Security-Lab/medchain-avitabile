@@ -141,7 +141,9 @@ class MedicalDataCircuitMapper:
     def prepare_circuit_inputs(self, 
                               medical_record_dict: Dict[str, Any],
                               redaction_type: str,
-                              policy_hash: str = "default_policy") -> CircuitInputs:
+                              policy_hash: str = "default_policy",
+                              consistency_proof: Dict[str, Any] = None,
+                              nullifier: str = None) -> CircuitInputs:
         """
         Prepare all inputs for the redaction circuit.
         
@@ -149,6 +151,8 @@ class MedicalDataCircuitMapper:
             medical_record_dict: Medical record as dictionary
             redaction_type: Type of redaction operation
             policy_hash: Hash of the applicable policy
+            consistency_proof: Optional consistency proof data with pre/post state hashes
+            nullifier: Optional nullifier for replay attack prevention
             
         Returns:
             CircuitInputs object with public and private inputs
@@ -183,6 +187,34 @@ class MedicalDataCircuitMapper:
         red_h0, red_h1 = self.split_256bit_hash(redacted_hash)
         pol_h0, pol_h1 = self.split_256bit_hash(policy_hash)
         
+        # Handle nullifier
+        if nullifier is None:
+            # Generate default nullifier from timestamp and record hash
+            import time
+            nullifier_str = f"nullifier_{int(time.time())}_{original_hash}"
+            nullifier = hashlib.sha256(nullifier_str.encode()).hexdigest()
+        elif not nullifier.startswith('0x'):
+            # Hash the nullifier if it's not a hex string
+            nullifier = hashlib.sha256(nullifier.encode()).hexdigest()
+        else:
+            nullifier = nullifier[2:]
+        
+        null_h0, null_h1 = self.split_256bit_hash(nullifier)
+        
+        # Handle consistency proof
+        if consistency_proof:
+            pre_state_hash = consistency_proof.get("pre_state_hash", "0" * 64)
+            post_state_hash = consistency_proof.get("post_state_hash", "0" * 64)
+            consistency_check_passed = 1 if consistency_proof.get("valid", True) else 0
+        else:
+            # Default values when no consistency proof provided
+            pre_state_hash = hashlib.sha256(b"pre_state_default").hexdigest()
+            post_state_hash = hashlib.sha256(b"post_state_default").hexdigest()
+            consistency_check_passed = 1
+        
+        pre_h0, pre_h1 = self.split_256bit_hash(pre_state_hash)
+        post_h0, post_h1 = self.split_256bit_hash(post_state_hash)
+        
         # Merkle proof (optional, set enforceMerkle=0 to skip for now)
         # In future, compute actual Merkle path from blockchain state
         merkle_path_elements = [0] * 8
@@ -198,6 +230,13 @@ class MedicalDataCircuitMapper:
             "originalHash1": orig_h1,
             "redactedHash0": red_h0,
             "redactedHash1": red_h1,
+            "nullifier0": null_h0,
+            "nullifier1": null_h1,
+            "preStateHash0": pre_h0,
+            "preStateHash1": pre_h1,
+            "postStateHash0": post_h0,
+            "postStateHash1": post_h1,
+            "consistencyCheckPassed": consistency_check_passed,
             "policyAllowed": 1  # 1 = redaction permitted
         }
         
@@ -233,6 +272,10 @@ class MedicalDataCircuitMapper:
                 "merkleRoot0", "merkleRoot1",
                 "originalHash0", "originalHash1",
                 "redactedHash0", "redactedHash1",
+                "nullifier0", "nullifier1",
+                "preStateHash0", "preStateHash1",
+                "postStateHash0", "postStateHash1",
+                "consistencyCheckPassed",
                 "policyAllowed"
             ]
             

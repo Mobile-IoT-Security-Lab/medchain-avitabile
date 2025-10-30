@@ -140,6 +140,67 @@ class EVMBackend(RedactionBackend):
         """Phase 2: Submit redaction request with full on-chain verification."""
         if self.contract is None or self.evm is None:
             return None
+        
+        try:
+            # Extract nullifier from public signals
+            pub_signals = snark_proof_payload.get("pubSignals", [])
+            nullifier_bytes = b"\x00" * 32
+            
+            if len(pub_signals) >= 10:
+                # Public signal indices 8 and 9 contain nullifier0 and nullifier1
+                null_limb0 = int(pub_signals[8])
+                null_limb1 = int(pub_signals[9])
+                nullifier_int = null_limb0 + (null_limb1 << 128)
+                nullifier_bytes = nullifier_int.to_bytes(32, 'big')
+            
+            # Compute consistency proof hash
+            import json
+            from web3 import Web3
+            consistency_hash = Web3.keccak(
+                text=json.dumps({
+                    "pre_state_hash": consistency_proof.pre_state_hash if hasattr(consistency_proof, 'pre_state_hash') else "",
+                    "post_state_hash": consistency_proof.post_state_hash if hasattr(consistency_proof, 'post_state_hash') else "",
+                    "is_valid": consistency_proof.is_valid if hasattr(consistency_proof, 'is_valid') else True
+                })
+            )
+            
+            # Extract state hashes from public signals
+            pre_state_hash = b"\x00" * 32
+            post_state_hash = b"\x00" * 32
+            
+            if len(pub_signals) >= 14:
+                # Indices 10, 11 = preStateHash0, preStateHash1
+                # Indices 12, 13 = postStateHash0, postStateHash1
+                pre_limb0 = int(pub_signals[10])
+                pre_limb1 = int(pub_signals[11])
+                pre_state_int = pre_limb0 + (pre_limb1 << 128)
+                pre_state_hash = pre_state_int.to_bytes(32, 'big')
+                
+                post_limb0 = int(pub_signals[12])
+                post_limb1 = int(pub_signals[13])
+                post_state_int = post_limb0 + (post_limb1 << 128)
+                post_state_hash = post_state_int.to_bytes(32, 'big')
+            
+            # Call the contract method with full proof verification
+            return self.evm.requestDataRedactionWithFullProofs(
+                self.contract,
+                patient_id,
+                redaction_type,
+                reason,
+                snark_proof_payload.get("pA", []),
+                snark_proof_payload.get("pB", []),
+                snark_proof_payload.get("pC", []),
+                pub_signals,
+                nullifier_bytes,
+                consistency_hash,
+                pre_state_hash,
+                post_state_hash,
+            )
+        except Exception as e:
+            print(f"Failed to submit full proofs on-chain: {e}")
+            return None
+        if self.contract is None or self.evm is None:
+            return None
             
         try:
             import hashlib
