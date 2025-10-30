@@ -1,8 +1,20 @@
 \section{Results and Evaluation}
 
-The prototype has been exercised through automated tests, Hardhat simulations, and interactive demos. Validation emphasises deterministic proof generation, correctness of redaction policies, and the alignment between on-chain state, off-chain storage, and compliance expectations.
+\vspace{-0.5em}
+\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{%
+\textbf{CRITICAL IMPLEMENTATION STATUS:}\\[0.3em]
+This section documents infrastructure code and projected performance. \textbf{The system does NOT currently function end-to-end} because:
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=2pt]
+    \item Circuit artifacts in \texttt{circuits/build/} export 1 public signal (legacy), not the 16 signals defined in source code
+    \item Nullifiers are off-chain timestamp hashes, not circuit outputs (impossible with 1-signal proofs)
+    \item Hardhat test \texttt{contracts/test/Groth16Integration.test.js:53} documents on-chain verification returns \texttt{false}
+    \item Integration tests requiring Hardhat/IPFS tooling are skipped; only unit tests with mocks pass
+\end{itemize}
+\textbf{All gas costs, verification timings, and security metrics below are based on code infrastructure, not empirical measurement.} To validate: install circom v2.x, recompile with \texttt{make circuits-compile circuits-setup}, update Solidity to accept \texttt{uint[16]}, and re-test (see Appendix A.1).
+}}
+\vspace{1em}
 
-\textbf{Implementation Status Note:} The Python infrastructure (\texttt{medical/backends.py}, \texttt{medical/circuit\_mapper.py}, \texttt{medical/my\_snark\_manager.py}) and circuit definition (\texttt{circuits/redaction.circom}) are complete with support for 16 public signals including nullifiers and consistency hashes. However, the compiled artifacts in \texttt{circuits/build/} currently contain only a single public signal from an earlier configuration. \textbf{To activate full end-to-end verification:} Install circom v2.x and run \texttt{make circuits-compile circuits-setup circuits-export-verifier}, then update \texttt{MedicalDataManager.sol} to accept 16 public signals and re-test. Gas cost measurements below are projected estimates pending this recompilation; the infrastructure code is ready.
+The prototype infrastructure has been designed for automated tests, Hardhat simulations, and interactive demos. Validation pathways emphasize deterministic proof generation, correctness of redaction policies, and the alignment between on-chain state, off-chain storage, and compliance expectations.
 
 \subsection{Validation Scenarios}
 \begin{itemize}
@@ -37,15 +49,15 @@ Full Request Submission & $<$200 ms & $\sim$350,000 \\
 \textbf{Total End-to-End Latency} & $\sim$\textbf{10 seconds} & $\sim$\textbf{350k gas}$^{*}$ \\
 \bottomrule
 \end{tabular}
-\caption{Phase 2 on-chain verification performance. $^{*}$Gas costs are projected estimates for 16-signal verification; current circuit artifacts process 1 signal. Empirical validation requires circuit recompilation. Gas costs measured at 100 gwei = approximately \$20--25 per redaction request at October 2025 ETH prices.}
+\caption{Phase 2 on-chain verification performance. \textbf{WARNING:} All values are \textbf{projected estimates} from code infrastructure, not measured. Current circuit artifacts contain 1 public signal; gas costs assume 16-signal verification post-recompilation. Empirical validation blocked by circuit compilation gap. At 100 gwei, $\sim$\$20--25 per request (October 2025 ETH prices).}
 \label{tab:phase2_performance}
 \end{table}
 
-\textbf{Security Metrics:}
+\textbf{Security Metrics (Unit Test Results):}
 \begin{itemize}
-    \item \textbf{Replay Attack Prevention}: 100\% success rate across 50+ test cases. No duplicate nullifiers accepted.
-    \item \textbf{Proof Verification Rate}: 100\% valid proofs verified successfully on-chain. 0\% false positives in 30+ tests.
-    \item \textbf{Consistency Validation}: 100\% of redaction operations include valid consistency proofs with pre/post-state hash commitments.
+    \item \textbf{Replay Attack Prevention}: 100\% success rate across 50+ unit tests with \textbf{mocked nullifier registry}. No duplicate nullifiers accepted in simulation. \textit{On-chain registry not tested with real 16-signal proofs.}
+    \item \textbf{Proof Verification Rate}: 100\% valid proofs verified successfully \textbf{off-chain via snarkjs}. On-chain Solidity verification documented as returning \texttt{false} in \texttt{Groth16Integration.test.js:53}.
+    \item \textbf{Consistency Validation}: 100\% of redaction operations include consistency proof \textbf{objects in Python}. On-chain extraction from public signals (indices 10-15) not validated with real proofs.
 \end{itemize}
 
 \textbf{Test Coverage:}

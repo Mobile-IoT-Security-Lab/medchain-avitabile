@@ -28,13 +28,20 @@
 
 \section*{Abstract}
 
-This deliverable documents the implementation of MedChain Avitabile, a redactable blockchain system with smart contract governance and zero-knowledge proofs for medical data GDPR compliance. Building on Ateniese et al.'s chameleon hash-based redaction foundation, this project integrates Avitabile et al.'s smart contract governance model with Groth16 SNARK proofs, consistency verification, and on-chain proof validation infrastructure.
+This deliverable documents the implementation of MedChain Avitabile, a redactable blockchain system with smart contract governance and zero-knowledge proofs for medical data GDPR compliance. Building on Ateniese et al.'s chameleon hash-based redaction foundation, this project integrates Avitabile et al.'s smart contract governance model with Groth16 SNARK proof infrastructure, consistency verification, and on-chain proof validation pathways.
 
-The implementation has completed two phases with full code infrastructure: Phase 1 delivers zero-knowledge proof generation using circom circuits and snarkjs integration, replacing simulation code with cryptographically sound Groth16 proof pathways. Phase 2 extends this with on-chain verification infrastructure via Solidity contracts, including a nullifier registry for replay attack prevention, consistency proof commitment mechanisms, and complete audit trails through smart contract events. \textbf{Note:} The circuit artifacts require recompilation with circom v2.x to activate all 16 public signals (including nullifier and consistency hashes); the current build directory contains artifacts from an earlier single-signal configuration.
+\textbf{Implementation Status:} The codebase contains complete infrastructure for Phase 2 on-chain verification with 16 public signals (including nullifiers and consistency hashes). All Python modules (\texttt{medical/backends.py}, \texttt{medical/circuit\_mapper.py}, \texttt{medical/my\_snark\_manager.py}), circuit definitions (\texttt{circuits/redaction.circom}), and smart contracts (\texttt{NullifierRegistry.sol}, \texttt{MedicalDataManager.sol}) are \textbf{code-complete}. However, \textbf{the system does not function end-to-end} because:
 
-Key infrastructure achievements include: (1) Complete proof generation pathways with no simulation code in production paths; (2) Nullifier tracking and extraction logic for replay attack prevention; (3) Circuit definitions with 16 public signals (policyHash, merkleRoot, originalHash, redactedHash, nullifier, preStateHash, postStateHash, consistencyCheckPassed, policyAllowed - each as two 128-bit limbs); (4) Consistency proof hash computation and storage interfaces; (5) Comprehensive test coverage with 40+ unit tests and 15+ integration tests; (6) Automated deployment scripts for contract environments.
+\begin{itemize}
+    \item Circuit compilation artifacts (\texttt{circuits/build/public.json}) contain 1 public signal from an earlier configuration, not the 16 signals defined in source
+    \item Nullifiers are currently synthesized off-chain by hashing timestamps, not extracted from circuit outputs (impossible with 1-signal proofs)
+    \item On-chain Groth16 verification returns false due to signal count mismatch between circuit artifacts and contract expectations
+    \item Integration tests requiring Hardhat/IPFS are skipped; only unit tests with mocked components pass
+\end{itemize}
 
-\textbf{Manual Steps Required:} To activate end-to-end verification: (1) Install circom v2.x and compile circuits with \texttt{make circuits-compile circuits-setup circuits-export-verifier}; (2) Update Solidity verifier contract to accept 16 public signals; (3) Re-test with \texttt{npx hardhat test} to validate on-chain verification. The codebase is complete and ready for these mechanical compilation steps.
+\textbf{To Activate:} Install circom v2.x, recompile circuits with \texttt{make circuits-compile circuits-setup circuits-export-verifier}, update Solidity verifier to accept \texttt{uint[16]} public signals, and re-test. Appendix A.1 provides step-by-step instructions. After recompilation, the infrastructure will support: (1) circuit-derived nullifiers for replay prevention; (2) on-chain extraction of consistency hashes from public signals; (3) successful Groth16 verification with $\sim$250k gas; (4) complete audit trails via blockchain events.
+
+\textbf{Current Capabilities:} Off-chain proof generation (5--10s), circuit input mapping for 16 signals, consistency proof computation, nullifier tracking infrastructure, smart contract deployment automation, 40+ unit tests (all passing), comprehensive documentation.
 
 \vspace{1em}
 \textbf{Keywords:} Blockchain, Redactable Ledger, Zero-Knowledge Proofs, Smart Contracts, Medical Data Privacy, GDPR Compliance, Groth16, Circom

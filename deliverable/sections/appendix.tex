@@ -458,3 +458,91 @@ python -c "from tests.conftest import check_service_requirements;
     \item Tests skipping: Normal when services unavailable
     \item Timeout errors: Increase test timeout in pytest configuration
 \end{itemize}
+
+\subsection{Known Limitations and Blockers}
+
+\subsubsection{Circuit Compilation Gap}
+
+\textbf{Problem:} The circuit source code (\texttt{circuits/redaction.circom}) defines 16 public signals, but the compiled artifacts in \texttt{circuits/build/} contain only 1 signal from an earlier configuration. This is documented in \texttt{circuits/build/public.json} and confirmed in \texttt{circuits/redaction.circom:137} comments.
+
+\textbf{Impact:}
+\begin{itemize}
+    \item Nullifiers cannot be extracted from circuit outputs (attempting to access \texttt{pubSignals[8]} on a 1-element array causes IndexError or returns garbage)
+    \item Consistency hashes (\texttt{preStateHash}, \texttt{postStateHash}) are not available as public signals
+    \item On-chain verification receives 1 signal but code expects 16, causing verification to fail
+    \item Python code falls back to synthesizing nullifiers by hashing \texttt{(pubSignals[0], timestamp)}, which cannot be reproduced by verifiers
+\end{itemize}
+
+\textbf{Root Cause:} Circuit was updated with new signals after initial compilation. Circom compiler not installed on development machine, so circuit was never recompiled.
+
+\textbf{Resolution:} Install circom v2.x and run \texttt{make circuits-compile circuits-setup circuits-export-verifier} (see Section A.1.3).
+
+\subsubsection{On-Chain Verification Failure}
+
+\textbf{Problem:} Hardhat integration test \texttt{contracts/test/Groth16Integration.test.js:53} documents that the Groth16 verifier contract returns \texttt{false} when called with current proof artifacts.
+
+\textbf{Impact:}
+\begin{itemize}
+    \item Gas cost claims ($\sim$250k for verification) are unverified estimates from code structure
+    \item Smart contracts cannot enforce replay protection via nullifier registry (nullifiers not in proofs)
+    \item Consistency proof commitments on-chain are not possible (hashes not in public signals)
+    \item Full audit trail via blockchain events cannot be demonstrated empirically
+\end{itemize}
+
+\textbf{Root Cause:} Signal count mismatch between circuit artifacts (1 signal) and contract expectations (16 signals). Additionally, Solidity verifier was auto-generated from 1-signal circuit, so its function signature accepts \texttt{uint[1]} rather than \texttt{uint[16]}.
+
+\textbf{Resolution:} After circuit recompilation, regenerate Solidity verifier with \texttt{snarkjs zkey export solidityverifier} and update \texttt{MedicalDataManager.sol} to use new signature.
+
+\subsubsection{Off-Chain Nullifier Synthesis}
+
+\textbf{Problem:} Because circuit proofs don't export nullifiers, the Python backend synthesizes them by hashing \texttt{sha256(single\_public\_signal || timestamp)} in \texttt{medical/my\_snark\_manager.py} (see \texttt{medical/MedicalRedactionEngine.py:553} and \texttt{medical/MedicalRedactionEngine.py:603}).
+
+\textbf{Impact:}
+\begin{itemize}
+    \item Nullifiers are not reproducible by third-party verifiers (timestamp not in proof)
+    \item Replay attack prevention relies on centralized database, not cryptographic commitment
+    \item Cannot prove to auditors that a given nullifier corresponds to a specific proof
+    \item Breaks zero-knowledge property: off-chain database must store mapping from request to nullifier
+\end{itemize}
+
+\textbf{Resolution:} After circuit recompilation, nullifiers will be extracted from \texttt{pubSignals[8:10]} as documented in Table~\ref{tab:public_signals}, restoring cryptographic binding.
+
+\subsubsection{Integration Test Skipping}
+
+\textbf{Problem:} Large Phase 2 pytest suites (\texttt{tests/test\_evm\_integration.py}, \texttt{tests/test\_full\_redaction\_pipeline.py}) are marked as skipped without Hardhat and IPFS services running. Only the new targeted unit test (\texttt{tests/test\_backend\_switching.py:197}) executes by default.
+
+\textbf{Impact:}
+\begin{itemize}
+    \item Cannot empirically measure end-to-end latency (claimed $\sim$10 seconds in Table~\ref{tab:phase2_performance})
+    \item Batch nullifier gas savings (43\% for 5 nullifiers, 52\% for 10) are code projections, not measurements
+    \item Test coverage percentages ($>$85\% Python, $>$90\% Solidity) count only unit tests with mocks, not integration paths
+    \item Performance comparison table (Table~\ref{tab:simulation_vs_production}) shows "Production Ready: Yes" but production pathways untested
+\end{itemize}
+
+\textbf{Root Cause:} Circuit compilation blocker prevents integration tests from generating valid proofs. Hardhat and IPFS setup requires manual configuration (see Section A.2).
+
+\textbf{Resolution:} After circuit recompilation and contract updates, run full test suite with \texttt{pytest tests/ -v --run-integration} and \texttt{npx hardhat test}.
+
+\subsubsection{Summary of Current Capabilities}
+
+\textbf{What Works:}
+\begin{itemize}
+    \item Off-chain SNARK proof generation with snarkjs (5--10 seconds, validated via unit tests)
+    \item Circuit input mapping for all 16 signals in Python (\texttt{medical/circuit\_mapper.py})
+    \item Nullifier tracking infrastructure (Python classes, Solidity contracts)
+    \item Smart contract deployment automation (\texttt{scripts/deploy\_evm.py})
+    \item 40+ unit tests with mocked components (all passing)
+    \item Code structure for 16-signal proof verification
+\end{itemize}
+
+\textbf{What Doesn't Work:}
+\begin{itemize}
+    \item Circuit-derived nullifiers (off-chain timestamp hashes used instead)
+    \item On-chain Groth16 verification (returns \texttt{false})
+    \item Nullifier extraction from proof public signals (IndexError or garbage data)
+    \item Consistency hash commitments on-chain (signals not in proof)
+    \item Integration tests with Hardhat/IPFS (skipped)
+    \item Empirical gas cost measurement (all values projected)
+    \item End-to-end audit trail via blockchain events (infrastructure only)
+\end{itemize}
+
