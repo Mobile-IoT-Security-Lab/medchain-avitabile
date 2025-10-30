@@ -12,7 +12,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{pifont}
-\newcommand{\checkmark}{\ding{51}}
+% amssymb already defines \checkmark, so we only define our version if it doesn't exist
+\providecommand{\checkmark}{\ding{51}}
 
 \geometry{margin=1in}
 \setlist{leftmargin=*}
