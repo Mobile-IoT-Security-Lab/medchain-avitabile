@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/enriicola/Desktop/medchain-avitabile/contracts/src/MedicalDataManager.sol": {
-      "lastModificationDate": 1757942870219,
-      "contentHash": "849c9e2eef6aa0a2064e0c096371689f",
+      "lastModificationDate": 1761841302494,
+      "contentHash": "7efe0fbaa4e29881a768316a23ce7dfb",
       "sourceName": "src/MedicalDataManager.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -12,6 +12,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -35,6 +36,7 @@
       ],
       "artifacts": [
         "IGroth16Verifier",
+        "INullifierRegistry",
         "IRedactionVerifier",
         "MedicalDataManager"
       ]
@@ -50,6 +52,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -76,7 +79,7 @@
       ]
     },
     "/home/enriicola/Desktop/medchain-avitabile/contracts/src/AlwaysFalseVerifier.sol": {
-      "lastModificationDate": 1757868789675,
+      "lastModificationDate": 1758039784619,
       "contentHash": "afdef6117c84fcce6d6c5005b63fba37",
       "sourceName": "src/AlwaysFalseVerifier.sol",
       "solcConfig": {
@@ -86,6 +89,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -112,7 +116,7 @@
       ]
     },
     "/home/enriicola/Desktop/medchain-avitabile/contracts/src/RedactionVerifier_groth16.sol": {
-      "lastModificationDate": 1757928773097,
+      "lastModificationDate": 1760027346474,
       "contentHash": "9409f0198016c0651e437eb706be6a7e",
       "sourceName": "src/RedactionVerifier_groth16.sol",
       "solcConfig": {
@@ -122,6 +126,7 @@
             "enabled": true,
             "runs": 200
           },
+          "viaIR": true,
           "evmVersion": "paris",
           "outputSelection": {
             "*": {
@@ -146,6 +151,43 @@
       "artifacts": [
         "Groth16Verifier",
         "RedactionVerifierG16"
+      ]
+    },
+    "/home/enriicola/Desktop/medchain-avitabile/contracts/src/NullifierRegistry.sol": {
+      "lastModificationDate": 1761841192098,
+      "contentHash": "39435a9d8fc6bfce69061ba645418748",
+      "sourceName": "src/NullifierRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "NullifierRegistry"
       ]
     }
   }
