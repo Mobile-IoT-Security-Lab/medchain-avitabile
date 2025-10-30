@@ -1,0 +1,77 @@
+name: Build LaTeX Deliverable
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'deliverable/**'
+      - '.github/workflows/latex-build.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'deliverable/**'
+
+jobs:
+  build-latex:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: deliverable
+          root_file: main.tex
+          args: -pdf -interaction=nonstopmode -file-line-error
+          extra_system_packages: |
+            py-pygments
+      
+      - name: Check for LaTeX errors
+        if: failure()
+        run: |
+          echo "::error::LaTeX compilation failed. Check the logs above for details."
+          exit 1
+      
+      - name: Upload PDF artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deliverable-pdf
+          path: deliverable/main.pdf
+          retention-days: 30
+      
+      - name: Commit and push compiled PDF
+        if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd deliverable
+          
+          # Check if PDF was actually updated
+          if ! git diff --quiet main.pdf; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            
+            git add main.pdf
+            git commit -m "chore: update compiled PDF deliverable [skip ci]" || exit 0
+            
+            # Push with retry logic
+            for i in {1..3}; do
+              if git push; then
+                echo "Successfully pushed PDF update"
+                exit 0
+              fi
+              echo "Push failed, attempt $i/3. Pulling and retrying..."
+              git pull --rebase origin main || exit 1
+              sleep 2
+            done
+            
+            echo "::error::Failed to push PDF after 3 attempts"
+            exit 1
+          else
+            echo "PDF unchanged, no commit needed"
+          fi
