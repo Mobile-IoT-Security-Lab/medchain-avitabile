@@ -26,7 +26,7 @@
 \maketitle
 
 \begin{abstract}
-This deliverable documents the complete implementation of MedChain Avitabile, a redactable blockchain system with smart contract governance and zero-knowledge proofs for medical data GDPR compliance. Building on Ateniese et al.'s chameleon hash-based redaction foundation, we integrate Avitabile et al.'s smart contract governance model with real Groth16 SNARK proofs, consistency verification, and on-chain proof validation.
+This deliverable documents the complete implementation of MedChain Avitabile, a redactable blockchain system with smart contract governance and zero-knowledge proofs for medical data GDPR compliance. Building on Ateniese et al.'s chameleon hash-based redaction foundation, I integrated Avitabile et al.'s smart contract governance model with real Groth16 SNARK proofs, consistency verification, and on-chain proof validation.
 
 The implementation achieves production-ready status with two completed phases: Phase 1 delivers real zero-knowledge proof generation using circom circuits and snarkjs integration, replacing all simulation code with cryptographically sound Groth16 proofs. Phase 2 extends this with on-chain verification via deployed Solidity contracts, including a nullifier registry for replay attack prevention, consistency proof commitments on the blockchain, and complete audit trails through smart contract events.
 
