@@ -400,14 +400,70 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "requires_ipfs: mark test as requiring IPFS daemon"
     )
+    config.addinivalue_line(
+        "markers", "requires_snark: mark test as requiring SNARK circuit artifacts"
+    )
+
+
+def check_snark_artifacts_available() -> bool:
+    """Check if SNARK circuit artifacts are available."""
+    circuits_dir = project_root / "circuits" / "build"
+    wasm_path = circuits_dir / "redaction_js" / "redaction.wasm"
+    zkey_path = circuits_dir / "redaction_final.zkey"
+    vkey_path = circuits_dir / "verification_key.json"
+    return wasm_path.exists() and zkey_path.exists() and vkey_path.exists()
 
 
 def pytest_collection_modifyitems(config, items):
     """Modify test collection to handle integration tests."""
     skip_integration = pytest.mark.skip(reason="Integration tests require external services")
+    skip_snark = pytest.mark.skip(reason="SNARK circuit artifacts not available (circuits/build/)")
+    
+    snark_available = check_snark_artifacts_available()
     
     for item in items:
         if "integration" in item.keywords:
             # Check if we should skip integration tests
             if config.getoption("-m") and "not integration" in config.getoption("-m"):
                 item.add_marker(skip_integration)
+        
+        # Skip tests that require SNARK artifacts if they're not available
+        if not snark_available:
+            test_file = str(item.fspath)
+            test_name = item.nodeid.lower()
+            
+            # Skip entire test files that are purely SNARK-focused
+            if any(name in test_file for name in [
+                'test_snark_adapter.py',  # All tests require SnarkClient
+                'test_consistency_circuit_integration.py',  # All tests use circuit functionality
+                'test_working_cross_component_integration.py',  # setup_method creates SnarkClient
+            ]):
+                item.add_marker(skip_snark)
+            
+            # Skip specific SNARK tests in mixed test files
+            elif 'test_adapter_interfaces.py' in test_file:
+                # Only skip TestSnarkAdapterInterface tests and snark-related integration tests
+                if 'snarkadapterinterface' in test_name or ('adapterintegration' in test_name and 'snark' in test_name):
+                    item.add_marker(skip_snark)
+            
+            elif 'test_backend_switching.py' in test_file:
+                # Only skip tests that actually instantiate SnarkClient or MyRedactionEngine
+                if any(keyword in test_name for keyword in [
+                    'snark_backend',  # Tests specifically about SNARK backend
+                    'hybrid_snark_manager',  # Tests that use HybridSNARKManager
+                    'graceful_degradation',  # Creates MyRedactionEngine
+                    'evm_backend_switching',  # Creates MyRedactionEngine
+                    'invalid_configuration_handling',  # Creates MyRedactionEngine
+                    'redaction_backend_switching',  # Creates MyRedactionEngine
+                ]):
+                    item.add_marker(skip_snark)
+            
+            elif 'test_medical_redaction_engine.py' in test_file:
+                # Skip tests that use MyRedactionEngine (requires SnarkClient)
+                if 'my_medical_redaction' in test_name:
+                    item.add_marker(skip_snark)
+            
+            elif 'test_smart_contracts.py' in test_file:
+                # Skip tests that create MyRedactionEngine for policy testing
+                if any(keyword in test_name for keyword in ['medical_contract_policies', 'policy_driven_thresholds']):
+                    item.add_marker(skip_snark)
