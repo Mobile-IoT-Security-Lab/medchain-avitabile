@@ -2,6 +2,96 @@
 
 \section{Appendix}
 
+\subsection{Implementation Status and Manual Steps}
+
+\textbf{Current State (October 30, 2025):} The codebase is structurally complete with full infrastructure for 16-signal proof verification. However, circuit compilation artifacts require regeneration to activate end-to-end functionality.
+
+\subsubsection{Completed Infrastructure}
+
+All Python and circuit source code is complete:
+\begin{itemize}
+    \item Circuit (\texttt{circuits/redaction.circom}): 16 public signals defined and declared in \texttt{component main \{public [...]\}}
+    \item Circuit Mapper (\texttt{medical/circuit\_mapper.py}): Generates all 16 signals with nullifier and consistency data
+    \item SNARK Manager (\texttt{medical/my\_snark\_manager.py}): Extracts nullifier from proof outputs (indices 8--9)
+    \item Backend (\texttt{medical/backends.py}): Full \texttt{request\_data\_redaction\_with\_full\_proofs()} implementation
+    \item Smart Contracts: \texttt{NullifierRegistry.sol} and infrastructure for proof verification
+\end{itemize}
+
+\subsubsection{Circuit Public Signal Mapping}
+
+Table~\ref{tab:public_signals} documents the 16 public signals:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{clp{5.5cm}}
+\toprule
+\textbf{Index} & \textbf{Signal} & \textbf{Description} \\
+\midrule
+0--1 & \texttt{policyHash0/1} & Policy hash (2$\times$128 bits) \\
+2--3 & \texttt{merkleRoot0/1} & Merkle root for inclusion \\
+4--5 & \texttt{originalHash0/1} & Pre-redaction data hash \\
+6--7 & \texttt{redactedHash0/1} & Post-redaction data hash \\
+8--9 & \texttt{nullifier0/1} & Replay-prevention nullifier \\
+10--11 & \texttt{preStateHash0/1} & Pre-redaction state \\
+12--13 & \texttt{postStateHash0/1} & Post-redaction state \\
+14 & \texttt{consistencyCheckPassed} & Proof validity flag \\
+15 & \texttt{policyAllowed} & Authorization flag \\
+\bottomrule
+\end{tabular}
+\caption{Circuit public signal indices. Signals 8--14 added for Phase 2.}
+\label{tab:public_signals}
+\end{table}
+
+\subsubsection{Required Manual Steps}
+
+To activate full on-chain verification:
+
+\begin{enumerate}
+    \item \textbf{Install circom v2.x} (requires Rust toolchain):
+    \begin{verbatim}
+curl --proto '=https' --tlsv1.2 \
+  https://sh.rustup.rs -sSf | sh
+git clone https://github.com/iden3/circom.git
+cd circom && cargo build --release
+cargo install --path circom
+    \end{verbatim}
+    
+    \item \textbf{Recompile circuits} (generates 16-signal artifacts):
+    \begin{verbatim}
+make circuits-compile
+make circuits-setup PTAU=tools/pot12_0000.ptau
+make circuits-export-verifier
+    \end{verbatim}
+    Verification: \texttt{circuits/build/public.json} should contain 16 elements.
+    
+    \item \textbf{Update Solidity contracts} to accept 16 signals:
+    \begin{verbatim}
+// In MedicalDataManager.sol
+function requestDataRedactionWithFullProofs(
+    ...,
+    uint[16] memory pubSignals,  // was uint[1]
+    ...
+) {
+    // Extract nullifier from signals
+    bytes32 nullifier = bytes32(
+        (uint256(pubSignals[8]) | 
+         (uint256(pubSignals[9]) << 128))
+    );
+    require(nullifier == _nullifier, "Mismatch");
+    ...
+}
+    \end{verbatim}
+    
+    \item \textbf{Validate end-to-end}:
+    \begin{verbatim}
+pytest tests/test_consistency_circuit_integration.py
+cd contracts && npx hardhat test
+    \end{verbatim}
+\end{enumerate}
+
+\textbf{Why Manual?} Circuit compilation is time-intensive (5--15 min) and requires circom installation. Build artifacts in \texttt{circuits/build/} currently contain 1 signal from earlier configuration. After recompilation, nullifier extraction, consistency proof verification, and replay attack prevention activate as described in this deliverable.
+
 This appendix captures configuration references and command snippets used during the current iteration.
 
 \subsection{Key Environment Variables}
