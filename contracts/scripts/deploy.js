@@ -33,25 +33,28 @@ async function main() {
   const deployerAddr = deployer.address || (deployer.getAddress && await deployer.getAddress());
   console.log('Deploying with account:', deployerAddr);
 
-  const Factory = await ethers.getContractFactory('MedicalDataManager');
-  const contract = await Factory.deploy();
-  await waitDeployedCompat(contract);
+  // Deploy dependencies first
+  const NullifierFactory = await ethers.getContractFactory('NullifierRegistry');
+  const nullifier = await NullifierFactory.deploy();
+  await waitDeployedCompat(nullifier);
+  const nullifierAddr = await getAddressCompat(nullifier);
+  console.log('NullifierRegistry deployed at:', nullifierAddr);
 
-  // Optional: deploy verifier and set it
-  // Use Groth16-generated verifier alias to avoid clash with stub
+  // Deploy Groth16 verifier (snarkjs-generated alias)
   const VerifierFactory = await ethers.getContractFactory('RedactionVerifierG16');
   const verifier = await VerifierFactory.deploy();
   await waitDeployedCompat(verifier);
-
   const verifierAddr = await getAddressCompat(verifier);
+  console.log('RedactionVerifier (Groth16) deployed at:', verifierAddr);
+
+  // Deploy MedicalDataManager wired to verifier + nullifier registry
+  const Factory = await ethers.getContractFactory('MedicalDataManager');
+  const contract = await Factory.deploy(verifierAddr, nullifierAddr);
+  await waitDeployedCompat(contract);
+
+  // Set verifier type explicitly to Groth16 (enum value 2)
   try {
-    const tx = await contract.setVerifier(verifierAddr);
-    await tx.wait();
-  } catch (e) {
-    console.warn('setVerifier failed (non-fatal):', e && e.message ? e.message : e);
-  }
-  try {
-    const tx2 = await contract.setVerifierType(2); // Groth16
+    const tx2 = await contract.setVerifierType(2);
     await tx2.wait();
   } catch (e) {
     console.warn('setVerifierType failed (non-fatal):', e && e.message ? e.message : e);
@@ -72,7 +75,6 @@ async function main() {
 
   const managerAddr = await getAddressCompat(contract);
   console.log('MedicalDataManager deployed at:', managerAddr);
-  console.log('RedactionVerifier deployed at:', verifierAddr);
   console.log('chainId:', chainId, 'blockNumber:', blockNumber);
 
   // Write per-chain deployment files
@@ -83,12 +85,18 @@ async function main() {
     chainId: chainId,
     blockNumber: blockNumber || 0,
   };
+  const nullifierOut = {
+    address: nullifierAddr,
+    chainId: chainId,
+    blockNumber: blockNumber || 0,
+  };
   const verifierOut = {
     address: verifierAddr,
     chainId: chainId,
     blockNumber: blockNumber || 0,
   };
   fs.writeFileSync(path.join(deploymentsDir, 'MedicalDataManager.json'), JSON.stringify(managerOut, null, 2));
+  fs.writeFileSync(path.join(deploymentsDir, 'NullifierRegistry.json'), JSON.stringify(nullifierOut, null, 2));
   fs.writeFileSync(path.join(deploymentsDir, 'RedactionVerifier.json'), JSON.stringify(verifierOut, null, 2));
 
   // Write consolidated addresses file at contracts root
@@ -98,6 +106,7 @@ async function main() {
     consolidated = JSON.parse(fs.readFileSync(rootFile, 'utf8'));
   } catch {}
   consolidated['MedicalDataManager'] = managerOut;
+  consolidated['NullifierRegistry'] = nullifierOut;
   consolidated['RedactionVerifier'] = verifierOut;
   fs.writeFileSync(rootFile, JSON.stringify(consolidated, null, 2));
 }
